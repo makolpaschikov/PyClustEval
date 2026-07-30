@@ -1,0 +1,41 @@
+experiment:
+  name: flower_clustering_comparison
+  seeds: [42]
+  repetitions: 1
+  output_dir: results
+
+datasets:
+  - name: iris
+
+# Each value creates a separate benchmark case. The partition is generated
+# deterministically and is identical for every algorithm in that case.
+partitioning:
+  clients: [3]
+  modes: [iid]
+  dirichlet_alpha: [0.5]
+
+algorithms:
+  - name: kmeans
+    params:
+      k: [3]
+      max_iter: [100]
+
+  - name: dbscan
+    params:
+      eps: [0.6]
+      min_samples: [5]
+
+  - name: fed_kmeans_flower
+    params:
+      k: [3]
+      rounds: [10]
+      tol: [0.0001]
+      client_cpus: [1.0]
+      client_gpus: [0.0]
+
+metrics:
+  - ari
+  - nmi
+  - silhouette
+  - davies_bouldin
+  - calinski_harabasz
