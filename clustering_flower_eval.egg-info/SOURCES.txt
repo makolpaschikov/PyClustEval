@@ -1,10 +1,12 @@
 README.md
+README.txt
 pyproject.toml
 clustering_eval/__init__.py
 clustering_eval/cli.py
 clustering_eval/algorithms/__init__.py
 clustering_eval/algorithms/base.py
 clustering_eval/algorithms/fed_kmeans_numpy.py
+clustering_eval/algorithms/federated_extra.py
 clustering_eval/algorithms/registry.py
 clustering_eval/algorithms/sklearn_algorithms.py
 clustering_eval/datasets/__init__.py
@@ -17,6 +19,7 @@ clustering_eval/experiments/planner.py
 clustering_eval/experiments/runner.py
 clustering_eval/flower_adapter/__init__.py
 clustering_eval/flower_adapter/fed_kmeans_flower_adapter.py
+clustering_eval/flower_adapter/federated_extra_flower.py
 clustering_eval/metrics/__init__.py
 clustering_eval/metrics/clustering.py
 clustering_eval/results/__init__.py

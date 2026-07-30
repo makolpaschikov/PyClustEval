@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .base import ClusteringAlgorithm
 from .fed_kmeans_numpy import FedKMeansNumpy
+from .federated_extra import FedDiagonalGMMNumpy, FedFuzzyCMeansNumpy
 from .sklearn_algorithms import (
     SklearnAgglomerative,
     SklearnDBSCAN,
@@ -9,6 +10,10 @@ from .sklearn_algorithms import (
     SklearnKMeans,
 )
 from ..flower_adapter.fed_kmeans_flower_adapter import FedKMeansFlowerAdapter
+from ..flower_adapter.federated_extra_flower import (
+    FedDiagonalGMMFlowerAdapter,
+    FedFuzzyCMeansFlowerAdapter,
+)
 
 
 class AlgorithmRegistry:
@@ -25,6 +30,9 @@ class AlgorithmRegistry:
             )
         return self._items[name]
 
+    def names(self) -> list[str]:
+        return sorted(self._items)
+
 
 def default_registry() -> AlgorithmRegistry:
     registry = AlgorithmRegistry()
@@ -35,6 +43,10 @@ def default_registry() -> AlgorithmRegistry:
         SklearnAgglomerative(),
         FedKMeansNumpy(),
         FedKMeansFlowerAdapter(),
+        FedFuzzyCMeansNumpy(),
+        FedFuzzyCMeansFlowerAdapter(),
+        FedDiagonalGMMNumpy(),
+        FedDiagonalGMMFlowerAdapter(),
     ]
     for algorithm in algorithms:
         registry.register(algorithm)

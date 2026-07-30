@@ -242,16 +242,21 @@ def _invoke_algorithm(
     )
 
     for key, value in aliases.items():
-        if value is not None and (has_var_kwargs or key in accepted):
+        # partition=None is meaningful for local adapters: their run() methods
+        # may require the argument even though no actual split is used.
+        is_partition_alias = key in {"partition", "partitions", "client_partitions"}
+        if (value is not None or is_partition_alias) and (
+            has_var_kwargs or key in accepted
+        ):
             kwargs[key] = value
 
     try:
         return run(**kwargs)
     except TypeError as first_error:
-        # Compatibility fallback for simple adapters using positional X.
+        # Compatibility fallback for adapters using positional X.
+        # Always pass partition explicitly: local adapters receive None,
+        # federated adapters receive the generated client partition.
         try:
-            if partition is None:
-                return run(X, params=params, seed=seed)
             return run(X, partition=partition, params=params, seed=seed)
         except TypeError:
             raise first_error
