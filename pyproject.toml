@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "clustering-flower-eval"
 version = "0.1.0"
 description = "TimeEval-like benchmark framework for clustering algorithms with Flower-ready adapters"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
   "numpy>=1.24",
   "pandas>=2.0",
@@ -16,6 +16,7 @@ dependencies = [
 
 [project.optional-dependencies]
 flower = ["flwr[simulation]>=1.20,<2.0"]
+dev = ["pytest>=8.0"]
 
 [project.scripts]
 clustereval = "clustering_eval.cli:main"

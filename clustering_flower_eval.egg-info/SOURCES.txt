@@ -1,4 +1,3 @@
-README.md
 README.txt
 pyproject.toml
 clustering_eval/__init__.py
@@ -9,6 +8,9 @@ clustering_eval/algorithms/fed_kmeans_numpy.py
 clustering_eval/algorithms/federated_extra.py
 clustering_eval/algorithms/registry.py
 clustering_eval/algorithms/sklearn_algorithms.py
+clustering_eval/application/__init__.py
+clustering_eval/application/comparison_service.py
+clustering_eval/application/dto.py
 clustering_eval/datasets/__init__.py
 clustering_eval/datasets/base.py
 clustering_eval/datasets/partitioning.py
@@ -23,6 +25,7 @@ clustering_eval/flower_adapter/federated_extra_flower.py
 clustering_eval/metrics/__init__.py
 clustering_eval/metrics/clustering.py
 clustering_eval/results/__init__.py
+clustering_eval/results/history_store.py
 clustering_eval/results/store.py
 clustering_flower_eval.egg-info/PKG-INFO
 clustering_flower_eval.egg-info/SOURCES.txt
@@ -30,3 +33,4 @@ clustering_flower_eval.egg-info/dependency_links.txt
 clustering_flower_eval.egg-info/entry_points.txt
 clustering_flower_eval.egg-info/requires.txt
 clustering_flower_eval.egg-info/top_level.txt
+tests/test_application_smoke.py

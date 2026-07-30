@@ -1,32 +1,101 @@
-# clustering-flower-eval
+# PyClustEval
 
-TimeEval-like benchmark framework for comparing clustering algorithms. The core is independent from Flower; Flower is treated as an execution backend/adapter.
+PyClustEval — desktop-приложение и Python framework для сравнения локальных и федеративных алгоритмов кластеризации.
 
-## Install
+## Возможности
 
-```bash
-pip install -e .
+- локальные алгоритмы: K-Means, DBSCAN, GMM, Agglomerative;
+- федеративные NumPy-реализации: K-Means, Fuzzy C-Means, diagonal GMM;
+- федеративные Flower Simulation-реализации тех же алгоритмов;
+- IID и Dirichlet partitioning;
+- ARI, NMI, Silhouette, Davies–Bouldin, Calinski–Harabasz;
+- desktop UI на tkinter;
+- typed DTO для запросов и отчётов;
+- автоматическая история экспериментов в JSON, CSV и log.
+
+## Требования
+
+Рекомендуется Python 3.12.
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[flower,dev]"
 ```
 
-Optional Flower runtime:
+Для запуска только локальных и NumPy-федеративных алгоритмов:
 
-```bash
-pip install -e '.[flower]'
+```powershell
+python -m pip install -e ".[dev]"
 ```
 
-## Run example
+## Запуск UI
 
-```bash
-clustereval run configs/example.yaml
+```powershell
+python pyclusteval_ui.py
 ```
 
-Results are written to `results/`.
+## История запусков
 
-## Architecture
+Каждый успешный эксперимент создаёт каталог:
 
-- `datasets`: dataset registry and federated partitioning
-- `algorithms`: unified algorithm adapters
-- `experiments`: config parsing, planning, runner
-- `metrics`: clustering quality metrics
-- `results`: CSV/JSON storage
-- `flower_adapter`: placeholder for real Flower ServerApp/ClientApp/Strategy integration
+```text
+history/
+└── YYYY-MM-DD_HH-MM-SS/
+    ├── report.json
+    ├── results.csv
+    └── execution.log
+```
+
+Если несколько запусков начались в одну секунду, используются суффиксы `_2`, `_3` и далее.
+
+## Архитектура
+
+```text
+UI
+  -> ComparisonService
+      -> DatasetRegistry
+      -> Preprocessing
+      -> Partitioning
+      -> AlgorithmRegistry
+      -> Algorithm Adapter
+      -> Metrics
+      -> HistoryStore
+  -> ComparisonReport
+```
+
+UI больше не содержит orchestration. Он создаёт `RunRequest`, запускает `ComparisonService` в worker thread и отображает `ComparisonReport`.
+
+Подробное описание и редактируемая Draw.io-схема находятся в `docs/`.
+
+## Структура
+
+```text
+PyClustEval/
+├── pyclusteval_ui.py
+├── clustering_eval/
+│   ├── application/
+│   │   ├── dto.py
+│   │   └── comparison_service.py
+│   ├── algorithms/
+│   ├── datasets/
+│   ├── experiments/
+│   ├── flower_adapter/
+│   ├── metrics/
+│   └── results/
+│       ├── history_store.py
+│       └── store.py
+├── configs/
+├── docs/
+├── history/
+└── tests/
+```
+
+## Тесты
+
+```powershell
+python -m pytest
+```
+
+Flower-тесты требуют установленного `flwr[simulation]` и Ray.
