@@ -210,8 +210,8 @@ class ComparisonService:
         )
 
         directory = self.history_store.save(report)
-        if on_log is not None:
-            on_log(f"\nРезультаты сохранены: {directory}\n")
+        log(f"\nРезультаты сохранены: {directory}")
+        self.history_store.refresh_report(report)
         return report
 
 

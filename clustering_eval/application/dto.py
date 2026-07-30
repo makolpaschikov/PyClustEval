@@ -102,3 +102,34 @@ class ComparisonReport:
             str(self.history_directory) if self.history_directory else None
         )
         return value
+
+@dataclass(frozen=True, slots=True)
+class HistoryExperimentSummary:
+    history_key: str
+    experiment_id: str
+    started_at: datetime
+    mode: RunMode
+    dataset_name: str
+    algorithms: tuple[str, ...]
+    duration_sec: float
+    result_count: int
+
+
+@dataclass(slots=True)
+class HistoryExperimentDetails:
+    history_key: str
+    experiment_id: str
+    started_at: datetime
+    finished_at: datetime
+    mode: RunMode
+    dataset_name: str
+    dataset_display_name: str
+    n_samples: int
+    n_features: int
+    seed: int
+    algorithms: tuple[str, ...]
+    results: list[AlgorithmRunReport]
+    duration_sec: float
+    partition: PartitionReport | None = None
+    log_text: str = ""
+

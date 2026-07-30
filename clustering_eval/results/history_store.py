@@ -72,6 +72,17 @@ class HistoryStore:
         )
         return destination
 
+    def refresh_report(self, report: ComparisonReport) -> None:
+        """Rewrite mutable report metadata and log after final UI messages."""
+        if report.history_directory is None:
+            raise ValueError("Report has not been saved yet")
+        destination = Path(report.history_directory)
+        self._write_json_atomic(destination / "report.json", report.to_dict())
+        self._write_text_atomic(
+            destination / "execution.log",
+            "".join(report.log_lines),
+        )
+
     def _unique_directory(self, base_name: str) -> Path:
         self.root.mkdir(parents=True, exist_ok=True)
         candidate = self.root / base_name
