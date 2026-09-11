@@ -1,0 +1,102 @@
+{
+  "repos": {
+    "fedkmeans": {
+      "url": "https://github.com/swiergarst/fedKMeans",
+      "commit": "b1f39cf481721da232f9426bc35feb2b79cf18d1"
+    },
+    "fdbscan": {
+      "url": "https://github.com/GM862001/F_DBSCAN",
+      "commit": "6223c2d9a0f893f5b92699afd918775c2e09adf4"
+    },
+    "fkdc": {
+      "url": "https://github.com/mlyizhang/FKDC",
+      "commit": "37f10faa27fbc6bc0335882909cf744b8a2c237e"
+    },
+    "nnfc": {
+      "url": "https://github.com/mlyizhang/nnfc",
+      "commit": "404af20bf4abd524dd1c5bc0968e0e1a2491f828"
+    }
+  },
+  "files": [
+    {
+      "source_archive_path": "fkm/fedKMeans-master/fed_kmeans.py",
+      "vendored_path": "clustering_eval/third_party/fedkmeans/fed_kmeans.py",
+      "source_sha256": "2ed8a99e5f418ae8befa02b8b11595a0bf7042602a8321be87a76325358d88ff",
+      "vendored_sha256": "2ed8a99e5f418ae8befa02b8b11595a0bf7042602a8321be87a76325358d88ff",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "fkm/fedKMeans-master/common.py",
+      "vendored_path": "clustering_eval/third_party/fedkmeans/common.py",
+      "source_sha256": "9817d16b983ec4cc42a1a9287ec618be956f6ac62e9ebdf9e1562f41ba2fb9dd",
+      "vendored_sha256": "9817d16b983ec4cc42a1a9287ec618be956f6ac62e9ebdf9e1562f41ba2fb9dd",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "fdbscan/F_DBSCAN-main/HF_DBSCAN/fd_dbscan.py",
+      "vendored_path": "clustering_eval/third_party/fdbscan/fd_dbscan.py",
+      "source_sha256": "534590eafb5742587319db7db84e44d4582978e882f9dcdeaddf29f92567f83e",
+      "vendored_sha256": "534590eafb5742587319db7db84e44d4582978e882f9dcdeaddf29f92567f83e",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "fdbscan/F_DBSCAN-main/HF_DBSCAN/fd_client.py",
+      "vendored_path": "clustering_eval/third_party/fdbscan/fd_client.py",
+      "source_sha256": "60073db54a0048ea5edf2e0350af87698cd44f7500b42f95745220c064d38002",
+      "vendored_sha256": "60073db54a0048ea5edf2e0350af87698cd44f7500b42f95745220c064d38002",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "fdbscan/F_DBSCAN-main/HF_DBSCAN/fd_server.py",
+      "vendored_path": "clustering_eval/third_party/fdbscan/fd_server.py",
+      "source_sha256": "d3424b56df905fa5f34f25b4049631ccdb3dc5bc988d70e90f52248465834194",
+      "vendored_sha256": "d3424b56df905fa5f34f25b4049631ccdb3dc5bc988d70e90f52248465834194",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "fkdc/FKDC-main/federatedclustering/FKDC/utils.py",
+      "vendored_path": "clustering_eval/third_party/fkdc/utils_original.txt",
+      "source_sha256": "490a0c7e6c1c89c7ebeb9e12786e74f6c30c63956325640e97318e6e4b92e4b5",
+      "vendored_sha256": "490a0c7e6c1c89c7ebeb9e12786e74f6c30c63956325640e97318e6e4b92e4b5",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "fkdc/FKDC-main/federatedclustering/FKDC/fkdc_main.py",
+      "vendored_path": "clustering_eval/third_party/fkdc/fkdc_main.py",
+      "source_sha256": "3ddda9e02822a5f37ce830f0302c91cf25e35bc35f3aa0665239a34c61d5d384",
+      "vendored_sha256": "3ddda9e02822a5f37ce830f0302c91cf25e35bc35f3aa0665239a34c61d5d384",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "nnfc/nnfc-main/codes/utils.py",
+      "vendored_path": "clustering_eval/third_party/nnfc/utils_original.txt",
+      "source_sha256": "0e72ff54dc7cbd31918ee549a06b2dc00b99da30e88fa0c4a4663396df57d9d4",
+      "vendored_sha256": "0e72ff54dc7cbd31918ee549a06b2dc00b99da30e88fa0c4a4663396df57d9d4",
+      "byte_identical": true
+    },
+    {
+      "source_archive_path": "nnfc/nnfc-main/codes/nnfc.py",
+      "vendored_path": "clustering_eval/third_party/nnfc/nnfc.py",
+      "source_sha256": "cfbabd8bd22883a818c8c889198993d7b4622859836e9333e34ba18d43bac69a",
+      "vendored_sha256": "cfbabd8bd22883a818c8c889198993d7b4622859836e9333e34ba18d43bac69a",
+      "byte_identical": true
+    }
+  ],
+  "compatibility_patches": [
+    {
+      "file": "clustering_eval/third_party/fkdc/utils.py",
+      "original": "clustering_eval/third_party/fkdc/utils_original.txt",
+      "changes": [
+        "scalar min(a,b) -> numpy.minimum(a,b) because numpy wildcard import shadows Python min"
+      ]
+    },
+    {
+      "file": "clustering_eval/third_party/nnfc/utils.py",
+      "original": "clustering_eval/third_party/nnfc/utils_original.txt",
+      "changes": [
+        "fix one mixed tab/space indentation causing TabError",
+        "scalar min(a,b) -> numpy.minimum(a,b) because numpy wildcard import shadows Python min"
+      ]
+    }
+  ]
+}

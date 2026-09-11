@@ -97,6 +97,8 @@ class ComparisonTab(ttk.Frame):
         self.clients = tk.StringVar(value="5")
         self.partition_mode = tk.StringVar(value="iid")
         self.alpha = tk.StringVar(value="0.5")
+        self.hf_dbscan_l = tk.StringVar(value="0.15")
+        self.hf_dbscan_min_points = tk.StringVar(value="4")
 
         if mode == "federated":
             ttk.Label(controls, text="Количество клиентов").grid(row=2, column=1, sticky="w")
@@ -105,9 +107,13 @@ class ComparisonTab(ttk.Frame):
             ttk.Combobox(controls, textvariable=self.partition_mode, values=("iid", "dirichlet"), state="readonly", width=15).grid(row=3, column=2, padx=(0, 10), sticky="w")
             ttk.Label(controls, text="Dirichlet alpha").grid(row=2, column=3, sticky="w")
             ttk.Entry(controls, textvariable=self.alpha, width=12).grid(row=3, column=3, sticky="w")
+            ttk.Label(controls, text="HF_DBSCAN L (если выбран)").grid(row=4, column=0, sticky="w", pady=(10, 0))
+            ttk.Entry(controls, textvariable=self.hf_dbscan_l, width=12).grid(row=5, column=0, padx=(0, 10), sticky="w")
+            ttk.Label(controls, text="HF_DBSCAN MIN_POINTS").grid(row=4, column=1, sticky="w", pady=(10, 0))
+            ttk.Entry(controls, textvariable=self.hf_dbscan_min_points, width=12).grid(row=5, column=1, padx=(0, 10), sticky="w")
 
         self.run_button = ttk.Button(controls, text="Запустить сравнение", command=self._submit)
-        self.run_button.grid(row=4, column=0, columnspan=4, pady=(14, 0), sticky="ew")
+        self.run_button.grid(row=6 if mode == "federated" else 4, column=0, columnspan=4, pady=(14, 0), sticky="ew")
         for column in range(4):
             controls.columnconfigure(column, weight=1)
 
@@ -144,6 +150,14 @@ class ComparisonTab(ttk.Frame):
                 num_clients=int(self.clients.get()),
                 partition_mode=self.partition_mode.get(),  # type: ignore[arg-type]
                 dirichlet_alpha=float(self.alpha.get()),
+                algorithm_params=(
+                    {
+                        "L": float(self.hf_dbscan_l.get()),
+                        "MIN_POINTS": int(self.hf_dbscan_min_points.get()),
+                    }
+                    if "Adapted HF_DBSCAN" in {self.algorithm_1.get(), self.algorithm_2.get()}
+                    else {}
+                ),
             )
             request.validate()
         except ValueError as error:

@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 from .base import ClusteringAlgorithm
+from .author_adapters import (
+    AdaptedAuthorFDBSCAN,
+    AdaptedAuthorFKDC,
+    AdaptedAuthorFKM,
+    AdaptedAuthorNNFC,
+)
 from .fed_kmeans_numpy import FedKMeansNumpy
 from .federated_extra import FedDiagonalGMMNumpy, FedFuzzyCMeansNumpy
 from .sklearn_algorithms import (
@@ -47,6 +53,10 @@ def default_registry() -> AlgorithmRegistry:
         FedFuzzyCMeansFlowerAdapter(),
         FedDiagonalGMMNumpy(),
         FedDiagonalGMMFlowerAdapter(),
+        AdaptedAuthorFKM(),
+        AdaptedAuthorFDBSCAN(),
+        AdaptedAuthorFKDC(),
+        AdaptedAuthorNNFC(),
     ]
     for algorithm in algorithms:
         registry.register(algorithm)

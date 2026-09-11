@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any, Callable
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from ..algorithms.registry import default_registry as algorithm_registry
 from ..datasets.partitioning import make_partition, partition_fingerprint
@@ -77,12 +77,12 @@ class ComparisonService:
         log(f"Загрузка датасета {request.dataset_name}…")
         dataset = _load_dataset(self.dataset_registry, request.dataset_name)
         X_raw, y, dataset_display_name = _extract_xy(dataset)
-        X = StandardScaler().fit_transform(np.asarray(X_raw, dtype=np.float64))
+        X_raw = np.asarray(X_raw, dtype=np.float64)
 
         partition = None
         partition_report = None
         if request.mode == "federated":
-            if request.num_clients > len(X):
+            if request.num_clients > len(X_raw):
                 raise ValueError(
                     f"Number of clients ({request.num_clients}) exceeds "
                     f"the number of samples ({len(X)})"
@@ -94,7 +94,7 @@ class ComparisonService:
             )
             partition = make_partition(
                 mode=request.partition_mode,
-                n_samples=len(X),
+                n_samples=len(X_raw),
                 num_clients=request.num_clients,
                 seed=request.seed,
                 y=y,
@@ -135,6 +135,9 @@ class ComparisonService:
         for name in request.algorithms:
             log(f"\nЗапуск {name}…")
             algorithm = _get_registry_item(self.algorithm_registry, name)
+            X = _preprocess_algorithm_input(X_raw, algorithm)
+            preprocessing = getattr(algorithm, "input_preprocessing", "standard")
+            log(f"Preprocessing {name}: {preprocessing}")
 
             actual_federated = _is_federated(name, algorithm)
             if request.mode == "local" and actual_federated:
@@ -202,8 +205,8 @@ class ComparisonService:
             finished_at=datetime.now().astimezone(),
             request=request,
             dataset_display_name=dataset_display_name,
-            n_samples=int(X.shape[0]),
-            n_features=int(X.shape[1]),
+            n_samples=int(X_raw.shape[0]),
+            n_features=int(X_raw.shape[1]),
             results=results,
             partition=partition_report,
             log_lines=log_lines,
@@ -213,6 +216,27 @@ class ComparisonService:
         log(f"\nРезультаты сохранены: {directory}")
         self.history_store.refresh_report(report)
         return report
+
+
+
+def _preprocess_algorithm_input(X_raw: np.ndarray, algorithm: Any) -> np.ndarray:
+    """Apply the preprocessing declared by an algorithm adapter.
+
+    Historical PyClustEval algorithms use StandardScaler. Author adapters can
+    opt into the preprocessing required by their published implementation.
+    """
+    mode = str(getattr(algorithm, "input_preprocessing", "standard")).lower()
+    X = np.asarray(X_raw, dtype=np.float64)
+    if mode == "standard":
+        return StandardScaler().fit_transform(X)
+    if mode == "minmax":
+        return MinMaxScaler().fit_transform(X)
+    if mode in {"raw", "none"}:
+        return np.array(X, copy=True)
+    raise ValueError(
+        f"Unsupported input preprocessing {mode!r} for "
+        f"{getattr(algorithm, 'name', type(algorithm).__name__)}"
+    )
 
 
 def _registry_names(registry: Any) -> list[str]:

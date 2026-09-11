@@ -13,6 +13,9 @@ class AlgorithmResult:
 
 class ClusteringAlgorithm:
     name: str = "base"
+    # ComparisonService keeps the historical StandardScaler behavior unless an
+    # adapter declares the preprocessing used by its author implementation.
+    input_preprocessing: str = "standard"
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         raise NotImplementedError

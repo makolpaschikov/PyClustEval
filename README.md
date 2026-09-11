@@ -99,3 +99,14 @@ python -m pytest
 ```
 
 Flower-тесты требуют установленного `flwr[simulation]` и Ray.
+
+## Author-source adapted algorithms
+
+The federated registry also contains four adapters that execute the specific author implementations supplied with this project:
+
+- `Adapted FKM` — swiergarst/fedKMeans
+- `Adapted HF_DBSCAN` — GM862001/F_DBSCAN (horizontal implementation)
+- `Adapted FKDC` — mlyizhang/FKDC
+- `Adapted NN-FC` — mlyizhang/nnfc
+
+See `docs/ADAPTATION.md` for exact source commits, executed files, and every adaptation seam.

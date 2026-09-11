@@ -39,3 +39,24 @@ def test_federated_numpy_comparison(tmp_path: Path) -> None:
     assert report.partition is not None
     assert report.partition.num_clients == 5
     assert sum(report.partition.client_sample_counts) == report.n_samples
+
+
+def test_hf_dbscan_author_preprocessing_is_used(tmp_path: Path) -> None:
+    service = ComparisonService(history_store=HistoryStore(tmp_path / "history"))
+    report = service.compare(
+        RunRequest(
+            mode="federated",
+            dataset_name="iris",
+            algorithms=("Adapted HF_DBSCAN", "Adapted FKM"),
+            seed=42,
+            num_clients=5,
+            partition_mode="iid",
+            algorithm_params={"L": 0.15, "MIN_POINTS": 4, "rounds": 2},
+        )
+    )
+
+    hf = next(item for item in report.results if item.algorithm == "Adapted HF_DBSCAN")
+    assert hf.model_state["variant"] == "horizontal"
+    assert hf.model_state["preprocessing"].startswith("MinMaxScaler")
+    assert hf.ari is not None and hf.ari > 0.5
+    assert len(hf.model_state["dense_cells"]) > 0
