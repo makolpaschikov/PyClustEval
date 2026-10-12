@@ -47,8 +47,10 @@ def _dist2(X: np.ndarray, centers: np.ndarray) -> np.ndarray:
 
 
 class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
+    common_param_support = ("k", "rounds", "tol", "seed")
     name = "fed_fuzzy_cmeans_flower"
     is_federated = True
+    default_params = {"fuzziness": 2.0}
     execution_backend = "flower-simulation"
 
     def run(self, X, partition, params, seed):
@@ -177,8 +179,10 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
 
 
 class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+    common_param_support = ("k", "rounds", "tol", "seed")
     name = "fed_gmm_diag_flower"
     is_federated = True
+    default_params = {"reg_covar": 1e-6}
     execution_backend = "flower-simulation"
 
     def run(self, X, partition, params, seed):

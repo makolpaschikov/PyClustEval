@@ -36,6 +36,19 @@ python -m pip install -e ".[dev]"
 python pyclusteval_ui.py
 ```
 
+
+## Fair benchmark profile and compatibility tests
+
+Comparisons now use one explicit common benchmark profile: the same seed, requested `k`, client count, partition, round budget, convergence tolerance, and compatible local iteration budget are passed to both algorithms. Algorithm-specific parameters (for example HF_DBSCAN `L`, density thresholds, fuzziness, or GMM regularization) remain isolated per algorithm and no longer leak into the competitor. If `K` is left blank in the UI, the benchmark uses the number of ground-truth classes as an explicitly recorded **oracle-k** condition.
+
+The default federated partition guarantees at least 3 samples/client, matching the strictest currently integrated author implementation (NN-FC). Each result stores `model_state["benchmark"]` with its effective parameters and `model_state["diagnostics"]` with noise/degeneracy information.
+
+A compatibility regression matrix covers the four built-in datasets. In the current non-Flower sweep there are 80 cases: **73 normal, 6 degenerate, 1 near-degenerate, 0 execution errors**. Degenerate runs are not silently hyperparameter-tuned; they remain visible as benchmark results. See `docs/BENCHMARK_FAIRNESS.md` and `docs/compatibility_matrix.csv`.
+
+```powershell
+python tools/compatibility_matrix.py --output docs/compatibility_matrix.csv
+```
+
 ## История запусков
 
 Каждый успешный эксперимент создаёт каталог:
@@ -102,11 +115,21 @@ Flower-тесты требуют установленного `flwr[simulation]`
 
 ## Author-source adapted algorithms
 
-The federated registry also contains four adapters that execute the specific author implementations supplied with this project:
+The federated registry also contains five adapters that execute the specific author implementations supplied with this project:
 
 - `Adapted FKM` — swiergarst/fedKMeans
 - `Adapted HF_DBSCAN` — GM862001/F_DBSCAN (horizontal implementation)
 - `Adapted FKDC` — mlyizhang/FKDC
 - `Adapted NN-FC` — mlyizhang/nnfc
+- `Adapted p-FClus` — supplied `p-FClus-main.zip` / arXiv:2407.04302
 
 See `docs/ADAPTATION.md` for exact source commits, executed files, and every adaptation seam.
+
+### Compatibility and density sensitivity audits
+
+```bash
+python tools/compatibility_matrix.py --output docs/compatibility_matrix.csv
+python tools/density_sensitivity.py --output docs/density_sensitivity.csv
+```
+
+The density sweep uses the same five-candidate unlabeled budget and the shared `density_min_samples` threshold for DBSCAN/HF_DBSCAN; ARI/NMI are not used for parameter selection. See `docs/BENCHMARK_FAIRNESS.md`.

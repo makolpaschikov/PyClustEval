@@ -6,6 +6,7 @@ from .author_adapters import (
     AdaptedAuthorFKDC,
     AdaptedAuthorFKM,
     AdaptedAuthorNNFC,
+    AdaptedAuthorPFClus,
 )
 from .fed_kmeans_numpy import FedKMeansNumpy
 from .federated_extra import FedDiagonalGMMNumpy, FedFuzzyCMeansNumpy
@@ -57,6 +58,7 @@ def default_registry() -> AlgorithmRegistry:
         AdaptedAuthorFDBSCAN(),
         AdaptedAuthorFKDC(),
         AdaptedAuthorNNFC(),
+        AdaptedAuthorPFClus(),
     ]
     for algorithm in algorithms:
         registry.register(algorithm)

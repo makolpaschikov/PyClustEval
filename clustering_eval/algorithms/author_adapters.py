@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
 import sys
@@ -114,6 +115,37 @@ def _nnfc_module():
     )
 
 
+@lru_cache(maxsize=1)
+def _pfclus_module():
+    """Load only the author p-FClus function definitions from the unchanged script.
+
+    The supplied script executes an Adult-data experiment at import time and has no
+    main guard. Parsing its AST lets the benchmark execute the exact author
+    ``pFClus`` and ``sgd_scipy`` function bodies without executing that experiment.
+    """
+    path = _THIRD_PARTY / "pfclus" / "p-FClus.py"
+    source = path.read_text(encoding="utf-8")
+    tree = ast.parse(source, filename=str(path))
+    wanted = {"pFClus", "sgd_scipy"}
+    definitions = [
+        node for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in wanted
+    ]
+    found = {node.name for node in definitions}
+    if found != wanted:
+        raise ImportError(
+            f"p-FClus author source is missing expected functions: {sorted(wanted - found)}"
+        )
+
+    module = types.ModuleType("pyclusteval_author_pfclus")
+    module.__file__ = str(path)
+    module.__dict__.update({"np": np, "KMeans": KMeans})
+    extracted = ast.Module(body=definitions, type_ignores=[])
+    ast.fix_missing_locations(extracted)
+    exec(compile(extracted, str(path), "exec"), module.__dict__)
+    return module
+
+
 def _require_partition(partition: list[np.ndarray] | None) -> list[np.ndarray]:
     if partition is None or not partition:
         raise ValueError("Author-adapted federated algorithm requires a non-empty partition")
@@ -147,6 +179,8 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
 
     name = "Adapted FKM"
     is_federated = True
+    common_param_support = ("k", "rounds", "seed")
+    default_params = {"iter_local": 1, "drop_empty_clusters": True, "weighted_agg": True, "init": "k-means++"}
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
@@ -239,12 +273,147 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
         return AlgorithmResult(labels=labels, model_state=state, history=history, runtime_sec=runtime, communication_bytes=int(communication))
 
 
+
+
+class AdaptedAuthorPFClus(ClusteringAlgorithm):
+    """Adapter around the exact pFClus/sgd_scipy functions from the supplied source."""
+
+    name = "Adapted p-FClus"
+    is_federated = True
+    common_param_support = ("k", "seed")
+    input_preprocessing = "raw"
+    default_params = {"pfclus_max_iters": 10}
+
+    def run(
+        self,
+        X: np.ndarray,
+        partition: list[np.ndarray] | None,
+        params: dict[str, Any],
+        seed: int,
+    ) -> AlgorithmResult:
+        part = _require_partition(partition)
+        k = _cluster_count(params)
+        max_iters = int(params.get("pfclus_max_iters", params.get("max_iters", 10)))
+        if max_iters < 1:
+            raise ValueError("p-FClus max_iters must be >= 1")
+        if k > len(X):
+            raise ValueError("n_clusters cannot exceed n_samples")
+        if any(len(idx) == 0 for idx in part):
+            raise ValueError("p-FClus author implementation cannot run on an empty client")
+
+        mod = _pfclus_module()
+        start = perf_counter()
+        communication = 0
+        history: list[dict[str, Any]] = []
+
+        with _numpy_seed(seed):
+            # The original pFClus body reads module-global total_classes.
+            mod.total_classes = k
+
+            client_data: list[np.ndarray] = []
+            local_centers: list[np.ndarray] = []
+            for indices in part:
+                data = np.asarray(X[indices], dtype=float)
+                local_k = min(k, len(data))
+                centers, _labels = mod.sgd_scipy(data, local_k)
+                centers = np.asarray(centers, dtype=float)
+                client_data.append(data)
+                local_centers.append(centers)
+                communication += centers.nbytes
+
+            all_local_centers = np.concatenate(local_centers, axis=0)
+            if len(all_local_centers) < k:
+                raise ValueError(
+                    "p-FClus produced fewer uploaded local centers than requested global clusters"
+                )
+
+            # Exact server step from the author's experiment.
+            server_kmeans = KMeans(n_clusters=k)
+            server_kmeans.fit(all_local_centers)
+            global_centers = np.asarray(server_kmeans.cluster_centers_, dtype=float)
+            global_centers_before_personalization = np.copy(global_centers)
+            communication += global_centers.nbytes * len(part)
+
+            labels = np.full(len(X), -1, dtype=int)
+            personalized_centers: list[np.ndarray] = []
+            client_costs: list[float] = []
+
+            # Preserve author behavior: pFClus aliases and mutates global_centers.
+            author_global_centers = global_centers
+            for indices, data, centers in zip(part, client_data, local_centers):
+                local_k = min(k, len(data))
+                personalized, local_pred = mod.pFClus(
+                    author_global_centers,
+                    centers,
+                    data,
+                    k=local_k,
+                    max_iters=max_iters,
+                )
+                personalized = np.asarray(personalized, dtype=float)
+                local_pred = np.asarray(local_pred, dtype=int)
+                labels[indices] = local_pred
+                personalized_centers.append(np.copy(personalized))
+
+                assigned = personalized[local_pred]
+                client_costs.append(
+                    float(np.linalg.norm(data - assigned, axis=1).mean())
+                )
+
+            history.append({
+                "round": 1,
+                "uploaded_local_centers": int(len(all_local_centers)),
+                "global_centers_before_personalization": global_centers_before_personalization,
+                "client_mean_clustering_costs": list(client_costs),
+            })
+
+        runtime = perf_counter() - start
+        state = _source_state(
+            "supplied p-FClus-main.zip / arXiv:2407.04302",
+            "3fd7c09d98fb23c9807931c6363ad1181eb283f1",
+            "main_algo/p-FClus.py: pFClus, sgd_scipy + top-level server KMeans step",
+        )
+        state.update({
+            "rounds": 1,
+            "requested_clusters": k,
+            "max_iters": max_iters,
+            "preprocessing": "raw (author script applies no scaler)",
+            "global_centers_before_personalization": global_centers_before_personalization,
+            "personalized_centers": personalized_centers,
+            "client_mean_clustering_costs": client_costs,
+            "mean_client_clustering_cost": float(np.mean(client_costs)),
+            "std_client_clustering_cost": float(np.std(client_costs)),
+            "max_client_clustering_cost": float(np.max(client_costs)),
+            "adapter_changes": [
+                "unchanged p-FClus.py is AST-loaded only for pFClus/sgd_scipy because the author script executes adult.csv experiment code at import time",
+                "PyClustEval partition arrays replace the author experiment's externally prepared client-data list",
+                "author top-level server KMeans over concatenated local centers is reproduced exactly in the adapter",
+                "module-global total_classes is set to benchmark k because the original pFClus function reads that global instead of its k argument for the counter size",
+                "final per-client labels are placed back at their original PyClustEval sample indices",
+                "NumPy RNG is seeded/restored by the benchmark harness for reproducibility",
+            ],
+            "known_author_behavior": (
+                "pFClus mutates the shared global_centers array in place; "
+                "client personalization is therefore order-dependent in the supplied "
+                "experiment and that behavior is retained"
+            ),
+        })
+        return AlgorithmResult(
+            labels=labels,
+            model_state=state,
+            history=history,
+            runtime_sec=runtime,
+            communication_bytes=int(communication),
+        )
+
+
 class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
     """In-process adapter that directly calls the author's HF_DBSCAN kernel classes."""
 
     name = "Adapted HF_DBSCAN"
     is_federated = True
+    common_param_support = ("density_min_samples", "seed")
     input_preprocessing = "minmax"
+    default_params = {"L": 0.15, "missing_clients_percentage": 0}
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
@@ -252,7 +421,12 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
         # PyClustEval benchmarks arbitrary datasets, so 0.15 is the UI/framework
         # default after MinMax scaling; callers can pass L=0.03 to reproduce banana.
         L = float(params.get("L", params.get("cell_size", 0.15)))
-        min_points = int(params.get("MIN_POINTS", params.get("min_points", 4)))
+        min_points = int(
+            params.get(
+                "MIN_POINTS",
+                params.get("min_points", params.get("density_min_samples", 4)),
+            )
+        )
         missing_pct = int(params.get("missing_clients_percentage", 0))
         if L <= 0 or min_points < 1:
             raise ValueError("F_DBSCAN requires L > 0 and MIN_POINTS >= 1")
@@ -321,7 +495,8 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
                 "author MinMaxScaler preprocessing retained via algorithm input_preprocessing=minmax",
                 "PyClustEval partition arrays replace author ARFF loader/StratifiedKFold",
                 "NumPy/Python client-selection RNG seeded by benchmark harness",
-                "clustering kernel FDBSCAN_Client/FDBSCAN_Server is the vendored author source",
+                "FDBSCAN_Client/FDBSCAN_Server are vendored author source with exact-semantics scalability fixes: sparse occupied-cell counting and direct 2*d axial-neighbor generation",
+                "the untouched uploaded fd_dbscan.py is preserved as fd_dbscan_original.py for audit",
             ],
         })
         return AlgorithmResult(labels=labels, model_state=state, history=[], runtime_sec=runtime, communication_bytes=int(communication))
@@ -382,6 +557,8 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
 
     name = "Adapted FKDC"
     is_federated = True
+    common_param_support = ("k", "seed")
+    min_client_samples = 2
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
@@ -412,6 +589,7 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
             "oracle_cluster_count": k,
             "adapter_changes": [
                 "author SNN scalar min compatibility-fixed to numpy.minimum; original preserved in utils_original.txt",
+                "author SNN uninitialized shared-neighbor buffer initialized with -1 sentinel to remove nondeterministic false shared-neighbor matches and 0/0 warnings",
                 "load_dataset patched to return PyClustEval in-memory partition data",
                 "true_label replaced by synthetic labels carrying only the requested cluster count",
                 "author metric functions patched only to capture predicted labels for AlgorithmResult",
@@ -428,6 +606,8 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
 
     name = "Adapted NN-FC"
     is_federated = True
+    common_param_support = ("k", "seed")
+    min_client_samples = 3
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
@@ -455,7 +635,8 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
             "original_parameters": original_parameters,
             "oracle_cluster_count": k,
             "adapter_changes": [
-                "TabError indentation and shadowed scalar min compatibility fixes applied to executable codes/utils.py; original preserved as utils_original.txt",
+                "TabError indentation, shadowed scalar min, and uninitialized shared-neighbor buffer compatibility fixes applied to executable codes/utils.py; original preserved as utils_original.txt",
+                "author O(m^2) max-ratio loop replaced by the exact positive-value identity max(arr)/min(arr) so high-dimensional datasets remain executable",
                 "load_dataset patched to return PyClustEval in-memory partition data",
                 "true_label replaced by synthetic labels carrying only the requested cluster count",
                 "author metric functions patched only to capture predicted labels for AlgorithmResult",

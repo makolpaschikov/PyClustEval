@@ -26,3 +26,7 @@ clustereval = "clustering_eval.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["clustering_eval*"]
+
+
+[tool.setuptools.package-data]
+"clustering_eval.third_party.pfclus" = ["p-FClus.py", "README.md", "SOURCE.md"]

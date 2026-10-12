@@ -21,10 +21,12 @@ def _squared_distances(X: np.ndarray, centers: np.ndarray) -> np.ndarray:
 
 
 class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
+    common_param_support = ("k", "rounds", "tol", "seed")
     """Synchronous federated Fuzzy C-Means using sufficient statistics."""
 
     name = "fed_fuzzy_cmeans_numpy"
     is_federated = True
+    default_params = {"fuzziness": 2.0}
     execution_backend = "numpy-federated"
 
     def run(
@@ -91,10 +93,12 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
 
 
 class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+    common_param_support = ("k", "rounds", "tol", "seed")
     """Federated EM for a Gaussian mixture model with diagonal covariance."""
 
     name = "fed_gmm_diag_numpy"
     is_federated = True
+    default_params = {"reg_covar": 1e-6}
     execution_backend = "numpy-federated"
 
     def run(

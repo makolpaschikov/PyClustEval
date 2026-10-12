@@ -12,6 +12,7 @@ from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
 
 
 class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+    common_param_support = ("k", "rounds", "tol", "seed")
     """Run synchronous federated K-Means with one Flower client per partition.
 
     Protocol per round:

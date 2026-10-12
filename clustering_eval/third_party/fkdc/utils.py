@@ -53,7 +53,7 @@ def SNN(k: int, nc: int, data: ndarray) -> Tuple[ndarray]:
 	# Compute shared neighbor
 	# --------------------------------------------------------------------------------
 
-	indexSharedNeighbor = empty([n, n, k], int)
+	indexSharedNeighbor = full([n, n, k], -1, int)
 	numSharedNeighbor = empty([n, n], int)
 	for i in range(n):
 		numSharedNeighbor[i, i] = 0

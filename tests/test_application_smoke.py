@@ -60,3 +60,25 @@ def test_hf_dbscan_author_preprocessing_is_used(tmp_path: Path) -> None:
     assert hf.model_state["preprocessing"].startswith("MinMaxScaler")
     assert hf.ari is not None and hf.ari > 0.5
     assert len(hf.model_state["dense_cells"]) > 0
+
+
+def test_pfclus_author_adapter_runs_through_comparison_service(tmp_path: Path) -> None:
+    service = ComparisonService(history_store=HistoryStore(tmp_path / "history"))
+    report = service.compare(
+        RunRequest(
+            mode="federated",
+            dataset_name="iris",
+            algorithms=("Adapted p-FClus", "Adapted FKM"),
+            seed=42,
+            num_clients=5,
+            partition_mode="iid",
+            algorithm_params={"rounds": 2, "pfclus_max_iters": 2},
+        )
+    )
+
+    pf = next(item for item in report.results if item.algorithm == "Adapted p-FClus")
+    assert pf.model_state["preprocessing"].startswith("raw")
+    assert pf.model_state["source_commit"] == "3fd7c09d98fb23c9807931c6363ad1181eb283f1"
+    assert pf.rounds == 1
+    assert pf.communication_bytes > 0
+    assert len(pf.model_state["client_mean_clustering_costs"]) == 5

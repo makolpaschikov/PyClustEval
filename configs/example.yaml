@@ -15,10 +15,11 @@ partitioning:
   dirichlet_alpha: [0.5]
 
 algorithms:
+  # Common benchmark defaults are supplied centrally: k=oracle-k unless
+  # overridden, rounds=10, tol=1e-4, max_iter=300. Keep only truly
+  # algorithm-specific parameters here.
   - name: kmeans
-    params:
-      k: [3]
-      max_iter: [100]
+    params: {}
 
   - name: dbscan
     params:
@@ -26,12 +27,7 @@ algorithms:
       min_samples: [5]
 
   - name: fed_kmeans_flower
-    params:
-      k: [3]
-      rounds: [10]
-      tol: [0.0001]
-      client_cpus: [1.0]
-      client_gpus: [0.0]
+    params: {}
 
 metrics:
   - ari

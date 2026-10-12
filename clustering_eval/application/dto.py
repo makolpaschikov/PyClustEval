@@ -19,7 +19,19 @@ class RunRequest:
     num_clients: int = 5
     partition_mode: PartitionMode = "iid"
     dirichlet_alpha: float = 0.5
+    # Common benchmark controls. target_clusters=None means use the number of
+    # ground-truth classes only as an explicit oracle-k benchmark condition.
+    target_clusters: int | None = None
+    rounds: int = 10
+    tol: float = 1e-4
+    max_iter: int = 300
+    # Shared density-neighborhood threshold for DBSCAN-family algorithms.
+    # Algorithm-specific radius parameters (eps/L) remain separate.
+    density_min_samples: int = 4
+    min_samples_per_client: int = 3
+    # Legacy/global overrides plus optional per-algorithm overrides.
     algorithm_params: dict[str, Any] = field(default_factory=dict)
+    algorithm_params_by_name: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def validate(self) -> None:
         if self.mode not in ("local", "federated"):
@@ -30,6 +42,18 @@ class RunRequest:
             raise ValueError("Exactly two algorithms are required")
         if self.algorithms[0] == self.algorithms[1]:
             raise ValueError("Algorithms must be different")
+        if self.target_clusters is not None and self.target_clusters < 2:
+            raise ValueError("target_clusters must be at least 2 when provided")
+        if self.rounds < 1:
+            raise ValueError("rounds must be at least 1")
+        if self.tol <= 0:
+            raise ValueError("tol must be greater than zero")
+        if self.max_iter < 1:
+            raise ValueError("max_iter must be at least 1")
+        if self.density_min_samples < 1:
+            raise ValueError("density_min_samples must be at least 1")
+        if self.min_samples_per_client < 1:
+            raise ValueError("min_samples_per_client must be at least 1")
         if self.mode == "federated":
             if self.num_clients < 2:
                 raise ValueError("Federated mode requires at least two clients")

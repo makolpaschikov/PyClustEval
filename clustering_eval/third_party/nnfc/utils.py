@@ -54,7 +54,7 @@ def SNN(k: int, nc: int, data: ndarray) -> Tuple[ndarray, ndarray]:
 	# Compute shared neighbor
 	# --------------------------------------------------------------------------------
 
-	indexSharedNeighbor = empty([n, n, k], int)
+	indexSharedNeighbor = full([n, n, k], -1, int)
 	numSharedNeighbor = empty([n, n], int)
 	for i in range(n):
 		numSharedNeighbor[i, i] = 0
@@ -203,12 +203,13 @@ def nnfc(data_path):
                     noisenew[i][j] = 1 - noisenew[i][j]
 
         arr = noisenew.reshape(1, noise.shape[0] * noise.shape[1])[0]
-        ratio = []
-        for i in arr:
-            for j in arr:
-                num1,num2=float(i)/float(j),float(j )/float(i)
-                ratio.append(max([num1,num2]))    
-        maxratio = max(ratio)
+        # Compatibility/performance patch: for strictly positive arr values,
+        # max(max(i/j, j/i) for all pairs) == max(arr) / min(arr). The author
+        # code computes the same value with an O(m^2) Python loop, which becomes
+        # impractical on high-dimensional datasets such as Digits.
+        arr_min = float(np.min(arr))
+        arr_max = float(np.max(arr))
+        maxratio = arr_max / arr_min
         epsilon = 1.01 * maxratio / minvalue
 
         scale = 1 / epsilon

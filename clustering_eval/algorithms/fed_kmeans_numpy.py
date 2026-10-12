@@ -6,6 +6,7 @@ from sklearn.metrics import pairwise_distances_argmin
 from .base import ClusteringAlgorithm, AlgorithmResult
 
 class FedKMeansNumpy(ClusteringAlgorithm):
+    common_param_support = ("k", "rounds", "tol", "seed")
     """Simple synchronous federated KMeans simulation without Flower.
 
     This implements the same algorithmic contract that a Flower Strategy/ClientApp

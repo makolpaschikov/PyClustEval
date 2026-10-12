@@ -79,13 +79,27 @@ class ComparisonService:
         X_raw, y, dataset_display_name = _extract_xy(dataset)
         X_raw = np.asarray(X_raw, dtype=np.float64)
 
+        selected_algorithms = {
+            name: _get_registry_item(self.algorithm_registry, name)
+            for name in request.algorithms
+        }
+
         partition = None
         partition_report = None
         if request.mode == "federated":
             if request.num_clients > len(X_raw):
                 raise ValueError(
                     f"Number of clients ({request.num_clients}) exceeds "
-                    f"the number of samples ({len(X)})"
+                    f"the number of samples ({len(X_raw)})"
+                )
+            required_min = max(
+                int(getattr(algorithm, "min_client_samples", 1))
+                for algorithm in selected_algorithms.values()
+            )
+            if request.min_samples_per_client < required_min:
+                raise ValueError(
+                    f"Selected algorithms require at least {required_min} samples "
+                    f"per client; benchmark requested {request.min_samples_per_client}"
                 )
 
             log(
@@ -99,6 +113,7 @@ class ComparisonService:
                 seed=request.seed,
                 y=y,
                 alpha=request.dirichlet_alpha,
+                min_samples_per_client=request.min_samples_per_client,
             )
             counts = [len(indices) for indices in partition]
             if any(count == 0 for count in counts):
@@ -120,24 +135,44 @@ class ComparisonService:
             log(f"Partition ID: {fingerprint}")
             log(f"Размеры клиентов: {counts}")
 
-        default_k = len(np.unique(y)) if y is not None else 3
-        params = {
-            "k": default_k,
-            "n_clusters": default_k,
-            "rounds": 10,
-            "tol": 1e-4,
+        if request.target_clusters is not None:
+            benchmark_k = int(request.target_clusters)
+            cluster_count_source = "user"
+        elif y is not None:
+            benchmark_k = int(len(np.unique(y)))
+            cluster_count_source = "ground_truth_oracle"
+            log(
+                f"Benchmark k={benchmark_k} взят из числа классов y_true "
+                f"(oracle-k режим; метки объектов алгоритмам не передаются)."
+            )
+        else:
+            benchmark_k = 3
+            cluster_count_source = "fallback"
+            log("Benchmark k=3 использован как fallback, потому что y_true отсутствует.")
+
+        common_params = {
+            "k": benchmark_k,
+            "n_clusters": benchmark_k,
+            "rounds": int(request.rounds),
+            "tol": float(request.tol),
+            "max_iter": int(request.max_iter),
+            "density_min_samples": int(request.density_min_samples),
             "client_cpus": 1.0,
             "client_gpus": 0.0,
-            **request.algorithm_params,
         }
 
         results: list[AlgorithmRunReport] = []
         for name in request.algorithms:
             log(f"\nЗапуск {name}…")
-            algorithm = _get_registry_item(self.algorithm_registry, name)
+            algorithm = selected_algorithms[name]
             X = _preprocess_algorithm_input(X_raw, algorithm)
             preprocessing = getattr(algorithm, "input_preprocessing", "standard")
             log(f"Preprocessing {name}: {preprocessing}")
+
+            params = dict(common_params)
+            params.update(dict(getattr(algorithm, "default_params", {}) or {}))
+            params.update(request.algorithm_params)
+            params.update(request.algorithm_params_by_name.get(name, {}))
 
             actual_federated = _is_federated(name, algorithm)
             if request.mode == "local" and actual_federated:
@@ -162,8 +197,68 @@ class ComparisonService:
             labels, runtime, communication, state, history = _extract_result(
                 raw_result
             )
+            labels = np.asarray(labels)
+            if len(labels) != len(X):
+                raise ValueError(
+                    f"{name} returned {len(labels)} labels for {len(X)} samples"
+                )
             if runtime <= 0:
                 runtime = elapsed
+
+            unique_labels, label_counts = np.unique(labels, return_counts=True)
+            non_noise = [int(value) for value in unique_labels if int(value) != -1]
+            noise_count = int(label_counts[list(unique_labels).index(-1)]) if -1 in unique_labels else 0
+            non_noise_counts = [
+                int(count)
+                for value, count in zip(unique_labels, label_counts)
+                if int(value) != -1
+            ]
+            non_noise_total = sum(non_noise_counts)
+            dominant_fraction = (
+                float(max(non_noise_counts) / non_noise_total)
+                if non_noise_total and non_noise_counts
+                else 0.0
+            )
+            diagnostics = {
+                "unique_labels": [int(value) for value in unique_labels],
+                "cluster_count_excluding_noise": len(non_noise),
+                "cluster_count_delta_vs_benchmark_k": len(non_noise) - benchmark_k,
+                "noise_fraction": float(noise_count / len(labels)),
+                "dominant_cluster_fraction": dominant_fraction,
+                "degenerate": len(non_noise) < 2,
+                "near_degenerate": len(non_noise) >= 2 and dominant_fraction >= 0.95,
+            }
+            if diagnostics["degenerate"]:
+                log(
+                    f"WARNING: {name} выдал вырожденную кластеризацию: "
+                    f"clusters={len(non_noise)}, noise_fraction={diagnostics['noise_fraction']:.3f}"
+                )
+            elif diagnostics["near_degenerate"]:
+                log(
+                    f"WARNING: {name} выдал почти вырожденную кластеризацию: "
+                    f"dominant_cluster_fraction={dominant_fraction:.3f}"
+                )
+
+            state = dict(state)
+            supported_common = list(getattr(algorithm, "common_param_support", ()) or ())
+            shared_names = ("k", "rounds", "tol", "max_iter", "density_min_samples", "seed")
+            state["benchmark"] = {
+                "seed": request.seed,
+                "target_clusters": benchmark_k,
+                "cluster_count_source": cluster_count_source,
+                "round_budget": request.rounds,
+                "tol": request.tol,
+                "max_iter": request.max_iter,
+                "density_min_samples": request.density_min_samples,
+                "num_clients": request.num_clients if request.mode == "federated" else None,
+                "partition_mode": request.partition_mode if request.mode == "federated" else None,
+                "min_samples_per_client": request.min_samples_per_client if request.mode == "federated" else None,
+                "preprocessing": str(preprocessing),
+                "common_param_support": supported_common,
+                "common_params_not_applicable": [name for name in shared_names if name not in supported_common],
+                "effective_params": dict(params),
+            }
+            state["diagnostics"] = diagnostics
 
             metrics = compute_metrics(
                 X=X,

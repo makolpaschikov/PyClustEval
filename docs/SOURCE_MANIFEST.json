@@ -15,6 +15,13 @@
     "nnfc": {
       "url": "https://github.com/mlyizhang/nnfc",
       "commit": "404af20bf4abd524dd1c5bc0968e0e1a2491f828"
+    },
+    "pfclus": {
+      "url": null,
+      "archive": "p-FClus-main.zip",
+      "paper": "arXiv:2407.04302",
+      "commit": "3fd7c09d98fb23c9807931c6363ad1181eb283f1",
+      "note": "Repository URL is not encoded in the supplied archive; do not infer an owner."
     }
   },
   "files": [
@@ -36,8 +43,10 @@
       "source_archive_path": "fdbscan/F_DBSCAN-main/HF_DBSCAN/fd_dbscan.py",
       "vendored_path": "clustering_eval/third_party/fdbscan/fd_dbscan.py",
       "source_sha256": "534590eafb5742587319db7db84e44d4582978e882f9dcdeaddf29f92567f83e",
-      "vendored_sha256": "534590eafb5742587319db7db84e44d4582978e882f9dcdeaddf29f92567f83e",
-      "byte_identical": true
+      "vendored_sha256": "f72c2aadd36ae0c8d8ec9f5d87b0b0041d1ebfcfcf4ffc477249caf0a8a6b0f9",
+      "byte_identical": false,
+      "original_preserved_as": "clustering_eval/third_party/fdbscan/fd_dbscan_original.py",
+      "patch_kind": "exact-semantics scalability compatibility patch"
     },
     {
       "source_archive_path": "fdbscan/F_DBSCAN-main/HF_DBSCAN/fd_client.py",
@@ -80,6 +89,13 @@
       "source_sha256": "cfbabd8bd22883a818c8c889198993d7b4622859836e9333e34ba18d43bac69a",
       "vendored_sha256": "cfbabd8bd22883a818c8c889198993d7b4622859836e9333e34ba18d43bac69a",
       "byte_identical": true
+    },
+    {
+      "source_archive_path": "p-FClus-main/main_algo/p-FClus.py",
+      "vendored_path": "clustering_eval/third_party/pfclus/p-FClus.py",
+      "source_sha256": "1ab947e641b5bc95213041eda98e663d105d7c342b7d638b404a421c1b1cee3e",
+      "vendored_sha256": "1ab947e641b5bc95213041eda98e663d105d7c342b7d638b404a421c1b1cee3e",
+      "byte_identical": true
     }
   ],
   "compatibility_patches": [
@@ -87,7 +103,8 @@
       "file": "clustering_eval/third_party/fkdc/utils.py",
       "original": "clustering_eval/third_party/fkdc/utils_original.txt",
       "changes": [
-        "scalar min(a,b) -> numpy.minimum(a,b) because numpy wildcard import shadows Python min"
+        "scalar min(a,b) -> numpy.minimum(a,b) because numpy wildcard import shadows Python min",
+        "uninitialized shared-neighbor index buffer initialized to -1 sentinel to prevent false matches and 0/0 similarity warnings"
       ]
     },
     {
@@ -95,7 +112,17 @@
       "original": "clustering_eval/third_party/nnfc/utils_original.txt",
       "changes": [
         "fix one mixed tab/space indentation causing TabError",
-        "scalar min(a,b) -> numpy.minimum(a,b) because numpy wildcard import shadows Python min"
+        "scalar min(a,b) -> numpy.minimum(a,b) because numpy wildcard import shadows Python min",
+        "O(m^2) all-pairs max-ratio loop replaced by mathematically equivalent max(arr)/min(arr) for positive folded-uniform values",
+        "uninitialized shared-neighbor index buffer initialized to -1 sentinel to prevent false matches and 0/0 similarity warnings"
+      ]
+    },
+    {
+      "file": "clustering_eval/third_party/fdbscan/fd_dbscan.py",
+      "original": "clustering_eval/third_party/fdbscan/fd_dbscan_original.py",
+      "changes": [
+        "dense d-dimensional count tensor replaced by sparse occupied-cell dictionary with identical returned cell counts",
+        "3**d Cartesian neighbor enumeration replaced by direct construction of the same 2*d axial neighbors"
       ]
     }
   ]

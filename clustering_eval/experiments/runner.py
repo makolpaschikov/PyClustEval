@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
+
 from ..algorithms.registry import default_registry as default_algorithm_registry
 from ..datasets.partitioning import make_partition, partition_fingerprint
 from ..datasets.registry import default_registry as default_dataset_registry
 from ..metrics.clustering import compute_metrics
 from ..results.store import ResultStore
+from ..application.comparison_service import _preprocess_algorithm_input
 from .planner import ExperimentSpec
 
 
@@ -22,9 +25,14 @@ class ExperimentRunner:
         dataset_params.setdefault("random_state", spec.seed)
         dataset = self.datasets.load(spec.dataset_name, dataset_params)
 
+        algorithm = self.algorithms.get(spec.algorithm_name)
+        min_client_samples = max(
+            3, int(getattr(algorithm, "min_client_samples", 1))
+        )
+
         # The partition depends only on dataset/run settings, never on algorithm.
-        # Therefore all algorithms in the same benchmark case receive identical
-        # client indices. partition_id is persisted for verification.
+        # A common minimum of 3 samples/client keeps the built-in author adapters
+        # on the same admissible partition space (NN-FC is the strictest one).
         partition = make_partition(
             mode=spec.partition_mode,
             n_samples=len(dataset.X),
@@ -32,18 +40,35 @@ class ExperimentRunner:
             seed=spec.seed,
             y=dataset.y,
             alpha=spec.dirichlet_alpha or 0.5,
+            min_samples_per_client=min_client_samples,
         )
         partition_id = partition_fingerprint(partition)
 
-        algorithm = self.algorithms.get(spec.algorithm_name)
-        result = algorithm.run(
-            dataset.X,
-            partition,
-            spec.algorithm_params,
-            spec.seed,
+        y = None if dataset.y is None else np.asarray(dataset.y)
+        benchmark_k = int(
+            spec.algorithm_params.get(
+                "n_clusters",
+                spec.algorithm_params.get(
+                    "k", len(np.unique(y)) if y is not None else 3
+                ),
+            )
         )
+        params = {
+            "k": benchmark_k,
+            "n_clusters": benchmark_k,
+            "rounds": 10,
+            "tol": 1e-4,
+            "max_iter": 300,
+            "client_cpus": 1.0,
+            "client_gpus": 0.0,
+        }
+        params.update(dict(getattr(algorithm, "default_params", {}) or {}))
+        params.update(spec.algorithm_params)
+
+        X = _preprocess_algorithm_input(np.asarray(dataset.X, dtype=float), algorithm)
+        result = algorithm.run(X, partition, params, spec.seed)
         metric_values = compute_metrics(
-            dataset.X,
+            X,
             dataset.y,
             result.labels,
             self.metrics,
@@ -59,6 +84,10 @@ class ExperimentRunner:
             "execution_backend": result.model_state.get("backend", "local"),
             "n_samples": len(dataset.X),
             "n_features": dataset.X.shape[1],
+            "preprocessing": getattr(algorithm, "input_preprocessing", "standard"),
+            "benchmark_k": benchmark_k,
+            "effective_algorithm_params": params,
+            "min_samples_per_client": min_client_samples,
         }
         self.store.add(row)
         self.store.write_jsonl(

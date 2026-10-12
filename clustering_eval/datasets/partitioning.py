@@ -6,8 +6,18 @@ import json
 import numpy as np
 
 
-def iid_partition(n_samples: int, num_clients: int, seed: int) -> list[np.ndarray]:
+def iid_partition(
+    n_samples: int,
+    num_clients: int,
+    seed: int,
+    min_samples_per_client: int = 1,
+) -> list[np.ndarray]:
     _validate_partition_request(n_samples, num_clients)
+    if n_samples < num_clients * min_samples_per_client:
+        raise ValueError(
+            f"Cannot give {min_samples_per_client} samples to each of "
+            f"{num_clients} clients from {n_samples} samples"
+        )
     rng = np.random.default_rng(seed)
     indices = rng.permutation(n_samples)
     return [part.astype(int) for part in np.array_split(indices, num_clients)]
@@ -32,7 +42,9 @@ def dirichlet_partition(
     if alpha <= 0:
         raise ValueError("Dirichlet alpha must be greater than zero")
     if y is None:
-        return iid_partition(n_samples, num_clients, seed)
+        return iid_partition(
+            n_samples, num_clients, seed, min_samples_per_client=min_samples_per_client
+        )
 
     y = np.asarray(y)
     if len(y) != n_samples:
@@ -76,12 +88,18 @@ def make_partition(
     seed: int,
     y: np.ndarray | None = None,
     alpha: float = 0.5,
+    min_samples_per_client: int = 1,
 ) -> list[np.ndarray]:
     normalized_mode = mode.lower().strip()
     if normalized_mode == "iid":
-        return iid_partition(n_samples, num_clients, seed)
+        return iid_partition(
+            n_samples, num_clients, seed, min_samples_per_client=min_samples_per_client
+        )
     if normalized_mode == "dirichlet":
-        return dirichlet_partition(y, n_samples, num_clients, alpha, seed)
+        return dirichlet_partition(
+            y, n_samples, num_clients, alpha, seed,
+            min_samples_per_client=min_samples_per_client,
+        )
     raise ValueError(f"Unsupported partitioning mode: {mode}")
 
 

@@ -4,19 +4,18 @@ from typing import List, Dict, Tuple, Callable
 from scipy.spatial import distance
 
 def get_all_neighbors(cell: tuple):
-    diag_coord = [(x - 1, x, x + 1) for x in cell]
-    cartesian_product = [[]]
-    for pool in diag_coord:
-        cartesian_product = [(x + [y]) for x in cartesian_product for y in pool]
-
+    # Compatibility/performance patch: the original builds all 3**d surrounding
+    # combinations and then keeps only cells differing in exactly one coordinate.
+    # Constructing those 2*d axial neighbors directly is mathematically identical
+    # and avoids exponential memory/time growth on higher-dimensional datasets.
     neighbors = []
-    for prod in cartesian_product:
-        differential_coord = 0
-        for i in range(len(prod)):
-            if prod[i] != cell[i]:
-                differential_coord += 1
-        if differential_coord == 1:
-            neighbors.append(tuple(prod))
+    for axis in range(len(cell)):
+        lower = list(cell)
+        lower[axis] -= 1
+        neighbors.append(tuple(lower))
+        upper = list(cell)
+        upper[axis] += 1
+        neighbors.append(tuple(upper))
     return neighbors
 
 class FDBSCAN_Client():
@@ -65,32 +64,14 @@ class FDBSCAN_Client():
             if min_cell_coords[i] < 0:
                 shifts[i] = -1 * min_cell_coords[i]
 
-        shifted_dimensions = ()
-        for i in range(dimensions):
-            shifted_dimensions += (int(max_cell_coords[i] + 1 + shifts[i]), )
-
-        count_matrix = np.zeros(shifted_dimensions)
-        for cell in cells:
-            shifted_cell_coords = ()
-            for i in range(dimensions):
-                shifted_cell_coords += (int(cell[i] + shifts[i]),)
-            count_matrix[shifted_cell_coords] += 1
-
-        non_zero = np.where(count_matrix > 0)
-        non_zero_indexes = []
-        for i in range(len(non_zero)):
-            for j in range(len(non_zero[i])):
-                if i == 0:
-                    non_zero_indexes.append((int(non_zero[i][j]), ))
-                else:
-                    non_zero_indexes[j] += (int(non_zero[i][j]), )
-
+        # Compatibility/performance patch: the original materializes a dense
+        # d-dimensional count tensor whose size is the product of all cell ranges.
+        # Only non-empty cells are ever returned, so a sparse dict computes exactly
+        # the same contribution map without allocating the empty grid.
         dict_to_return = {}
-        for index in non_zero_indexes:
-            shifted_index = ()
-            for i in range(len(index)):
-                shifted_index += (int(index[i] - shifts[i]), )
-            dict_to_return[shifted_index] = count_matrix[index]
+        for cell in cells:
+            key = tuple(int(value) for value in cell)
+            dict_to_return[key] = dict_to_return.get(key, 0) + 1
 
         return dict_to_return
 
