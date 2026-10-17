@@ -31,6 +31,12 @@ CSV_COLUMNS = (
     "calinski_harabasz",
     "partition_id",
     "num_clients",
+    "participation_rate",
+    "dropout_rate",
+    "privacy_mode",
+    "dp_epsilon",
+    "dp_delta",
+    "dp_clip_norm",
 )
 
 
@@ -135,6 +141,30 @@ class HistoryStore:
                         "calinski_harabasz": result.calinski_harabasz,
                         "partition_id": partition_id,
                         "num_clients": num_clients,
+                        "participation_rate": (
+                            report.request.participation_rate
+                            if report.request.mode == "federated" else ""
+                        ),
+                        "dropout_rate": (
+                            report.request.dropout_rate
+                            if report.request.mode == "federated" else ""
+                        ),
+                        "privacy_mode": (
+                            report.request.privacy_mode
+                            if report.request.mode == "federated" else "none"
+                        ),
+                        "dp_epsilon": (
+                            report.request.dp_epsilon
+                            if report.request.privacy_mode == "gaussian_dp" else ""
+                        ),
+                        "dp_delta": (
+                            report.request.dp_delta
+                            if report.request.privacy_mode == "gaussian_dp" else ""
+                        ),
+                        "dp_clip_norm": (
+                            report.request.dp_clip_norm
+                            if report.request.privacy_mode == "gaussian_dp" else ""
+                        ),
                     }
                 )
             temp_path = Path(handle.name)

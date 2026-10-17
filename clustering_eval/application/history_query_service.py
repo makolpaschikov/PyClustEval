@@ -174,6 +174,23 @@ class HistoryQueryService:
             ],
             fingerprint=str(value.get("fingerprint", "")),
             dirichlet_alpha=_optional_float(value.get("dirichlet_alpha")),
+            client_class_counts=[
+                {str(k): int(v) for k, v in dict(item).items()}
+                for item in value.get("client_class_counts", [])
+                if isinstance(item, dict)
+            ],
+            labels_per_client=(
+                int(value["labels_per_client"])
+                if value.get("labels_per_client") is not None
+                else None
+            ),
+            participation_rate=float(value.get("participation_rate", 1.0)),
+            dropout_rate=float(value.get("dropout_rate", 0.0)),
+            round_schedule=[
+                dict(item)
+                for item in value.get("round_schedule", [])
+                if isinstance(item, dict)
+            ],
         )
 
 

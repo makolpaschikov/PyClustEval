@@ -4,6 +4,7 @@ import time
 import numpy as np
 from sklearn.metrics import pairwise_distances_argmin
 from .base import ClusteringAlgorithm, AlgorithmResult
+from ..federated.environment import participation_entry_for_round
 
 class FedKMeansNumpy(ClusteringAlgorithm):
     common_param_support = ("k", "rounds", "tol", "seed")
@@ -30,7 +31,11 @@ class FedKMeansNumpy(ClusteringAlgorithm):
             sums = np.zeros_like(centers)
             counts = np.zeros(k, dtype=int)
             inertia = 0.0
-            for idx in partition:
+            participation = participation_entry_for_round(
+                params, rnd, len(partition)
+            )
+            for client_id in participation["successful_clients"]:
+                idx = partition[client_id]
                 if len(idx) == 0:
                     continue
                 Xc = X[idx]
@@ -48,7 +53,14 @@ class FedKMeansNumpy(ClusteringAlgorithm):
             new_centers[nonempty] = sums[nonempty] / counts[nonempty, None]
             shift = float(np.linalg.norm(new_centers - centers))
             centers = new_centers
-            history.append({"round": rnd + 1, "shift": shift, "inertia": inertia})
+            history.append({
+                "round": rnd + 1,
+                "shift": shift,
+                "inertia": inertia,
+                "selected_clients": participation["selected_clients"],
+                "successful_clients": participation["successful_clients"],
+                "dropped_clients": participation["dropped_clients"],
+            })
             if shift < float(params.get("tol", 1e-4)):
                 break
 

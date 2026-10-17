@@ -16,6 +16,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 from .base import AlgorithmResult, ClusteringAlgorithm
+from ..federated.environment import participation_entry_for_round
 
 
 _THIRD_PARTY = Path(__file__).resolve().parents[1] / "third_party"
@@ -164,6 +165,13 @@ def _nearest_center_labels(X: np.ndarray, centers: np.ndarray) -> np.ndarray:
     return np.argmin(dist2, axis=1).astype(int)
 
 
+def _one_shot_participation(
+    params: dict[str, Any], num_clients: int
+) -> dict[str, Any]:
+    """Use round 1 as one-shot client availability for author algorithms."""
+    return participation_entry_for_round(params, 0, num_clients)
+
+
 def _source_state(repo: str, commit: str, source_file: str) -> dict[str, Any]:
     return {
         "backend": "author-source-port",
@@ -219,32 +227,49 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
                 local_clusters.append(np.asarray(client.means))
                 cluster_sizes.append(np.asarray(client.sample_amts))
 
-            local_clusters_arr = np.concatenate(local_clusters)
-            cluster_sizes_arr = np.concatenate(cluster_sizes)
-            communication += local_clusters_arr.nbytes + cluster_sizes_arr.nbytes
+            first_participation = participation_entry_for_round(
+                params, 0, len(clients)
+            )
+            for client_id in first_participation["successful_clients"]:
+                communication += (
+                    local_clusters[client_id].nbytes
+                    + cluster_sizes[client_id].nbytes
+                )
 
             global_clusters = None
             for round_idx in range(rounds):
+                participation = participation_entry_for_round(
+                    params, round_idx, len(clients)
+                )
+                active = participation["successful_clients"]
+                local_clusters_arr = np.concatenate(
+                    [local_clusters[client_id] for client_id in active]
+                )
+                cluster_sizes_arr = np.concatenate(
+                    [cluster_sizes[client_id] for client_id in active]
+                )
                 global_clusters = np.asarray(server.aggregate(local_clusters_arr, cluster_sizes_arr))
-                # Server broadcasts global centers to every client.
-                communication += global_clusters.nbytes * len(clients)
+                # Under the participation wrapper only successful clients
+                # receive/return this round's author update.  With 100%
+                # participation this is byte-for-byte the historical flow.
+                communication += global_clusters.nbytes * len(active)
 
-                next_clusters = []
-                next_sizes = []
-                for client in clients:
+                for client_id in active:
+                    client = clients[client_id]
                     client.means = np.copy(global_clusters)
                     local_cluster, cluster_size, _score = client.det_local_clusters()
                     local_cluster = np.asarray(local_cluster)
                     cluster_size = np.asarray(cluster_size)
-                    next_clusters.append(local_cluster)
-                    next_sizes.append(cluster_size)
+                    local_clusters[client_id] = local_cluster
+                    cluster_sizes[client_id] = cluster_size
                     communication += local_cluster.nbytes + cluster_size.nbytes
-                local_clusters_arr = np.concatenate(next_clusters)
-                cluster_sizes_arr = np.concatenate(next_sizes)
                 history.append({
                     "round": round_idx + 1,
                     "global_centers": np.copy(global_clusters),
                     "num_uploaded_local_centers": int(len(local_clusters_arr)),
+                    "selected_clients": participation["selected_clients"],
+                    "successful_clients": active,
+                    "dropped_clients": participation["dropped_clients"],
                 })
 
         if global_clusters is None:
@@ -268,6 +293,7 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
                 "author validation labels set to None",
                 "final labels derived from author global centers for the common AlgorithmResult API",
                 "NumPy RNG seeded/restored by benchmark harness for reproducibility",
+                "partial participation/dropout is an external benchmark wrapper; inactive clients retain their last author-local state until they participate again",
             ],
         })
         return AlgorithmResult(labels=labels, model_state=state, history=history, runtime_sec=runtime, communication_bytes=int(communication))
@@ -309,22 +335,28 @@ class AdaptedAuthorPFClus(ClusteringAlgorithm):
         with _numpy_seed(seed):
             # The original pFClus body reads module-global total_classes.
             mod.total_classes = k
+            participation = _one_shot_participation(params, len(part))
+            active = participation["successful_clients"]
 
             client_data: list[np.ndarray] = []
             local_centers: list[np.ndarray] = []
-            for indices in part:
+            for client_id, indices in enumerate(part):
                 data = np.asarray(X[indices], dtype=float)
                 local_k = min(k, len(data))
                 centers, _labels = mod.sgd_scipy(data, local_k)
                 centers = np.asarray(centers, dtype=float)
                 client_data.append(data)
                 local_centers.append(centers)
-                communication += centers.nbytes
+                if client_id in active:
+                    communication += centers.nbytes
 
-            all_local_centers = np.concatenate(local_centers, axis=0)
+            all_local_centers = np.concatenate(
+                [local_centers[client_id] for client_id in active], axis=0
+            )
             if len(all_local_centers) < k:
                 raise ValueError(
-                    "p-FClus produced fewer uploaded local centers than requested global clusters"
+                    "p-FClus active clients produced fewer uploaded local centers "
+                    "than requested global clusters"
                 )
 
             # Exact server step from the author's experiment.
@@ -332,29 +364,40 @@ class AdaptedAuthorPFClus(ClusteringAlgorithm):
             server_kmeans.fit(all_local_centers)
             global_centers = np.asarray(server_kmeans.cluster_centers_, dtype=float)
             global_centers_before_personalization = np.copy(global_centers)
-            communication += global_centers.nbytes * len(part)
+            communication += global_centers.nbytes * len(active)
 
             labels = np.full(len(X), -1, dtype=int)
             personalized_centers: list[np.ndarray] = []
             client_costs: list[float] = []
 
-            # Preserve author behavior: pFClus aliases and mutates global_centers.
+            # Preserve author behavior for participating clients: pFClus aliases
+            # and mutates global_centers.  Non-participating clients are evaluated
+            # against the one-shot global model without contributing or receiving
+            # a personalized update in the simulated communication stage.
             author_global_centers = global_centers
-            for indices, data, centers in zip(part, client_data, local_centers):
-                local_k = min(k, len(data))
-                personalized, local_pred = mod.pFClus(
-                    author_global_centers,
-                    centers,
-                    data,
-                    k=local_k,
-                    max_iters=max_iters,
-                )
-                personalized = np.asarray(personalized, dtype=float)
-                local_pred = np.asarray(local_pred, dtype=int)
-                labels[indices] = local_pred
-                personalized_centers.append(np.copy(personalized))
-
-                assigned = personalized[local_pred]
+            active_set = set(active)
+            for client_id, (indices, data, centers) in enumerate(
+                zip(part, client_data, local_centers)
+            ):
+                if client_id in active_set:
+                    local_k = min(k, len(data))
+                    personalized, local_pred = mod.pFClus(
+                        author_global_centers,
+                        centers,
+                        data,
+                        k=local_k,
+                        max_iters=max_iters,
+                    )
+                    personalized = np.asarray(personalized, dtype=float)
+                    local_pred = np.asarray(local_pred, dtype=int)
+                    labels[indices] = local_pred
+                    personalized_centers.append(np.copy(personalized))
+                    assigned = personalized[local_pred]
+                else:
+                    local_pred = _nearest_center_labels(data, global_centers_before_personalization)
+                    labels[indices] = local_pred
+                    assigned = global_centers_before_personalization[local_pred]
+                    personalized_centers.append(np.copy(global_centers_before_personalization))
                 client_costs.append(
                     float(np.linalg.norm(data - assigned, axis=1).mean())
                 )
@@ -364,6 +407,9 @@ class AdaptedAuthorPFClus(ClusteringAlgorithm):
                 "uploaded_local_centers": int(len(all_local_centers)),
                 "global_centers_before_personalization": global_centers_before_personalization,
                 "client_mean_clustering_costs": list(client_costs),
+                "selected_clients": participation["selected_clients"],
+                "successful_clients": active,
+                "dropped_clients": participation["dropped_clients"],
             })
 
         runtime = perf_counter() - start
@@ -390,6 +436,7 @@ class AdaptedAuthorPFClus(ClusteringAlgorithm):
                 "module-global total_classes is set to benchmark k because the original pFClus function reads that global instead of its k argument for the counter size",
                 "final per-client labels are placed back at their original PyClustEval sample indices",
                 "NumPy RNG is seeded/restored by the benchmark harness for reproducibility",
+                "partial participation/dropout is an external one-shot availability wrapper; only successful clients contribute local centers, while inactive clients are evaluated against the resulting global centers",
             ],
             "known_author_behavior": (
                 "pFClus mutates the shared global_centers array in place; "
@@ -413,7 +460,7 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
     is_federated = True
     common_param_support = ("density_min_samples", "seed")
     input_preprocessing = "minmax"
-    default_params = {"L": 0.15, "missing_clients_percentage": 0}
+    default_params = {"L": 0.15, "min_points": 4, "missing_clients_percentage": 0}
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
@@ -447,11 +494,34 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
                 })
                 clients.append(client)
 
-            # Mirror fd_server.training client selection, but execute calls in-process.
-            import random
-            rng = random.Random(int(params.get("clients_selection_seed", seed)))
-            n_selected = int(len(clients) * (100 - missing_pct) / 100)
-            selected_idx = rng.sample(range(len(clients)), n_selected)
+            # Mirror fd_server.training client selection for legacy direct calls.
+            # In benchmark runs, a framework-level participation schedule takes
+            # precedence so every algorithm receives the exact same client set.
+            schedule = params.get("participation_schedule")
+            scheduled_participation = (
+                _one_shot_participation(params, len(clients))
+                if isinstance(schedule, list) and schedule
+                else None
+            )
+            full_default_schedule = bool(
+                scheduled_participation is not None
+                and scheduled_participation["successful_clients"] == list(range(len(clients)))
+                and not scheduled_participation["dropped_clients"]
+            )
+            if scheduled_participation is not None and not full_default_schedule:
+                participation = scheduled_participation
+                selected_idx = list(participation["successful_clients"])
+            else:
+                import random
+                rng = random.Random(int(params.get("clients_selection_seed", seed)))
+                n_selected = int(len(clients) * (100 - missing_pct) / 100)
+                selected_idx = rng.sample(range(len(clients)), n_selected)
+                participation = {
+                    "round": 1,
+                    "selected_clients": list(selected_idx),
+                    "successful_clients": list(selected_idx),
+                    "dropped_clients": [],
+                }
             contribution_map: dict[tuple, float] = {}
             for i in selected_idx:
                 local = clients[i].compute_local_update()
@@ -486,6 +556,7 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
             "L": L,
             "MIN_POINTS": min_points,
             "selected_clients": selected_idx,
+            "participation": participation,
             "variant": "horizontal",
             "preprocessing": "MinMaxScaler(feature_range=(0, 1))",
             "dense_cells": cells,
@@ -497,6 +568,7 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
                 "NumPy/Python client-selection RNG seeded by benchmark harness",
                 "FDBSCAN_Client/FDBSCAN_Server are vendored author source with exact-semantics scalability fixes: sparse occupied-cell counting and direct 2*d axial-neighbor generation",
                 "the untouched uploaded fd_dbscan.py is preserved as fd_dbscan_original.py for audit",
+                "when a PyClustEval participation schedule is present, its first-round successful clients replace the author's missing_clients_percentage sampling so all algorithms share the same availability scenario",
             ],
         })
         return AlgorithmResult(labels=labels, model_state=state, history=[], runtime_sec=runtime, communication_bytes=int(communication))
@@ -564,10 +636,13 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
         part = _require_partition(partition)
         if any(len(idx) < 2 for idx in part):
             raise ValueError("FKDC author code requires at least 2 samples per client")
+        participation = _one_shot_participation(params, len(part))
+        active_client_ids = participation["successful_clients"]
+        active_part = [part[client_id] for client_id in active_client_ids]
         k = _cluster_count(params)
         if k > len(X):
             raise ValueError("n_clusters cannot exceed n_samples")
-        dataset = _author_pickle_dataset(X, part, k)
+        dataset = _author_pickle_dataset(X, active_part, k)
         mod = _fkdc_module()
         start = perf_counter()
         with _numpy_seed(seed), _capture_author_labels(mod, dataset) as captured:
@@ -577,7 +652,7 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
             raise RuntimeError("FKDC author code did not reach its label evaluation stage")
         labels = captured["labels"] - 1  # Author code emits 1..K; normalize to 0..K-1.
         d = int(X.shape[1])
-        upstream = sum(min(len(idx) // 2, 50) * d * np.dtype(float).itemsize for idx in part)
+        upstream = sum(min(len(idx) // 2, 50) * d * np.dtype(float).itemsize for idx in active_part)
         state = _source_state(
             "https://github.com/mlyizhang/FKDC",
             "37f10faa27fbc6bc0335882909cf744b8a2c237e",
@@ -587,6 +662,7 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
             "rounds": 1,
             "original_parameters": original_parameters,
             "oracle_cluster_count": k,
+            "participation": participation,
             "adapter_changes": [
                 "author SNN scalar min compatibility-fixed to numpy.minimum; original preserved in utils_original.txt",
                 "author SNN uninitialized shared-neighbor buffer initialized with -1 sentinel to remove nondeterministic false shared-neighbor matches and 0/0 warnings",
@@ -595,6 +671,7 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
                 "author metric functions patched only to capture predicted labels for AlgorithmResult",
                 "author output labels normalized from 1..K to 0..K-1",
                 "NumPy RNG seeded/restored by benchmark harness",
+                "partial participation/dropout is an external one-shot availability wrapper: only successful clients enter the author client-data dictionary while final author assignment is still evaluated over full_data",
             ],
             "known_author_behavior": "results() derives cnum from true_label and performs final assignment over full_data centrally",
         })
@@ -613,8 +690,11 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
         part = _require_partition(partition)
         if any(len(idx) < 3 for idx in part):
             raise ValueError("NN-FC author code requires at least 3 samples per client")
+        participation = _one_shot_participation(params, len(part))
+        active_client_ids = participation["successful_clients"]
+        active_part = [part[client_id] for client_id in active_client_ids]
         k = _cluster_count(params)
-        dataset = _author_pickle_dataset(X, part, k)
+        dataset = _author_pickle_dataset(X, active_part, k)
         mod = _nnfc_module()
         start = perf_counter()
         with _numpy_seed(seed), _capture_author_labels(mod, dataset) as captured:
@@ -624,7 +704,7 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
             raise RuntimeError("NN-FC author code did not reach its label evaluation stage")
         labels = captured["labels"] - 1
         d = int(X.shape[1])
-        upstream = sum(min(len(idx) // 3, 50) * d * np.dtype(float).itemsize for idx in part)
+        upstream = sum(min(len(idx) // 3, 50) * d * np.dtype(float).itemsize for idx in active_part)
         state = _source_state(
             "https://github.com/mlyizhang/nnfc",
             "404af20bf4abd524dd1c5bc0968e0e1a2491f828",
@@ -634,6 +714,7 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
             "rounds": 1,
             "original_parameters": original_parameters,
             "oracle_cluster_count": k,
+            "participation": participation,
             "adapter_changes": [
                 "TabError indentation, shadowed scalar min, and uninitialized shared-neighbor buffer compatibility fixes applied to executable codes/utils.py; original preserved as utils_original.txt",
                 "author O(m^2) max-ratio loop replaced by the exact positive-value identity max(arr)/min(arr) so high-dimensional datasets remain executable",
@@ -642,6 +723,7 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
                 "author metric functions patched only to capture predicted labels for AlgorithmResult",
                 "author output labels normalized from 1..K to 0..K-1",
                 "NumPy RNG seeded/restored by benchmark harness",
+                "partial participation/dropout is an external one-shot availability wrapper: only successful clients enter the author client-data dictionary while final author assignment is still evaluated over full_data",
             ],
             "known_author_behavior": "nnfc() derives cnum from true_label and performs final assignment over full_data centrally",
         })

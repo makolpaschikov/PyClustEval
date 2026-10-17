@@ -10,9 +10,17 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from ..algorithms.registry import default_registry as algorithm_registry
-from ..datasets.partitioning import make_partition, partition_fingerprint
+from ..default_profile import PROFILE_NAME, defaults_for
+from ..datasets.partitioning import (
+    make_partition,
+    partition_class_counts,
+    partition_fingerprint,
+)
 from ..datasets.registry import default_registry as dataset_registry
+from ..federated.environment import make_participation_schedule
 from ..metrics.clustering import compute_metrics
+from ..privacy.gaussian import apply_gaussian_input_dp
+from ..results.excel_export import export_comparison_xlsx
 from ..results.history_store import HistoryStore
 from .dto import (
     AlgorithmRunReport,
@@ -31,6 +39,7 @@ METRICS = (
 )
 
 LogCallback = Callable[[str], None]
+PartitionCallback = Callable[[PartitionReport], None]
 
 
 class ComparisonService:
@@ -58,11 +67,17 @@ class ComparisonService:
                 result.append(name)
         return result
 
+
+    def export_excel(self, report: ComparisonReport, destination: str) -> str:
+        """Export a completed comparison to an .xlsx workbook."""
+        return str(export_comparison_xlsx(report, destination))
+
     def compare(
         self,
         request: RunRequest,
         *,
         on_log: LogCallback | None = None,
+        on_partition: PartitionCallback | None = None,
     ) -> ComparisonReport:
         request.validate()
         started_at = datetime.now().astimezone()
@@ -78,6 +93,52 @@ class ComparisonService:
         dataset = _load_dataset(self.dataset_registry, request.dataset_name)
         X_raw, y, dataset_display_name = _extract_xy(dataset)
         X_raw = np.asarray(X_raw, dtype=np.float64)
+        if request.dataset_name == "dry_bean":
+            log(
+                "Dry Bean: 13 611 объектов × 16 признаков × 7 классов. "
+                "Полный датасет используется без subsampling; Adapted NN-FC/FKDC "
+                "и другие тяжёлые author implementations могут выполняться заметно дольше."
+            )
+        elif request.dataset_name == "mnist_10k":
+            log(
+                "MNIST 10k: детерминированная stratified-выборка 10 000 объектов "
+                "из полного MNIST (70 000 × 784, 10 классов), seed=42. "
+                "Пиксели нормализованы в [0, 1]. На 784 признаках Adapted HF_DBSCAN, "
+                "FKDC, NN-FC и другие тяжёлые author implementations могут быть очень медленными."
+            )
+        elif request.dataset_name == "mnist_full":
+            log(
+                "MNIST FULL: полный набор 70 000 объектов × 784 признака × 10 классов. "
+                "Пиксели нормализованы в [0, 1]. Для некоторых author implementations "
+                "такой запуск может потребовать очень много времени и памяти; автоматический "
+                "subsampling не выполняется."
+            )
+
+        privacy_report: dict[str, Any] = {"mode": "none"}
+        X_benchmark_raw = X_raw
+        if request.mode == "federated" and request.privacy_mode == "gaussian_dp":
+            log(
+                "Применение общего Gaussian DP input layer: "
+                f"epsilon={request.dp_epsilon:g}, delta={request.dp_delta:g}, "
+                f"clip_norm={request.dp_clip_norm:g}…"
+            )
+            X_benchmark_raw, privacy_report = apply_gaussian_input_dp(
+                X_raw,
+                epsilon=request.dp_epsilon,
+                delta=request.dp_delta,
+                clip_norm=request.dp_clip_norm,
+                seed=request.seed,
+            )
+            log(
+                "Gaussian DP: sigma="
+                f"{privacy_report['sigma_raw_feature_space']:.6g} в raw feature space; "
+                f"clipped records="
+                f"{privacy_report['clipped_record_fraction']:.1%}."
+            )
+            log(
+                "Приватизированная матрица сэмплируется один раз и одинаково "
+                "используется всеми выбранными алгоритмами и всеми раундами."
+            )
 
         selected_algorithms = {
             name: _get_registry_item(self.algorithm_registry, name)
@@ -86,6 +147,7 @@ class ComparisonService:
 
         partition = None
         partition_report = None
+        participation_schedule: list[dict[str, Any]] = []
         if request.mode == "federated":
             if request.num_clients > len(X_raw):
                 raise ValueError(
@@ -114,6 +176,7 @@ class ComparisonService:
                 y=y,
                 alpha=request.dirichlet_alpha,
                 min_samples_per_client=request.min_samples_per_client,
+                labels_per_client=request.labels_per_client,
             )
             counts = [len(indices) for indices in partition]
             if any(count == 0 for count in counts):
@@ -121,6 +184,14 @@ class ComparisonService:
                     f"Partition contains empty clients: {counts}"
                 )
             fingerprint = partition_fingerprint(partition)
+            class_counts = partition_class_counts(partition, y)
+            participation_schedule = make_participation_schedule(
+                num_clients=request.num_clients,
+                rounds=request.rounds,
+                participation_rate=request.participation_rate,
+                dropout_rate=request.dropout_rate,
+                seed=request.seed,
+            )
             partition_report = PartitionReport(
                 mode=request.partition_mode,
                 num_clients=request.num_clients,
@@ -131,9 +202,40 @@ class ComparisonService:
                     if request.partition_mode == "dirichlet"
                     else None
                 ),
+                client_class_counts=class_counts,
+                labels_per_client=(
+                    request.labels_per_client
+                    if request.partition_mode == "label_limited"
+                    else None
+                ),
+                participation_rate=request.participation_rate,
+                dropout_rate=request.dropout_rate,
+                round_schedule=participation_schedule,
             )
             log(f"Partition ID: {fingerprint}")
             log(f"Размеры клиентов: {counts}")
+            if y is not None:
+                for client_id, distribution in enumerate(class_counts, start=1):
+                    pretty = ", ".join(f"{label}: {count}" for label, count in distribution.items())
+                    log(f"Client {client_id}: n={counts[client_id - 1]} | classes: {pretty or '—'}")
+            if on_partition is not None:
+                on_partition(partition_report)
+            log(
+                f"Partition подготовлен один раз и будет повторно использован "
+                f"для {len(request.algorithms)} алгоритмов."
+            )
+            log(
+                "Federated environment: participation="
+                f"{request.participation_rate:.0%}, dropout={request.dropout_rate:.0%}."
+            )
+            for entry in participation_schedule:
+                selected = [client + 1 for client in entry["selected_clients"]]
+                successful = [client + 1 for client in entry["successful_clients"]]
+                dropped = [client + 1 for client in entry["dropped_clients"]]
+                log(
+                    f"Round {entry['round']}: selected={selected} | "
+                    f"successful={successful} | dropped={dropped}"
+                )
 
         if request.target_clusters is not None:
             benchmark_k = int(request.target_clusters)
@@ -159,18 +261,23 @@ class ComparisonService:
             "density_min_samples": int(request.density_min_samples),
             "client_cpus": 1.0,
             "client_gpus": 0.0,
+            "participation_schedule": participation_schedule,
         }
 
         results: list[AlgorithmRunReport] = []
         for name in request.algorithms:
             log(f"\nЗапуск {name}…")
             algorithm = selected_algorithms[name]
-            X = _preprocess_algorithm_input(X_raw, algorithm)
+            X = _preprocess_algorithm_input(X_benchmark_raw, algorithm)
             preprocessing = getattr(algorithm, "input_preprocessing", "standard")
             log(f"Preprocessing {name}: {preprocessing}")
 
             params = dict(common_params)
             params.update(dict(getattr(algorithm, "default_params", {}) or {}))
+            # Dataset-agnostic profile: sklearn/common conventions for local
+            # baselines, author-preserving constants for Adapted algorithms.
+            # Explicit caller overrides remain highest priority.
+            params.update(defaults_for(name))
             params.update(request.algorithm_params)
             params.update(request.algorithm_params_by_name.get(name, {}))
 
@@ -240,6 +347,11 @@ class ComparisonService:
                 )
 
             state = dict(state)
+            # Preserve the data-driven DBSCAN radius actually used by sklearn in
+            # the auditable effective parameter block.  The profile still records
+            # eps=None + eps_strategy, so reports show both rule and realization.
+            if name == "dbscan" and state.get("eps") is not None:
+                params["resolved_eps"] = float(state["eps"])
             supported_common = list(getattr(algorithm, "common_param_support", ()) or ())
             shared_names = ("k", "rounds", "tol", "max_iter", "density_min_samples", "seed")
             state["benchmark"] = {
@@ -253,9 +365,19 @@ class ComparisonService:
                 "num_clients": request.num_clients if request.mode == "federated" else None,
                 "partition_mode": request.partition_mode if request.mode == "federated" else None,
                 "min_samples_per_client": request.min_samples_per_client if request.mode == "federated" else None,
+                "participation_rate": request.participation_rate if request.mode == "federated" else None,
+                "dropout_rate": request.dropout_rate if request.mode == "federated" else None,
+                "participation_schedule": participation_schedule if request.mode == "federated" else [],
+                "privacy_mode": request.privacy_mode if request.mode == "federated" else "none",
+                "dp_epsilon": request.dp_epsilon if request.privacy_mode == "gaussian_dp" else None,
+                "dp_delta": request.dp_delta if request.privacy_mode == "gaussian_dp" else None,
+                "dp_clip_norm": request.dp_clip_norm if request.privacy_mode == "gaussian_dp" else None,
+                "privacy_report": dict(privacy_report),
                 "preprocessing": str(preprocessing),
                 "common_param_support": supported_common,
                 "common_params_not_applicable": [name for name in shared_names if name not in supported_common],
+                "parameter_profile": PROFILE_NAME,
+                "profile_defaults": defaults_for(name),
                 "effective_params": dict(params),
             }
             state["diagnostics"] = diagnostics
@@ -304,6 +426,7 @@ class ComparisonService:
             n_features=int(X_raw.shape[1]),
             results=results,
             partition=partition_report,
+            privacy_report=privacy_report,
             log_lines=log_lines,
         )
 
@@ -371,7 +494,7 @@ def _registry_names(registry: Any) -> list[str]:
     registry_type = type(registry).__name__.lower()
     if "dataset" in registry_type:
         candidates = (
-            "iris", "wine", "breast_cancer",
+            "iris", "wine", "dry_bean", "mnist_10k", "mnist_full", "breast_cancer",
             "digits", "blobs", "moons",
         )
         methods = ("load", "get", "create")

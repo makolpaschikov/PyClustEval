@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 
 from .base import AlgorithmResult, ClusteringAlgorithm
+from ..federated.environment import participation_entry_for_round
 
 
 def _init_centers(X: np.ndarray, k: int, seed: int) -> np.ndarray:
@@ -55,7 +56,11 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
             weights = np.zeros(k, dtype=np.float64)
             objective = 0.0
 
-            for indices in partition:
+            participation = participation_entry_for_round(
+                params, rnd, len(partition)
+            )
+            for client_id in participation["successful_clients"]:
+                indices = partition[client_id]
                 Xc = X[indices]
                 if len(Xc) == 0:
                     continue
@@ -73,7 +78,14 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
             updated[nonempty] = weighted_sums[nonempty] / weights[nonempty, None]
             shift = float(np.linalg.norm(updated - centers))
             centers = updated
-            history.append({"round": rnd + 1, "shift": shift, "objective": objective})
+            history.append({
+                "round": rnd + 1,
+                "shift": shift,
+                "objective": objective,
+                "selected_clients": participation["selected_clients"],
+                "successful_clients": participation["successful_clients"],
+                "dropped_clients": participation["dropped_clients"],
+            })
             if shift < tol:
                 break
 
@@ -128,7 +140,11 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
             sum_x2 = np.zeros_like(means)
             log_likelihood = 0.0
 
-            for indices in partition:
+            participation = participation_entry_for_round(
+                params, rnd, len(partition)
+            )
+            for client_id in participation["successful_clients"]:
+                indices = partition[client_id]
                 Xc = X[indices]
                 if len(Xc) == 0:
                     continue
@@ -163,7 +179,14 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
             shift = float(np.linalg.norm(new_means - means))
             means, variances, weights = new_means, new_variances, new_weights
             history.append(
-                {"round": rnd + 1, "shift": shift, "log_likelihood": log_likelihood}
+                {
+                    "round": rnd + 1,
+                    "shift": shift,
+                    "log_likelihood": log_likelihood,
+                    "selected_clients": participation["selected_clients"],
+                    "successful_clients": participation["successful_clients"],
+                    "dropped_clients": participation["dropped_clients"],
+                }
             )
             if shift < tol:
                 break

@@ -2,6 +2,8 @@ from __future__ import annotations
 from typing import Callable, Any
 from sklearn.datasets import load_iris, make_blobs, load_wine, load_digits
 from .base import Dataset
+from .dry_bean import load_dry_bean
+from .mnist import load_mnist_10k, load_mnist_full
 
 Loader = Callable[[dict[str, Any]], Dataset]
 
@@ -46,4 +48,7 @@ def default_registry() -> DatasetRegistry:
     reg.register("wine", wine)
     reg.register("digits", digits)
     reg.register("blobs", blobs)
+    reg.register("dry_bean", load_dry_bean)
+    reg.register("mnist_10k", load_mnist_10k)
+    reg.register("mnist_full", load_mnist_full)
     return reg

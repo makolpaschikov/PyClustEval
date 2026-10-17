@@ -9,4 +9,4 @@ python -m pip install -e ".[flower]"
 python -m pip install "flwr[simulation]"
 python -m pip install -e ".[dev]"
 
-python pyclusteval_ui.py
+python pyclusteval_ui_fixed_local.py

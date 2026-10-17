@@ -240,7 +240,7 @@ clustering_eval/application/dto.py
 
 - `mode`: `local` или `federated`;
 - `dataset_name`: имя датасета в `DatasetRegistry`;
-- `algorithms`: ровно два имени алгоритмов;
+- `algorithms`: два или больше уникальных имён алгоритмов;
 - `seed`: seed эксперимента;
 - `num_clients`: количество федеративных клиентов;
 - `partition_mode`: `iid` или `dirichlet`;
@@ -251,7 +251,7 @@ clustering_eval/application/dto.py
 
 - проверяет поддерживаемый режим;
 - запрещает пустое имя датасета;
-- требует ровно два алгоритма;
+- требует минимум два уникальных алгоритма;
 - запрещает сравнение алгоритма с самим собой;
 - проверяет минимальное количество клиентов;
 - проверяет partition mode;
@@ -440,7 +440,7 @@ clustering_eval/application/comparison_service.py
 6. В федеративном режиме создаёт partition один раз.
 7. Вычисляет fingerprint partition.
 8. Формирует параметры алгоритмов.
-9. Последовательно запускает два алгоритма.
+9. Последовательно запускает все выбранные алгоритмы на одном заранее созданном partition.
 10. Проверяет соответствие алгоритма выбранному режиму.
 11. Преобразует низкоуровневый `AlgorithmResult` в `AlgorithmRunReport`.
 12. Вычисляет метрики.
@@ -1820,7 +1820,7 @@ sequenceDiagram
     Service->>Data: load(dataset_name)
     Data-->>Service: Dataset(X, y)
     Service->>Service: StandardScaler
-    loop два алгоритма
+    loop все выбранные алгоритмы
         Service->>Algo: run(X, partition=None, params, seed)
         Algo-->>Service: AlgorithmResult
         Service->>Metrics: compute_metrics(X, y, labels)
@@ -2013,7 +2013,7 @@ pyclusteval_ui.py
 
 Они используют общие registry, partitioning, algorithms и metrics, но по-разному:
 
-- UI сравнивает ровно два алгоритма и сохраняет `ComparisonReport`;
+- UI сравнивает произвольное число алгоритмов (минимум два) и сохраняет один общий `ComparisonReport`;
 - CLI запускает по одному `ExperimentSpec` и создаёт плоские строки;
 - UI выполняет `StandardScaler`;
 - CLI сейчас передаёт `dataset.X` без стандартизации;

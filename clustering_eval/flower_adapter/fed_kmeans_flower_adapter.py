@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.metrics import pairwise_distances_argmin
 
 from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
+from ..federated.environment import participation_entry_for_round
 
 
 class FedKMeansFlowerAdapter(ClusteringAlgorithm):
@@ -20,8 +21,11 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
       2. Each client assigns local samples and returns cluster sums/counts.
       3. Server aggregates sufficient statistics and updates global centers.
 
-    Raw samples never leave the client. All configured clients participate in
-    every round, which makes the run deterministic for a fixed partition/seed.
+    Raw samples never leave the client.  PyClustEval can additionally impose a
+    deterministic per-round participation/dropout schedule.  Because Flower's
+    strategy layer does not expose the dataset partition-id, all simulator
+    supernodes remain alive and inactive clients return a no-op update; only the
+    logically successful clients contribute to aggregation and benchmark traffic.
     """
 
     name = "fed_kmeans_flower"
@@ -76,14 +80,26 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
         initial_centers = X[initial_indices].copy()
 
         class KMeansClient(fl.client.NumPyClient):
-            def __init__(self, local_X: np.ndarray) -> None:
+            def __init__(self, local_X: np.ndarray, client_id: int) -> None:
                 self.local_X = local_X
+                self.client_id = int(client_id)
 
             def get_parameters(self, config: dict[str, Any]):
                 return []
 
             def fit(self, parameters, config):
                 centers = np.asarray(parameters[0], dtype=np.float64)
+                round_index = max(int(config.get("server_round", 1)) - 1, 0)
+                participation = participation_entry_for_round(
+                    params, round_index, num_clients
+                )
+                active = self.client_id in participation["successful_clients"]
+                if not active:
+                    return [np.zeros_like(centers), np.zeros(k, dtype=np.int64)], 0, {
+                        "inertia": 0.0,
+                        "active": 0,
+                    }
+
                 labels = pairwise_distances_argmin(self.local_X, centers)
                 sums = np.zeros_like(centers)
                 counts = np.zeros(k, dtype=np.int64)
@@ -97,7 +113,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 inertia = float(
                     np.square(self.local_X - centers[labels]).sum()
                 )
-                return [sums, counts], len(self.local_X), {"inertia": inertia}
+                return [sums, counts], len(self.local_X), {"inertia": inertia, "active": 1}
 
             def evaluate(self, parameters, config):
                 return 0.0, len(self.local_X), {}
@@ -113,12 +129,24 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 return ndarrays_to_parameters([self.centers])
 
             def configure_fit(self, server_round, parameters, client_manager):
+                # Flower proxies do not expose the dataset partition-id to the
+                # strategy layer.  We therefore keep all simulator clients alive
+                # and enforce the shared benchmark schedule inside each client,
+                # where context.node_config["partition-id"] is stable.
                 clients = client_manager.sample(
                     num_clients=num_clients,
                     min_num_clients=num_clients,
                 )
+                participation = participation_entry_for_round(
+                    params, max(int(server_round) - 1, 0), num_clients
+                )
                 instruction = FitIns(parameters, {"server_round": server_round})
-                self.communication_bytes += self.centers.nbytes * len(clients)
+                # Logical benchmark traffic: selected clients receive the model;
+                # only successful clients return an update.  Flower's simulator
+                # still dispatches no-op calls to inactive supernodes so IDs stay stable.
+                self.communication_bytes += (
+                    self.centers.nbytes * len(participation["selected_clients"])
+                )
                 return [(client, instruction) for client in clients]
 
             def aggregate_fit(self, server_round, results, failures):
@@ -133,7 +161,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 total_counts = np.zeros(k, dtype=np.int64)
                 inertia = 0.0
 
+                active_results = 0
                 for _, fit_res in results:
+                    if int(fit_res.metrics.get("active", 1)) != 1:
+                        continue
                     arrays = parameters_to_ndarrays(fit_res.parameters)
                     client_sums = np.asarray(arrays[0], dtype=np.float64)
                     client_counts = np.asarray(arrays[1], dtype=np.int64)
@@ -142,6 +173,12 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                     inertia += float(fit_res.metrics.get("inertia", 0.0))
                     self.communication_bytes += (
                         client_sums.nbytes + client_counts.nbytes
+                    )
+                    active_results += 1
+
+                if active_results == 0:
+                    raise RuntimeError(
+                        f"Flower round {server_round} has no successful benchmark clients"
                     )
 
                 new_centers = self.centers.copy()
@@ -152,11 +189,17 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 shift = float(np.linalg.norm(new_centers - self.centers))
                 self.centers = new_centers
                 self.converged = shift < tol
+                participation = participation_entry_for_round(
+                    params, max(int(server_round) - 1, 0), num_clients
+                )
                 self.history.append(
                     {
                         "round": server_round,
                         "shift": shift,
                         "inertia": inertia,
+                        "selected_clients": participation["selected_clients"],
+                        "successful_clients": participation["successful_clients"],
+                        "dropped_clients": participation["dropped_clients"],
                     }
                 )
                 return ndarrays_to_parameters([self.centers]), {
@@ -176,7 +219,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
         def client_fn(context):
             partition_id = int(context.node_config["partition-id"])
             local_indices = partition[partition_id]
-            return KMeansClient(X[local_indices]).to_client()
+            return KMeansClient(X[local_indices], partition_id).to_client()
 
         strategy = FedKMeansStrategy()
         client_app = ClientApp(client_fn=client_fn)
@@ -212,6 +255,8 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 "converged": strategy.converged,
                 "backend": "flower-simulation",
                 "num_clients": num_clients,
+                "participation_schedule": params.get("participation_schedule", []),
+                "participation_backend": "logical-noop-client-simulation",
             },
             history=strategy.history,
             runtime_sec=runtime,

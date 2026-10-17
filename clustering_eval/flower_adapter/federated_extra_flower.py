@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 
 from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
+from ..federated.environment import participation_entry_for_round
 
 
 def _require_flower():
@@ -71,14 +72,24 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
         initial = _init_centers(X, k, seed)
 
         class Client(fl.client.NumPyClient):
-            def __init__(self, local_x):
+            def __init__(self, local_x, client_id):
                 self.local_x = local_x
+                self.client_id = int(client_id)
 
             def get_parameters(self, config):
                 return []
 
             def fit(self, parameters, config):
                 centers = np.asarray(parameters[0], dtype=np.float64)
+                round_index = max(int(config.get("round", 1)) - 1, 0)
+                participation = participation_entry_for_round(
+                    params, round_index, n_clients
+                )
+                if self.client_id not in participation["successful_clients"]:
+                    return [np.zeros_like(centers), np.zeros(k)], 0, {
+                        "objective": 0.0,
+                        "active": 0,
+                    }
                 distances = _dist2(self.local_x, centers)
                 inverse = distances ** (-1.0 / (m - 1.0))
                 membership = inverse / inverse.sum(axis=1, keepdims=True)
@@ -86,7 +97,7 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                 sums = powered.T @ self.local_x
                 weights = powered.sum(axis=0)
                 objective = float((powered * distances).sum())
-                return [sums, weights], len(self.local_x), {"objective": objective}
+                return [sums, weights], len(self.local_x), {"objective": objective, "active": 1}
 
             def evaluate(self, parameters, config):
                 return 0.0, len(self.local_x), {}
@@ -102,7 +113,12 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
 
             def configure_fit(self, server_round, parameters, client_manager):
                 clients = client_manager.sample(n_clients, min_num_clients=n_clients)
-                self.communication_bytes += self.centers.nbytes * len(clients)
+                participation = participation_entry_for_round(
+                    params, max(int(server_round) - 1, 0), n_clients
+                )
+                self.communication_bytes += (
+                    self.centers.nbytes * len(participation["selected_clients"])
+                )
                 instruction = FitIns(parameters, {"round": server_round})
                 return [(client, instruction) for client in clients]
 
@@ -112,7 +128,10 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                 total_sums = np.zeros_like(self.centers)
                 total_weights = np.zeros(k)
                 objective = 0.0
+                active_results = 0
                 for _, fit_res in results:
+                    if int(fit_res.metrics.get("active", 1)) != 1:
+                        continue
                     arrays = parameters_to_ndarrays(fit_res.parameters)
                     sums = np.asarray(arrays[0])
                     weights = np.asarray(arrays[1])
@@ -120,14 +139,30 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                     total_weights += weights
                     objective += float(fit_res.metrics.get("objective", 0.0))
                     self.communication_bytes += sums.nbytes + weights.nbytes
+                    active_results += 1
+
+                if active_results == 0:
+                    raise RuntimeError(
+                        f"Flower round {server_round} has no successful benchmark clients"
+                    )
 
                 updated = self.centers.copy()
                 mask = total_weights > 0
                 updated[mask] = total_sums[mask] / total_weights[mask, None]
                 shift = float(np.linalg.norm(updated - self.centers))
                 self.centers = updated
+                participation = participation_entry_for_round(
+                    params, max(int(server_round) - 1, 0), n_clients
+                )
                 self.history.append(
-                    {"round": server_round, "shift": shift, "objective": objective}
+                    {
+                        "round": server_round,
+                        "shift": shift,
+                        "objective": objective,
+                        "selected_clients": participation["selected_clients"],
+                        "successful_clients": participation["successful_clients"],
+                        "dropped_clients": participation["dropped_clients"],
+                    }
                 )
                 return ndarrays_to_parameters([self.centers]), {"shift": shift}
 
@@ -142,7 +177,7 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
 
         def client_fn(context):
             client_id = int(context.node_config["partition-id"])
-            return Client(X[partition[client_id]]).to_client()
+            return Client(X[partition[client_id]], client_id).to_client()
 
         strategy = FedStrategy()
         started = time.perf_counter()
@@ -171,6 +206,8 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                 "fuzziness": m,
                 "backend": "flower-simulation",
                 "num_clients": n_clients,
+                "participation_schedule": params.get("participation_schedule", []),
+                "participation_backend": "logical-noop-client-simulation",
             },
             history=strategy.history,
             runtime_sec=time.perf_counter() - started,
@@ -204,8 +241,9 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
         weights0 = np.full(k, 1.0 / k)
 
         class Client(fl.client.NumPyClient):
-            def __init__(self, local_x):
+            def __init__(self, local_x, client_id):
                 self.local_x = local_x
+                self.client_id = int(client_id)
 
             def get_parameters(self, config):
                 return []
@@ -214,6 +252,16 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 means = np.asarray(parameters[0])
                 variances = np.asarray(parameters[1])
                 weights = np.asarray(parameters[2])
+                round_index = max(int(config.get("round", 1)) - 1, 0)
+                participation = participation_entry_for_round(
+                    params, round_index, n_clients
+                )
+                if self.client_id not in participation["successful_clients"]:
+                    return [
+                        np.zeros(k),
+                        np.zeros_like(means),
+                        np.zeros_like(means),
+                    ], 0, {"ll": 0.0, "active": 0}
                 log_prob = []
                 for cluster in range(k):
                     diff = self.local_x - means[cluster]
@@ -232,7 +280,7 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 sum_x = resp.T @ self.local_x
                 sum_x2 = resp.T @ (self.local_x * self.local_x)
                 ll = float((maximum[:, 0] + np.log(normalizer[:, 0])).sum())
-                return [nk, sum_x, sum_x2], len(self.local_x), {"ll": ll}
+                return [nk, sum_x, sum_x2], len(self.local_x), {"ll": ll, "active": 1}
 
             def evaluate(self, parameters, config):
                 return 0.0, len(self.local_x), {}
@@ -255,8 +303,11 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
 
             def configure_fit(self, server_round, parameters, client_manager):
                 clients = client_manager.sample(n_clients, min_num_clients=n_clients)
+                participation = participation_entry_for_round(
+                    params, max(int(server_round) - 1, 0), n_clients
+                )
                 payload = self.means.nbytes + self.variances.nbytes + self.weights.nbytes
-                self.communication_bytes += payload * len(clients)
+                self.communication_bytes += payload * len(participation["selected_clients"])
                 instruction = FitIns(parameters, {"round": server_round})
                 return [(client, instruction) for client in clients]
 
@@ -267,7 +318,10 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 sum_x = np.zeros_like(self.means)
                 sum_x2 = np.zeros_like(self.means)
                 ll = 0.0
+                active_results = 0
                 for _, fit_res in results:
+                    if int(fit_res.metrics.get("active", 1)) != 1:
+                        continue
                     arrays = parameters_to_ndarrays(fit_res.parameters)
                     client_nk = np.asarray(arrays[0])
                     client_sum_x = np.asarray(arrays[1])
@@ -278,6 +332,12 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                     ll += float(fit_res.metrics.get("ll", 0.0))
                     self.communication_bytes += (
                         client_nk.nbytes + client_sum_x.nbytes + client_sum_x2.nbytes
+                    )
+                    active_results += 1
+
+                if active_results == 0:
+                    raise RuntimeError(
+                        f"Flower round {server_round} has no successful benchmark clients"
                     )
 
                 safe_nk = np.maximum(nk, 1e-12)
@@ -291,8 +351,18 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 self.means = new_means
                 self.variances = new_variances
                 self.weights = new_weights
+                participation = participation_entry_for_round(
+                    params, max(int(server_round) - 1, 0), n_clients
+                )
                 self.history.append(
-                    {"round": server_round, "shift": shift, "log_likelihood": ll}
+                    {
+                        "round": server_round,
+                        "shift": shift,
+                        "log_likelihood": ll,
+                        "selected_clients": participation["selected_clients"],
+                        "successful_clients": participation["successful_clients"],
+                        "dropped_clients": participation["dropped_clients"],
+                    }
                 )
                 return self._parameters(), {"shift": shift, "log_likelihood": ll}
 
@@ -307,7 +377,7 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
 
         def client_fn(context):
             client_id = int(context.node_config["partition-id"])
-            return Client(X[partition[client_id]]).to_client()
+            return Client(X[partition[client_id]], client_id).to_client()
 
         strategy = FedStrategy()
         started = time.perf_counter()
@@ -348,6 +418,8 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 "rounds": len(strategy.history),
                 "backend": "flower-simulation",
                 "num_clients": n_clients,
+                "participation_schedule": params.get("participation_schedule", []),
+                "participation_backend": "logical-noop-client-simulation",
             },
             history=strategy.history,
             runtime_sec=time.perf_counter() - started,

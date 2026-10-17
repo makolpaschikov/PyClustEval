@@ -7,14 +7,15 @@ from typing import Any, Literal
 
 
 RunMode = Literal["local", "federated"]
-PartitionMode = Literal["iid", "dirichlet"]
+PartitionMode = Literal["iid", "dirichlet", "quantity_skew", "label_limited"]
+PrivacyMode = Literal["none", "gaussian_dp"]
 
 
 @dataclass(frozen=True, slots=True)
 class RunRequest:
     mode: RunMode
     dataset_name: str
-    algorithms: tuple[str, str]
+    algorithms: tuple[str, ...]
     seed: int = 42
     num_clients: int = 5
     partition_mode: PartitionMode = "iid"
@@ -27,8 +28,22 @@ class RunRequest:
     max_iter: int = 300
     # Shared density-neighborhood threshold for DBSCAN-family algorithms.
     # Algorithm-specific radius parameters (eps/L) remain separate.
-    density_min_samples: int = 4
+    density_min_samples: int = 5
     min_samples_per_client: int = 3
+    # Hidden benchmark default for the label-limited stress scenario.
+    labels_per_client: int = 2
+    # Federated-environment stress controls.  Participation is sampled once per
+    # benchmark round and reused by every selected algorithm.  Dropout is
+    # applied after client selection; at least one successful client is kept.
+    participation_rate: float = 1.0
+    dropout_rate: float = 0.0
+    # Algorithm-independent record-level Gaussian input perturbation.  Raw
+    # feature vectors are L2-clipped/noised once and the same privatized matrix
+    # is passed through each algorithm's declared preprocessing.
+    privacy_mode: PrivacyMode = "none"
+    dp_epsilon: float = 5.0
+    dp_delta: float = 1e-5
+    dp_clip_norm: float = 1.0
     # Legacy/global overrides plus optional per-algorithm overrides.
     algorithm_params: dict[str, Any] = field(default_factory=dict)
     algorithm_params_by_name: dict[str, dict[str, Any]] = field(default_factory=dict)
@@ -38,10 +53,10 @@ class RunRequest:
             raise ValueError(f"Unsupported run mode: {self.mode}")
         if not self.dataset_name:
             raise ValueError("dataset_name cannot be empty")
-        if len(self.algorithms) != 2:
-            raise ValueError("Exactly two algorithms are required")
-        if self.algorithms[0] == self.algorithms[1]:
-            raise ValueError("Algorithms must be different")
+        if len(self.algorithms) < 2:
+            raise ValueError("At least two algorithms are required")
+        if len(set(self.algorithms)) != len(self.algorithms):
+            raise ValueError("Algorithms must be unique")
         if self.target_clusters is not None and self.target_clusters < 2:
             raise ValueError("target_clusters must be at least 2 when provided")
         if self.rounds < 1:
@@ -54,15 +69,36 @@ class RunRequest:
             raise ValueError("density_min_samples must be at least 1")
         if self.min_samples_per_client < 1:
             raise ValueError("min_samples_per_client must be at least 1")
+        if self.labels_per_client < 1:
+            raise ValueError("labels_per_client must be at least 1")
+        if not 0 < self.participation_rate <= 1:
+            raise ValueError("participation_rate must be in (0, 1]")
+        if not 0 <= self.dropout_rate < 1:
+            raise ValueError("dropout_rate must be in [0, 1)")
+        if self.privacy_mode not in ("none", "gaussian_dp"):
+            raise ValueError(f"Unsupported privacy mode: {self.privacy_mode}")
+        if self.dp_epsilon <= 0:
+            raise ValueError("dp_epsilon must be greater than zero")
+        if not 0 < self.dp_delta < 1:
+            raise ValueError("dp_delta must be in (0, 1)")
+        if self.dp_clip_norm <= 0:
+            raise ValueError("dp_clip_norm must be greater than zero")
         if self.mode == "federated":
             if self.num_clients < 2:
                 raise ValueError("Federated mode requires at least two clients")
-            if self.partition_mode not in ("iid", "dirichlet"):
+            if self.partition_mode not in ("iid", "dirichlet", "quantity_skew", "label_limited"):
                 raise ValueError(
                     f"Unsupported partition mode: {self.partition_mode}"
                 )
             if self.partition_mode == "dirichlet" and self.dirichlet_alpha <= 0:
                 raise ValueError("dirichlet_alpha must be greater than zero")
+        else:
+            if self.privacy_mode != "none":
+                raise ValueError("Gaussian DP is available only in federated mode")
+            if self.participation_rate != 1.0 or self.dropout_rate != 0.0:
+                raise ValueError(
+                    "Participation/dropout controls are available only in federated mode"
+                )
 
 
 @dataclass(slots=True)
@@ -97,6 +133,11 @@ class PartitionReport:
     client_sample_counts: list[int]
     fingerprint: str
     dirichlet_alpha: float | None = None
+    client_class_counts: list[dict[str, int]] = field(default_factory=list)
+    labels_per_client: int | None = None
+    participation_rate: float = 1.0
+    dropout_rate: float = 0.0
+    round_schedule: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -110,6 +151,7 @@ class ComparisonReport:
     n_features: int
     results: list[AlgorithmRunReport]
     partition: PartitionReport | None = None
+    privacy_report: dict[str, Any] = field(default_factory=dict)
     log_lines: list[str] = field(default_factory=list)
     history_directory: Path | None = None
 

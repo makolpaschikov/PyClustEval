@@ -4,6 +4,7 @@ from .dto import (
     ComparisonReport,
     HistoryExperimentDetails,
     HistoryExperimentSummary,
+    PartitionReport,
     RunRequest,
 )
 from .history_query_service import HistoryQueryService
@@ -14,6 +15,7 @@ __all__ = [
     "RunRequest",
     "AlgorithmRunReport",
     "ComparisonReport",
+    "PartitionReport",
     "HistoryExperimentSummary",
     "HistoryExperimentDetails",
 ]
