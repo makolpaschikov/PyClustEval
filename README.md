@@ -198,6 +198,24 @@ After a comparison finishes, **Export to Excel** creates an `.xlsx` report with
 results, the client partition, effective configuration, diagnostics, and the
 execution log.
 
+
+**Excel and clipboard in the desktop UI:** After selecting a save location, the
+report is written first and then automatically opened with the system's default
+`.xlsx` application (Microsoft Excel, LibreOffice, etc.). This behavior is enabled
+by default and can be toggled via **«Открывать файл после экспорта»** on either
+comparison tab. If the external viewer cannot be started, the saved workbook is
+kept and the UI displays a warning; a normal export does not require Excel to be
+installed. On Windows the default file association is used; macOS uses `open` and
+Linux uses `xdg-open`.
+
+The **«Копировать таблицу»** button copies every visible results-table column
+and row, including column headings, to the clipboard as tab-separated text for
+pasting into Excel or a spreadsheet. `Ctrl+C` copies selected rows (or all rows
+when no row is selected); `Ctrl+A` selects all result rows. The History tab also
+has **«Копировать результаты»** for the currently displayed archived experiment.
+These actions copy the displayed, rounded values; use XLSX for full precision
+and all diagnostics.
+
 ## Scenario 3 — Partial Participation / Dropout
 
 The federated UI exposes two environment controls:
@@ -262,3 +280,29 @@ with epsilon, delta, sensitivity, calibrated sigma, clipping fraction, and scope
 ## Generic parameter profile
 
 See `docs/GENERIC_SANE_DEFAULTS.md`. The profile is dataset-agnostic and is not selected by ARI/NMI.
+
+## Benchmark diagnostics
+
+See `docs/MEASUREMENT_DIAGNOSTICS.md` for prediction hashes, client-level metrics, active-data fingerprints, common evaluation space, and federated-safe initialization.
+
+## Empirical TimeEval v2 review (14 October 2026)
+
+See [`docs/PROTOCOL_V2_REAL_WORLD_AUDIT_2026-10-14.md`](docs/PROTOCOL_V2_REAL_WORLD_AUDIT_2026-10-14.md) for the protocol, **real** Iris/Wine/Digits experiments, successful and failed results, 6-seed Digits stress, privacy limitations, and steps to reproduce. The desktop UI also exposes known/estimated k and unsupervised DBSCAN tuning, and AMI. Raw MNIST / UCI Dry Bean and native Flower are **not** claimed tested in the audit environment.
+
+
+**AMI export/history fix (2026-10-17).** In the `Results` XLSX worksheet,
+ARI, AMI, and NMI now appear side-by-side (columns F, G, H), and AMI is written
+as a numeric Excel cell. Reopening saved experiments through **История**
+preserves AMI in the on-screen table and copied TSV. See
+[`docs/FIX_AMI_EXPORT_2026-10-17.md`](docs/FIX_AMI_EXPORT_2026-10-17.md).
+
+### Gaussian aggregate DP across the adapted author algorithms (2026-10-17)
+
+TimeEval now supports Gaussian **aggregate-proxy/server variants** for the five
+`Adapted` algorithms. In the DP/clipped-control modes, the results are
+explicitly labelled `[DP proxy]`. These are **not** the unchanged original
+algorithms: the local update steps were replaced by bounded noisy statistics,
+and the original author server computation is retained where feasible.
+See [`docs/GAUSSIAN_AUTHOR_DP_V4.md`](docs/GAUSSIAN_AUTHOR_DP_V4.md) for
+accounting, per-algorithm fidelity, 1-vs-20-round semantics, and limitations.
+Do not treat the trusted evaluator's exported report as differentially private.

@@ -1,12 +1,38 @@
 from __future__ import annotations
 
 import math
+import secrets
 from statistics import NormalDist
 from typing import Any
 
 import numpy as np
 
 _NORMAL = NormalDist()
+
+
+def secure_normal_noise(shape: tuple[int, ...], sigma: float) -> np.ndarray:
+    """Generate iid Gaussian noise from OS CSPRNG via a Box-Muller transform.
+
+    No deterministic benchmark seed is allowed to reconstruct privacy noise.
+    Draws are chunked so full MNIST does not require a second huge random-byte
+    buffer. Every 53-bit uniform is in the OPEN interval (0, 1).
+    """
+    n = int(np.prod(shape, dtype=np.int64))
+    out = np.empty(n, dtype=np.float64)
+    position = 0
+    while position < n:
+        pairs = min(262_144, (n - position + 1) // 2)
+        bits = np.frombuffer(secrets.token_bytes(pairs * 16), dtype="<u8")
+        uniform = ((bits >> np.uint64(11)).astype(np.float64) + 0.5) / float(1 << 53)
+        radius = np.sqrt(-2.0 * np.log(uniform[::2])) * float(sigma)
+        theta = (2.0 * np.pi) * uniform[1::2]
+        normals = np.empty(pairs * 2, dtype=np.float64)
+        normals[0::2] = radius * np.cos(theta)
+        normals[1::2] = radius * np.sin(theta)
+        count = min(len(normals), n - position)
+        out[position:position + count] = normals[:count]
+        position += count
+    return out.reshape(shape)
 
 
 def _delta_for_sigma(sigma: float, epsilon: float, sensitivity: float) -> float:
@@ -66,7 +92,12 @@ def apply_gaussian_input_dp(
     ``2 * clip_norm`` in L2 norm.  Sigma is calibrated with the analytic
     Gaussian mechanism.  The privatized matrix is sampled once per experiment
     and reused by all algorithms and all communication rounds; subsequent
-    clustering computations are post-processing of that same DP release.
+    *training* computations are post-processing of that same DP input. Public
+    benchmark metadata and clean-X/y evaluation metrics are NOT DP.
+
+    The public benchmarking seed must never reproduce DP noise. The noise is
+    generated using operating-system cryptographic random bytes, and its secret
+    entropy is neither retained nor recorded.
     """
     X = np.asarray(X_raw, dtype=np.float64)
     if X.ndim != 2 or len(X) == 0:
@@ -84,9 +115,9 @@ def apply_gaussian_input_dp(
         delta=float(delta),
         sensitivity=sensitivity,
     )
-    privacy_seed = int(seed) ^ 0xD1FF3A
-    rng = np.random.default_rng(privacy_seed)
-    noise = rng.normal(loc=0.0, scale=sigma, size=clipped.shape)
+    # "seed" intentionally does NOT control DP randomness. A published or
+    # guessable RNG seed would allow an adversary to subtract the noise.
+    noise = secure_normal_noise(clipped.shape, sigma)
     privatized_raw = clipped + noise
 
     report = {
@@ -99,7 +130,8 @@ def apply_gaussian_input_dp(
         "clip_norm": float(clip_norm),
         "l2_sensitivity": sensitivity,
         "sigma_raw_feature_space": float(sigma),
-        "privacy_seed": privacy_seed,
+        "noise_rng": "OS CSPRNG (secrets.token_bytes) + Box-Muller; seed not exposed",
+        "dp_noise_reproducible_from_benchmark_seed": False,
         "clipped_record_fraction": float(np.mean(norms > clip_norm)),
         "privacy_space": "raw feature space (no data-dependent global scaler)",
         "protected_scope": "feature matrix X only; y labels and partition metadata are not privatized",

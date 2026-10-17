@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import math
 import json
 import os
 import re
@@ -26,6 +27,7 @@ CSV_COLUMNS = (
     "rounds",
     "ari",
     "nmi",
+    "ami",
     "silhouette",
     "davies_bouldin",
     "calinski_harabasz",
@@ -37,6 +39,24 @@ CSV_COLUMNS = (
     "dp_epsilon",
     "dp_delta",
     "dp_clip_norm",
+    "prediction_hash",
+    "client_ari_mean",
+    "client_ari_weighted",
+    "client_ari_worst",
+    "client_ari_std",
+    "client_nmi_mean",
+    "client_nmi_weighted",
+    "client_nmi_worst",
+    "client_nmi_std",
+    "evaluation_space",
+    "benchmark_input_hash",
+    "active_data_fingerprint",
+    "cluster_count_mode",
+    "tuning_mode",
+    "class_js_divergence_weighted_bits",
+    "metric_schema_version",
+    "assigned_fraction",
+    "runtime_wall_including_preprocessing_sec",
 )
 
 
@@ -50,6 +70,25 @@ def _json_default(value: Any) -> Any:
     if isinstance(value, set):
         return sorted(value)
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def _strict_json_value(value: Any) -> Any:
+    """Convert undefined numeric metrics to JSON null (RFC 8259 compliant).
+
+    This preserves the distinction between an undefined score and a valid zero.
+    Historical reports can still contain legacy nonstandard NaN literals.
+    """
+    if isinstance(value, np.ndarray):
+        return _strict_json_value(value.tolist())
+    if isinstance(value, np.generic):
+        return _strict_json_value(value.item())
+    if isinstance(value, float):
+        return float(value) if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {str(k): _strict_json_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_strict_json_value(item) for item in value]
+    return value
 
 
 def _safe_component(value: str) -> str:
@@ -100,9 +139,10 @@ class HistoryStore:
 
     def _write_json_atomic(self, path: Path, payload: dict[str, Any]) -> None:
         content = json.dumps(
-            payload,
+            _strict_json_value(payload),
             ensure_ascii=False,
             indent=2,
+            allow_nan=False,
             default=_json_default,
         )
         self._write_text_atomic(path, content + "\n")
@@ -122,6 +162,11 @@ class HistoryStore:
             num_clients = report.partition.num_clients if report.partition else ""
 
             for result in report.results:
+                diagnostics = dict(result.model_state.get("diagnostics") or {})
+                benchmark = dict(result.model_state.get("benchmark") or {})
+                client_metrics = dict(diagnostics.get("client_metrics") or {})
+                client_ari = dict(client_metrics.get("ari") or {})
+                client_nmi = dict(client_metrics.get("nmi") or {})
                 writer.writerow(
                     {
                         "experiment_id": report.experiment_id,
@@ -136,6 +181,7 @@ class HistoryStore:
                         "rounds": result.rounds,
                         "ari": result.ari,
                         "nmi": result.nmi,
+                        "ami": result.ami,
                         "silhouette": result.silhouette,
                         "davies_bouldin": result.davies_bouldin,
                         "calinski_harabasz": result.calinski_harabasz,
@@ -155,15 +201,35 @@ class HistoryStore:
                         ),
                         "dp_epsilon": (
                             report.request.dp_epsilon
-                            if report.request.privacy_mode == "gaussian_dp" else ""
+                            if report.request.privacy_mode in ("gaussian_dp", "gaussian_dp_aggregate") else ""
                         ),
                         "dp_delta": (
                             report.request.dp_delta
-                            if report.request.privacy_mode == "gaussian_dp" else ""
+                            if report.request.privacy_mode in ("gaussian_dp", "gaussian_dp_aggregate") else ""
                         ),
                         "dp_clip_norm": (
                             report.request.dp_clip_norm
-                            if report.request.privacy_mode == "gaussian_dp" else ""
+                            if report.request.privacy_mode in ("gaussian_dp", "gaussian_dp_aggregate") else ""
+                        ),
+                        "prediction_hash": diagnostics.get("prediction_hash", ""),
+                        "client_ari_mean": client_ari.get("mean", ""),
+                        "client_ari_weighted": client_ari.get("weighted_mean", ""),
+                        "client_ari_worst": client_ari.get("worst", ""),
+                        "client_ari_std": client_ari.get("std", ""),
+                        "client_nmi_mean": client_nmi.get("mean", ""),
+                        "client_nmi_weighted": client_nmi.get("weighted_mean", ""),
+                        "client_nmi_worst": client_nmi.get("worst", ""),
+                        "client_nmi_std": client_nmi.get("std", ""),
+                        "evaluation_space": benchmark.get("evaluation_space", ""),
+                        "benchmark_input_hash": benchmark.get("benchmark_input_hash", ""),
+                        "active_data_fingerprint": benchmark.get("active_data_fingerprint", ""),
+                        "cluster_count_mode": benchmark.get("cluster_count_mode", ""),
+                        "tuning_mode": benchmark.get("parameter_tuning_mode", ""),
+                        "class_js_divergence_weighted_bits": (report.partition.heterogeneity.get("class_js_divergence_weighted_bits", "") if report.partition else ""),
+                        "metric_schema_version": diagnostics.get("metric_schema_version", ""),
+                        "assigned_fraction": diagnostics.get("assigned_fraction", ""),
+                        "runtime_wall_including_preprocessing_sec": diagnostics.get(
+                            "runtime_wall_including_preprocessing_sec", ""
                         ),
                     }
                 )

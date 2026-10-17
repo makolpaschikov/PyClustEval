@@ -1,0 +1,242 @@
+[
+  {
+    "dataset": "iris",
+    "seed": 0,
+    "algorithm": "kmeans",
+    "ari": 0.6201351808870379,
+    "ami": 0.655222847923487,
+    "wall_call_sec": 0.03528949100018508,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 0,
+    "algorithm": "gmm",
+    "ari": 0.8511690525435782,
+    "ami": 0.8429064574516221,
+    "wall_call_sec": 0.012699904999863065,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 0,
+    "algorithm": "fed_kmeans_numpy",
+    "ari": 0.645147003482001,
+    "ami": 0.6570421657303311,
+    "wall_call_sec": 0.02717138399975738,
+    "logical_bytes": 6120,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 0,
+    "algorithm": "fed_gmm_diag_numpy",
+    "ari": 0.7868729885244303,
+    "ami": 0.789897070643102,
+    "wall_call_sec": 0.008414829000230384,
+    "logical_bytes": 18360,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 1,
+    "algorithm": "kmeans",
+    "ari": 0.645147003482001,
+    "ami": 0.6570421657303311,
+    "wall_call_sec": 0.005385886000112805,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 1,
+    "algorithm": "gmm",
+    "ari": 0.818005634903832,
+    "ami": 0.8106972523487551,
+    "wall_call_sec": 0.01683239300018613,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 1,
+    "algorithm": "fed_kmeans_numpy",
+    "ari": 0.5923326221845838,
+    "ami": 0.638175328402091,
+    "wall_call_sec": 0.04228039899999203,
+    "logical_bytes": 9360,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "iris",
+    "seed": 1,
+    "algorithm": "fed_gmm_diag_numpy",
+    "ari": 0.7591987071071522,
+    "ami": 0.8032287370935433,
+    "wall_call_sec": 0.00750911500017537,
+    "logical_bytes": 18360,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 0,
+    "algorithm": "kmeans",
+    "ari": 0.8974949815093207,
+    "ami": 0.874579440437926,
+    "wall_call_sec": 0.005564595000123518,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 0,
+    "algorithm": "gmm",
+    "ari": 0.8635987920128989,
+    "ami": 0.8456728253009242,
+    "wall_call_sec": 0.01589206800008469,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 0,
+    "algorithm": "fed_kmeans_numpy",
+    "ari": 0.7407343433365592,
+    "ami": 0.7625908133371795,
+    "wall_call_sec": 0.049107681999885244,
+    "logical_bytes": 27720,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 0,
+    "algorithm": "fed_gmm_diag_numpy",
+    "ari": 0.605188783983026,
+    "ami": 0.6782498576649518,
+    "wall_call_sec": 0.008225984999626235,
+    "logical_bytes": 54720,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 1,
+    "algorithm": "kmeans",
+    "ari": 0.9148795960669529,
+    "ami": 0.8914476096236206,
+    "wall_call_sec": 0.0063772550001885975,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 1,
+    "algorithm": "gmm",
+    "ari": 0.9150207134605749,
+    "ami": 0.8913100044517649,
+    "wall_call_sec": 0.009704580000288843,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 1,
+    "algorithm": "fed_kmeans_numpy",
+    "ari": 0.8974949815093207,
+    "ami": 0.874579440437926,
+    "wall_call_sec": 0.03456511900003534,
+    "logical_bytes": 18000,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "wine",
+    "seed": 1,
+    "algorithm": "fed_gmm_diag_numpy",
+    "ari": 0.897627229047188,
+    "ami": 0.8646709845175748,
+    "wall_call_sec": 0.009254528999917966,
+    "logical_bytes": 54720,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 0,
+    "algorithm": "kmeans",
+    "ari": 0.5566584160999241,
+    "ami": 0.6961501162454655,
+    "wall_call_sec": 0.02772620799987635,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 0,
+    "algorithm": "gmm",
+    "ari": 0.32298912039905664,
+    "ami": 0.5102090227796171,
+    "wall_call_sec": 0.09897064700044211,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 0,
+    "algorithm": "fed_kmeans_numpy",
+    "ari": 0.5573881848898106,
+    "ami": 0.6629276489342234,
+    "wall_call_sec": 0.129684903999987,
+    "logical_bytes": 439200,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 0,
+    "algorithm": "fed_gmm_diag_numpy",
+    "ari": 0.3496230780938909,
+    "ami": 0.5270823412148916,
+    "wall_call_sec": 0.14348634800035143,
+    "logical_bytes": 857160,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 1,
+    "algorithm": "kmeans",
+    "ari": 0.5005304846967256,
+    "ami": 0.6246261576132054,
+    "wall_call_sec": 0.026372552000339056,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 1,
+    "algorithm": "gmm",
+    "ari": 0.39258329882345866,
+    "ami": 0.5366467509099666,
+    "wall_call_sec": 0.11812797799984764,
+    "logical_bytes": 0,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 1,
+    "algorithm": "fed_kmeans_numpy",
+    "ari": 0.5123336568158533,
+    "ami": 0.6469967495636824,
+    "wall_call_sec": 0.13044519400000354,
+    "logical_bytes": 439200,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  },
+  {
+    "dataset": "digits",
+    "seed": 1,
+    "algorithm": "fed_gmm_diag_numpy",
+    "ari": 0.20467831137544493,
+    "ami": 0.3905981850569192,
+    "wall_call_sec": 0.22903263399985008,
+    "logical_bytes": 857160,
+    "note": "Rough model capacity / iteration budget controls only; NOT equal time, initialization, or communication."
+  }
+]

@@ -42,8 +42,8 @@ def density_radius_candidates(
     if min_samples < 1:
         raise ValueError("min_samples must be >= 1")
 
-    # +1 because a training-set kNN query includes the point itself at distance 0.
-    neighbor_rank = min(int(min_samples) + 1, len(X))
+    # sklearn DBSCAN min_samples includes the point itself at distance zero.
+    neighbor_rank = min(int(min_samples), len(X))
     nn = NearestNeighbors(n_neighbors=neighbor_rank, metric=metric)
     distances = nn.fit(X).kneighbors(X, return_distance=True)[0]
     kth = distances[:, -1]

@@ -6,6 +6,7 @@ import math
 from pathlib import Path
 
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 from clustering_eval.algorithms.registry import default_registry as algorithm_registry
 from clustering_eval.application.comparison_service import _preprocess_algorithm_input, _is_federated
@@ -49,6 +50,7 @@ def run(include_flower: bool = False) -> list[dict[str, object]]:
         dataset = datasets.load(dataset_name)
         X_raw = np.asarray(dataset.X, dtype=np.float64)
         y = None if dataset.y is None else np.asarray(dataset.y)
+        X_eval = StandardScaler().fit_transform(X_raw)
         k = len(np.unique(y)) if y is not None else 3
 
         for algorithm_name in algorithms.names():
@@ -80,7 +82,7 @@ def run(include_flower: bool = False) -> list[dict[str, object]]:
                     params.update(dict(getattr(algorithm, "default_params", {}) or {}))
                     result = algorithm.run(X, partition, params, 42)
                     labels = np.asarray(result.labels)
-                    metrics = compute_metrics(X, y, labels, ["ari", "nmi", "silhouette"])
+                    metrics = compute_metrics(X_eval, y, labels, ["ari", "nmi", "silhouette"])
                     status, found, noise, dominant = _status(labels)
                     rows.append({
                         "dataset": dataset_name,

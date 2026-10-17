@@ -141,7 +141,7 @@ def test_flower_named_algorithms_are_not_rejected_by_shared_schedule(tmp_path: P
     assert len(report.results) == 2
 
 
-def test_analytic_gaussian_input_dp_is_deterministic_for_seed() -> None:
+def test_analytic_gaussian_input_dp_uses_unpredictable_private_randomness() -> None:
     X = load_iris().data.astype(float)
     sigma = analytic_gaussian_sigma(epsilon=5.0, delta=1e-5, sensitivity=2.0)
     assert sigma > 0
@@ -154,12 +154,14 @@ def test_analytic_gaussian_input_dp_is_deterministic_for_seed() -> None:
     other, _ = apply_gaussian_input_dp(
         X, epsilon=5.0, delta=1e-5, clip_norm=1.0, seed=43
     )
-    assert np.allclose(first, second)
+    assert not np.allclose(first, second)
     assert not np.allclose(first, X)
     assert not np.allclose(first, other)
-    assert first_report == second_report
+    assert first_report == second_report  # same public mechanism metadata
     assert first_report["mode"] == "gaussian_dp"
     assert first_report["l2_sensitivity"] == 2.0
+    assert "privacy_seed" not in first_report
+    assert first_report["dp_noise_reproducible_from_benchmark_seed"] is False
 
 
 def test_gaussian_dp_matrix_is_shared_across_algorithms(tmp_path: Path) -> None:

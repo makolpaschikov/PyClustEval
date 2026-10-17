@@ -25,7 +25,7 @@ GENERIC_SANE_DEFAULTS: dict[str, dict[str, object]] = {
     },
     "dbscan": {
         # Label-free, dataset-agnostic automatic radius: median distance to the
-        # min_samples-th non-self neighbor after the algorithm's StandardScaler.
+        # min_samples-th neighbor (self included) after the algorithm's StandardScaler.
         "eps": None,
         "eps_strategy": "k_distance_quantile",
         "eps_quantile": 0.50,

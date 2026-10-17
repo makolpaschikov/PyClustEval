@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 from ..algorithms.registry import default_registry as default_algorithm_registry
 from ..datasets.partitioning import make_partition, partition_fingerprint
 from ..datasets.registry import default_registry as default_dataset_registry
 from ..metrics.clustering import compute_metrics
+from ..metrics.diagnostics import prediction_fingerprint, array_fingerprint, client_external_metrics
 from ..results.store import ResultStore
 from ..application.comparison_service import _preprocess_algorithm_input
 from .planner import ExperimentSpec
@@ -65,14 +67,22 @@ class ExperimentRunner:
         params.update(dict(getattr(algorithm, "default_params", {}) or {}))
         params.update(spec.algorithm_params)
 
-        X = _preprocess_algorithm_input(np.asarray(dataset.X, dtype=float), algorithm)
+        X_raw = np.asarray(dataset.X, dtype=float)
+        X = _preprocess_algorithm_input(X_raw, algorithm)
+        X_eval = StandardScaler().fit_transform(X_raw)
         result = algorithm.run(X, partition, params, spec.seed)
         metric_values = compute_metrics(
-            X,
+            X_eval,
             dataset.y,
             result.labels,
             self.metrics,
         )
+        diagnostics = {
+            "prediction_hash": prediction_fingerprint(result.labels),
+            "benchmark_input_hash": array_fingerprint(X_raw),
+            "evaluation_input_hash": array_fingerprint(X_eval),
+            "client_metrics": client_external_metrics(dataset.y, result.labels, partition),
+        }
         row = {
             **spec.asdict(),
             **metric_values,
@@ -88,6 +98,8 @@ class ExperimentRunner:
             "benchmark_k": benchmark_k,
             "effective_algorithm_params": params,
             "min_samples_per_client": min_client_samples,
+            "evaluation_space": "StandardScaler(original_raw_X)",
+            "diagnostics": diagnostics,
         }
         self.store.add(row)
         self.store.write_jsonl(

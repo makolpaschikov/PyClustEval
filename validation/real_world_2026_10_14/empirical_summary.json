@@ -1,0 +1,1926 @@
+{
+  "n_comparisons": 48,
+  "n_results": 150,
+  "unique_conditions": [
+    [
+      "digits",
+      "dirichlet_01_full"
+    ],
+    [
+      "digits",
+      "dirichlet_01_partial"
+    ],
+    [
+      "digits",
+      "iid_full"
+    ],
+    [
+      "digits",
+      "iid_partial"
+    ],
+    [
+      "digits",
+      "local_estimated"
+    ],
+    [
+      "digits",
+      "local_known"
+    ],
+    [
+      "iris",
+      "dirichlet_01_full"
+    ],
+    [
+      "iris",
+      "dirichlet_01_partial"
+    ],
+    [
+      "iris",
+      "iid_full"
+    ],
+    [
+      "iris",
+      "iid_partial"
+    ],
+    [
+      "iris",
+      "local_estimated"
+    ],
+    [
+      "iris",
+      "local_known"
+    ],
+    [
+      "wine",
+      "dirichlet_01_full"
+    ],
+    [
+      "wine",
+      "dirichlet_01_partial"
+    ],
+    [
+      "wine",
+      "iid_full"
+    ],
+    [
+      "wine",
+      "iid_partial"
+    ],
+    [
+      "wine",
+      "local_estimated"
+    ],
+    [
+      "wine",
+      "local_known"
+    ]
+  ],
+  "ari": [
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.2187689212272758,
+      "sd": 0.033663649357347385,
+      "min": 0.1829928550774023,
+      "max": 0.24982115219590667
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.23625141171801856,
+      "sd": 0.10134347736087476,
+      "min": 0.1544528456847198,
+      "max": 0.3496230780938909
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5396912936865816,
+      "sd": 0.02403071222687406,
+      "min": 0.5123336568158533,
+      "max": 0.5573881848898106
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.13098791213460223,
+      "sd": 0.012500686137710618,
+      "min": 0.11707080753606457,
+      "max": 0.14126351185719377
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.1785715921228385,
+      "sd": 0.015535809319802684,
+      "min": 0.1606454613645907,
+      "max": 0.18812774118064526
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.3091829311819296,
+      "sd": 0.03320483981621184,
+      "min": 0.2713471997378376,
+      "max": 0.3334770834279809
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.2187689212272758,
+      "sd": 0.033663649357347385,
+      "min": 0.1829928550774023,
+      "max": 0.24982115219590667
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.23625141171801856,
+      "sd": 0.10134347736087476,
+      "min": 0.1544528456847198,
+      "max": 0.3496230780938909
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5396912936865816,
+      "sd": 0.02403071222687406,
+      "min": 0.5123336568158533,
+      "max": 0.5573881848898106
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.26110636789245356,
+      "sd": 0.03143183080277391,
+      "min": 0.22573954712358968,
+      "max": 0.285850300859634
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.23193960781004822,
+      "sd": 0.06886465836077653,
+      "min": 0.15679130201616348,
+      "max": 0.29202798450835804
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.4624813788867996,
+      "sd": 0.03805927837367928,
+      "min": 0.41857248898485916,
+      "max": 0.4860219231441401
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_estimated",
+      "algorithm": "gmm",
+      "metric": "ari",
+      "n": 1,
+      "mean": 0.5000874457027749,
+      "sd": null,
+      "min": 0.5000874457027749,
+      "max": 0.5000874457027749
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_estimated",
+      "algorithm": "kmeans",
+      "metric": "ari",
+      "n": 1,
+      "mean": 0.5468711305043609,
+      "sd": null,
+      "min": 0.5468711305043609,
+      "max": 0.5468711305043609
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "agglomerative",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6643458356002894,
+      "sd": 0.0,
+      "min": 0.6643458356002894,
+      "max": 0.6643458356002894
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "dbscan",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.0009181901116240796,
+      "sd": 3.644205601678096e-05,
+      "min": 0.0008971502807729678,
+      "max": 0.0009602697733263035
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "gmm",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.48831509239321447,
+      "sd": 0.10223188642158827,
+      "min": 0.40138786567040696,
+      "max": 0.6009459056547714
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "kmeans",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.4679038369286785,
+      "sd": 0.0004284502449330864,
+      "min": 0.46746432782414266,
+      "max": 0.46832029791870533
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6269379498882278,
+      "sd": 0.005891370771107734,
+      "min": 0.6201351808870379,
+      "max": 0.6303393343888227
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.7635327088351525,
+      "sd": 0.02150338146540411,
+      "min": 0.7445264308738749,
+      "max": 0.7868729885244303
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6192049355178743,
+      "sd": 0.026419476438649978,
+      "min": 0.5923326221845838,
+      "max": 0.645147003482001
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5321553265922258,
+      "sd": 0.16383211327504904,
+      "min": 0.3438713343224218,
+      "max": 0.6421974809457369
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.565112450091191,
+      "sd": 0.2617335997584607,
+      "min": 0.27087514887715936,
+      "max": 0.7720038802323269
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6182731637729876,
+      "sd": 0.015229959868257596,
+      "min": 0.6011286543750637,
+      "max": 0.6302367346938775
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6269379498882278,
+      "sd": 0.005891370771107734,
+      "min": 0.6201351808870379,
+      "max": 0.6303393343888227
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.7635327088351525,
+      "sd": 0.02150338146540411,
+      "min": 0.7445264308738749,
+      "max": 0.7868729885244303
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6192049355178743,
+      "sd": 0.026419476438649978,
+      "min": 0.5923326221845838,
+      "max": 0.645147003482001
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5629282995061111,
+      "sd": 0.12788830145534388,
+      "min": 0.41642258067338983,
+      "max": 0.6522271369579056
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6891229114369196,
+      "sd": 0.1213748384816578,
+      "min": 0.5489713200964548,
+      "max": 0.7591987071071522
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5547575637637868,
+      "sd": 0.10661937548827173,
+      "min": 0.432804702527474,
+      "max": 0.6303393343888227
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_estimated",
+      "algorithm": "gmm",
+      "metric": "ari",
+      "n": 1,
+      "mean": 0.5681159420289855,
+      "sd": null,
+      "min": 0.5681159420289855,
+      "max": 0.5681159420289855
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_estimated",
+      "algorithm": "kmeans",
+      "metric": "ari",
+      "n": 1,
+      "mean": 0.5681159420289855,
+      "sd": null,
+      "min": 0.5681159420289855,
+      "max": 0.5681159420289855
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "agglomerative",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6153229932145449,
+      "sd": 0.0,
+      "min": 0.6153229932145449,
+      "max": 0.6153229932145449
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "dbscan",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5343817363753418,
+      "sd": 0.0,
+      "min": 0.5343817363753418,
+      "max": 0.5343817363753418
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "gmm",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.9038742317748124,
+      "sd": 0.0,
+      "min": 0.9038742317748124,
+      "max": 0.9038742317748124
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "kmeans",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6201351808870379,
+      "sd": 0.0,
+      "min": 0.6201351808870379,
+      "max": 0.6201351808870379
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.8650695364247967,
+      "sd": 0.04336828169771775,
+      "min": 0.8158075969369626,
+      "max": 0.8974949815093207
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.7089977826652977,
+      "sd": 0.1636335610406955,
+      "min": 0.605188783983026,
+      "max": 0.897627229047188
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6730504064273752,
+      "sd": 0.2648542524836944,
+      "min": 0.3809218944362456,
+      "max": 0.8974949815093207
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.46859280406047904,
+      "sd": 0.09921419487425676,
+      "min": 0.37521871068824714,
+      "max": 0.5727638961829792
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.15861779547427696,
+      "sd": 0.26197950506888806,
+      "min": 0.0,
+      "max": 0.4610041624800529
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.5620078909247234,
+      "sd": 0.22528704103579764,
+      "min": 0.39627526658062184,
+      "max": 0.8185226231289698
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.8650695364247967,
+      "sd": 0.04336828169771775,
+      "min": 0.8158075969369626,
+      "max": 0.8974949815093207
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.7089977826652977,
+      "sd": 0.1636335610406955,
+      "min": 0.605188783983026,
+      "max": 0.897627229047188
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.6730504064273752,
+      "sd": 0.2648542524836944,
+      "min": 0.3809218944362456,
+      "max": 0.8974949815093207
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.8803893773646806,
+      "sd": 0.02962777547267747,
+      "min": 0.8461781690754003,
+      "max": 0.8974949815093207
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.8552194871967228,
+      "sd": 0.07355847375405163,
+      "min": 0.7702815073941887,
+      "max": 0.8977497251487918
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.8912845288361968,
+      "sd": 0.03955725918499814,
+      "min": 0.8456161913329393,
+      "max": 0.9148795960669529
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_estimated",
+      "algorithm": "gmm",
+      "metric": "ari",
+      "n": 1,
+      "mean": 0.9294895312165175,
+      "sd": null,
+      "min": 0.9294895312165175,
+      "max": 0.9294895312165175
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_estimated",
+      "algorithm": "kmeans",
+      "metric": "ari",
+      "n": 1,
+      "mean": 0.8974949815093207,
+      "sd": null,
+      "min": 0.8974949815093207,
+      "max": 0.8974949815093207
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "agglomerative",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.7899332213582837,
+      "sd": 0.0,
+      "min": 0.7899332213582837,
+      "max": 0.7899332213582837
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "dbscan",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.4295335222288584,
+      "sd": 0.0,
+      "min": 0.4295335222288584,
+      "max": 0.4295335222288584
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "gmm",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.9353702747396756,
+      "sd": 0.010185746568391326,
+      "min": 0.9294895312165175,
+      "max": 0.9471317617859916
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "kmeans",
+      "metric": "ari",
+      "n": 3,
+      "mean": 0.8974949815093206,
+      "sd": 1.3597399555105182e-16,
+      "min": 0.8974949815093207,
+      "max": 0.8974949815093207
+    }
+  ],
+  "ami": [
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.371230284768743,
+      "sd": 0.024191180023735357,
+      "min": 0.3454179656970206,
+      "max": 0.393383407538308
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.43146348224521164,
+      "sd": 0.08309901092281198,
+      "min": 0.37670992046382396,
+      "max": 0.5270823412148916
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6609368026633303,
+      "sd": 0.013058945078598299,
+      "min": 0.6469967495636824,
+      "max": 0.6728860094920851
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.2854605501688412,
+      "sd": 0.0355108930793993,
+      "min": 0.24973571141780676,
+      "max": 0.320753559019645
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.3108306769592681,
+      "sd": 0.00976841163295355,
+      "min": 0.3018422599484101,
+      "max": 0.32122642217643677
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.46671981515297256,
+      "sd": 0.022150074058676566,
+      "min": 0.44234016406625104,
+      "max": 0.48560667291009374
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.371230284768743,
+      "sd": 0.024191180023735357,
+      "min": 0.3454179656970206,
+      "max": 0.393383407538308
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.43146348224521164,
+      "sd": 0.08309901092281198,
+      "min": 0.37670992046382396,
+      "max": 0.5270823412148916
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6609368026633303,
+      "sd": 0.013058945078598299,
+      "min": 0.6469967495636824,
+      "max": 0.6728860094920851
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.40476374281463695,
+      "sd": 0.02374313262495377,
+      "min": 0.3776951182468499,
+      "max": 0.4220668108417819
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.38740594802691036,
+      "sd": 0.07821591724223682,
+      "min": 0.3083445084849541,
+      "max": 0.4647479927311626
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6137126754597518,
+      "sd": 0.030409103140980488,
+      "min": 0.5786303331720458,
+      "max": 0.6325327127205103
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_estimated",
+      "algorithm": "gmm",
+      "metric": "ami",
+      "n": 1,
+      "mean": 0.6465797710621385,
+      "sd": null,
+      "min": 0.6465797710621385,
+      "max": 0.6465797710621385
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_estimated",
+      "algorithm": "kmeans",
+      "metric": "ami",
+      "n": 1,
+      "mean": 0.6803848563556094,
+      "sd": null,
+      "min": 0.6803848563556094,
+      "max": 0.6803848563556094
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "agglomerative",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7934927361004463,
+      "sd": 1.3597399555105182e-16,
+      "min": 0.7934927361004462,
+      "max": 0.7934927361004462
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "dbscan",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.015394638979511379,
+      "sd": 0.0006216256544480289,
+      "min": 0.015035743240580633,
+      "max": 0.016112430457372873
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "gmm",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6580249990805066,
+      "sd": 0.051869265236728336,
+      "min": 0.6171372220406327,
+      "max": 0.7163709052611335
+    },
+    {
+      "dataset": "digits",
+      "scenario": "local_known",
+      "algorithm": "kmeans",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6229378896268579,
+      "sd": 0.0005597737525049585,
+      "min": 0.6224288205906096,
+      "max": 0.6235373635472593
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6595745826235269,
+      "sd": 0.003768712800764817,
+      "min": 0.655222847923487,
+      "max": 0.6617504499735468
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7893246044746177,
+      "sd": 0.014199023449701803,
+      "min": 0.7748480056872079,
+      "max": 0.8032287370935433
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6501467806853031,
+      "sd": 0.01040741234157136,
+      "min": 0.638175328402091,
+      "max": 0.6570421657303311
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.5746390672144105,
+      "sd": 0.15040473357382023,
+      "min": 0.401525917610655,
+      "max": 0.6732564030665972
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.622312005127032,
+      "sd": 0.20461364304130106,
+      "min": 0.3912143516963246,
+      "max": 0.7804301735421169
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6494839422335225,
+      "sd": 0.010324323017137935,
+      "min": 0.6434598990438263,
+      "max": 0.6614052187634766
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6595745826235269,
+      "sd": 0.003768712800764817,
+      "min": 0.655222847923487,
+      "max": 0.6617504499735468
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7893246044746177,
+      "sd": 0.014199023449701803,
+      "min": 0.7748480056872079,
+      "max": 0.8032287370935433
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6501467806853031,
+      "sd": 0.01040741234157136,
+      "min": 0.638175328402091,
+      "max": 0.6570421657303311
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.628109908581993,
+      "sd": 0.06638616871835586,
+      "min": 0.552458432773068,
+      "max": 0.676648445049424
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7707249635495755,
+      "sd": 0.056298187215865325,
+      "min": 0.7057174164616399,
+      "max": 0.8032287370935433
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6296807785814184,
+      "sd": 0.04074579547902607,
+      "min": 0.5838319867268821,
+      "max": 0.6617504499735468
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_estimated",
+      "algorithm": "gmm",
+      "metric": "ami",
+      "n": 1,
+      "mean": 0.7315847607219573,
+      "sd": null,
+      "min": 0.7315847607219573,
+      "max": 0.7315847607219573
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_estimated",
+      "algorithm": "kmeans",
+      "metric": "ami",
+      "n": 1,
+      "mean": 0.7315847607219573,
+      "sd": null,
+      "min": 0.7315847607219573,
+      "max": 0.7315847607219573
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "agglomerative",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.671286134807129,
+      "sd": 1.3597399555105182e-16,
+      "min": 0.6712861348071291,
+      "max": 0.6712861348071291
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "dbscan",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.6396340999986132,
+      "sd": 0.0,
+      "min": 0.6396340999986132,
+      "max": 0.6396340999986132
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "gmm",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.8984361033676299,
+      "sd": 1.3597399555105182e-16,
+      "min": 0.89843610336763,
+      "max": 0.89843610336763
+    },
+    {
+      "dataset": "iris",
+      "scenario": "local_known",
+      "algorithm": "kmeans",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.655222847923487,
+      "sd": 7.850462293418876e-17,
+      "min": 0.655222847923487,
+      "max": 0.6552228479234871
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.84229417710125,
+      "sd": 0.04394026560161828,
+      "min": 0.7922547421971808,
+      "max": 0.874579440437926
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7424929190308956,
+      "sd": 0.10585630666664438,
+      "min": 0.6782498576649518,
+      "max": 0.8646709845175748
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7080570799021165,
+      "sd": 0.19946105048660984,
+      "min": 0.487000985931244,
+      "max": 0.874579440437926
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.529652052159473,
+      "sd": 0.11667630834065708,
+      "min": 0.40819911384049706,
+      "max": 0.6408785090245966
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.22464894746117084,
+      "sd": 0.32388810168019283,
+      "min": 0.0,
+      "max": 0.5959196322345904
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.603412104918631,
+      "sd": 0.18738781801839047,
+      "min": 0.4362618546038923,
+      "max": 0.8059821447004647
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.84229417710125,
+      "sd": 0.04394026560161828,
+      "min": 0.7922547421971808,
+      "max": 0.874579440437926
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7424929190308956,
+      "sd": 0.10585630666664438,
+      "min": 0.6782498576649518,
+      "max": 0.8646709845175748
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7080570799021165,
+      "sd": 0.19946105048660984,
+      "min": 0.487000985931244,
+      "max": 0.874579440437926
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.8572855381479684,
+      "sd": 0.02995391742733839,
+      "min": 0.8226977335680531,
+      "max": 0.874579440437926
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "algorithm": "fed_gmm_diag_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.8370038270272087,
+      "sd": 0.05651338515842242,
+      "min": 0.7719876438214605,
+      "max": 0.8743528527425906
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "algorithm": "fed_kmeans_numpy",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.8756840300646761,
+      "sd": 0.026811588497623065,
+      "min": 0.8447264207465073,
+      "max": 0.8914476096236206
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_estimated",
+      "algorithm": "gmm",
+      "metric": "ami",
+      "n": 1,
+      "mean": 0.9099077928697727,
+      "sd": null,
+      "min": 0.9099077928697727,
+      "max": 0.9099077928697727
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_estimated",
+      "algorithm": "kmeans",
+      "metric": "ami",
+      "n": 1,
+      "mean": 0.874579440437926,
+      "sd": null,
+      "min": 0.874579440437926,
+      "max": 0.874579440437926
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "agglomerative",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.7842084168747389,
+      "sd": 0.0,
+      "min": 0.7842084168747389,
+      "max": 0.7842084168747389
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "dbscan",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.5316912858505031,
+      "sd": 0.0,
+      "min": 0.5316912858505031,
+      "max": 0.5316912858505031
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "gmm",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.9155648550883587,
+      "sd": 0.009798319184169348,
+      "min": 0.9099077928697727,
+      "max": 0.9268789795255309
+    },
+    {
+      "dataset": "wine",
+      "scenario": "local_known",
+      "algorithm": "kmeans",
+      "metric": "ami",
+      "n": 3,
+      "mean": 0.874579440437926,
+      "sd": 0.0,
+      "min": 0.874579440437926,
+      "max": 0.874579440437926
+    }
+  ],
+  "kmeans_minus_fuzzy_paired": [
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.32092237245930594,
+      "sd_difference": 0.04661637942020287,
+      "bootstrap_ci_95": [
+        0.2888409004073348,
+        0.3743953298124083
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.1781950190473273,
+      "sd_difference": 0.02246440713111342,
+      "bootstrap_ci_95": [
+        0.15427639220177303,
+        0.19884766641743254
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.32092237245930594,
+      "sd_difference": 0.04661637942020287,
+      "bootstrap_ci_95": [
+        0.2888409004073348,
+        0.3743953298124083
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.20137501099434604,
+      "sd_difference": 0.009202962512943592,
+      "bootstrap_ci_95": [
+        0.19283294186126945,
+        0.21112046883726243
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.007733014370353526,
+      "sd_difference": 0.02141232763279343,
+      "bootstrap_ci_95": [
+        -0.027802558702454072,
+        0.014807669093178322
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.08611783718076182,
+      "sd_difference": 0.167550952266731,
+      "bootstrap_ci_95": [
+        -0.011960746251859389,
+        0.2795827679275996
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.007733014370353526,
+      "sd_difference": 0.02141232763279343,
+      "bootstrap_ci_95": [
+        -0.027802558702454072,
+        0.014807669093178322
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.008170735742324298,
+      "sd_difference": 0.021312145599198862,
+      "bootstrap_ci_95": [
+        -0.021887802569082848,
+        0.016382121854084164
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.19201912999742152,
+      "sd_difference": 0.27019165370857534,
+      "bootstrap_ci_95": [
+        -0.5009841363918611,
+        0.0
+      ],
+      "fraction_left_better": 0.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.09341508686424438,
+      "sd_difference": 0.3036725115357932,
+      "bootstrap_ci_95": [
+        -0.10153811311840066,
+        0.4433039124407227
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.19201912999742152,
+      "sd_difference": 0.27019165370857534,
+      "bootstrap_ci_95": [
+        -0.5009841363918611,
+        0.0
+      ],
+      "fraction_left_better": 0.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_fuzzy_cmeans_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.010895151471516281,
+      "sd_difference": 0.009951297597040668,
+      "bootstrap_ci_95": [
+        -0.0005619777424610284,
+        0.017384614557632183
+      ],
+      "fraction_left_better": 0.6666666666666666,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    }
+  ],
+  "kmeans_minus_diag_gmm_paired": [
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.30343988196856314,
+      "sd_difference": 0.09363823586922741,
+      "bootstrap_ci_95": [
+        0.20776510679591964,
+        0.3948991936693615
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "digits",
+      "scenario": "dirichlet_01_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.13061133905909106,
+      "sd_difference": 0.04177191828827724,
+      "bootstrap_ci_95": [
+        0.08321945855719234,
+        0.16207904901537942
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.30343988196856314,
+      "sd_difference": 0.09363823586922741,
+      "bootstrap_ci_95": [
+        0.20776510679591964,
+        0.3948991936693615
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "digits",
+      "scenario": "iid_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.23054177107675133,
+      "sd_difference": 0.10144727662932779,
+      "bootstrap_ci_95": [
+        0.12654450447650112,
+        0.32923062112797663
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.14432777331727822,
+      "sd_difference": 0.02135661202941052,
+      "bootstrap_ci_95": [
+        -0.16686608492256838,
+        -0.12439124998683704
+      ],
+      "fraction_left_better": 0.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "dirichlet_01_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.053160713681796534,
+      "sd_difference": 0.26321701329019465,
+      "bootstrap_ci_95": [
+        -0.14176714553844938,
+        0.35257895337286205
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.14432777331727822,
+      "sd_difference": 0.02135661202941052,
+      "bootstrap_ci_95": [
+        -0.16686608492256838,
+        -0.12439124998683704
+      ],
+      "fraction_left_better": 0.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "iris",
+      "scenario": "iid_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.13436534767313293,
+      "sd_difference": 0.021487468202870844,
+      "bootstrap_ci_95": [
+        -0.15807005273208852,
+        -0.11616661756898078
+      ],
+      "fraction_left_better": 0.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.03594737623792247,
+      "sd_difference": 0.19192340128534338,
+      "bootstrap_ci_95": [
+        -0.24325544052943338,
+        0.13554555935353318
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "dirichlet_01_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.4033900954504464,
+      "sd_difference": 0.3967737350605784,
+      "bootstrap_ci_95": [
+        0.010221620584525637,
+        0.8036733991861919
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_full",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": -0.03594737623792247,
+      "sd_difference": 0.19192340128534338,
+      "bootstrap_ci_95": [
+        -0.24325544052943338,
+        0.13554555935353318
+      ],
+      "fraction_left_better": 0.3333333333333333,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    },
+    {
+      "dataset": "wine",
+      "scenario": "iid_partial",
+      "left": "fed_kmeans_numpy",
+      "right": "fed_gmm_diag_numpy",
+      "metric": "ari",
+      "n_pairs": 3,
+      "mean_difference": 0.03606504163947407,
+      "sd_difference": 0.03401570395356687,
+      "bootstrap_ci_95": [
+        0.015730570061510463,
+        0.07533468393875065
+      ],
+      "fraction_left_better": 1.0,
+      "limitations": "CI conditional on tested datasets and scenario; no population generalization."
+    }
+  ],
+  "degenerate_counts": {
+    "digits / agglomerative": 0,
+    "digits / dbscan": 2,
+    "digits / fed_fuzzy_cmeans_numpy": 0,
+    "digits / fed_gmm_diag_numpy": 0,
+    "digits / fed_kmeans_numpy": 0,
+    "digits / gmm": 0,
+    "digits / kmeans": 0,
+    "iris / agglomerative": 0,
+    "iris / dbscan": 0,
+    "iris / fed_fuzzy_cmeans_numpy": 0,
+    "iris / fed_gmm_diag_numpy": 0,
+    "iris / fed_kmeans_numpy": 0,
+    "iris / gmm": 0,
+    "iris / kmeans": 0,
+    "wine / agglomerative": 0,
+    "wine / dbscan": 0,
+    "wine / fed_fuzzy_cmeans_numpy": 0,
+    "wine / fed_gmm_diag_numpy": 1,
+    "wine / fed_kmeans_numpy": 0,
+    "wine / gmm": 0,
+    "wine / kmeans": 0
+  },
+  "invariance_cases": [
+    {
+      "dataset": "digits",
+      "seed": 0,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.0028471321459739548,
+      "dirichlet_js": 0.38212222801963996
+    },
+    {
+      "dataset": "digits",
+      "seed": 0,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.0028471321459739548,
+      "dirichlet_js": 0.38212222801963996
+    },
+    {
+      "dataset": "digits",
+      "seed": 0,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.0028471321459739548,
+      "dirichlet_js": 0.38212222801963996
+    },
+    {
+      "dataset": "digits",
+      "seed": 1,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.003494622465045349,
+      "dirichlet_js": 0.366424572548106
+    },
+    {
+      "dataset": "digits",
+      "seed": 1,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.003494622465045349,
+      "dirichlet_js": 0.366424572548106
+    },
+    {
+      "dataset": "digits",
+      "seed": 1,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.003494622465045349,
+      "dirichlet_js": 0.366424572548106
+    },
+    {
+      "dataset": "digits",
+      "seed": 2,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.003370932233290448,
+      "dirichlet_js": 0.398070664858499
+    },
+    {
+      "dataset": "digits",
+      "seed": 2,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.003370932233290448,
+      "dirichlet_js": 0.398070664858499
+    },
+    {
+      "dataset": "digits",
+      "seed": 2,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.003370932233290448,
+      "dirichlet_js": 0.398070664858499
+    },
+    {
+      "dataset": "iris",
+      "seed": 0,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.016577196030368894,
+      "dirichlet_js": 0.28306193405871544
+    },
+    {
+      "dataset": "iris",
+      "seed": 0,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.016577196030368894,
+      "dirichlet_js": 0.28306193405871544
+    },
+    {
+      "dataset": "iris",
+      "seed": 0,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.016577196030368894,
+      "dirichlet_js": 0.28306193405871544
+    },
+    {
+      "dataset": "iris",
+      "seed": 1,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.011826698833438383,
+      "dirichlet_js": 0.3056535550633158
+    },
+    {
+      "dataset": "iris",
+      "seed": 1,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.011826698833438383,
+      "dirichlet_js": 0.3056535550633158
+    },
+    {
+      "dataset": "iris",
+      "seed": 1,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.011826698833438383,
+      "dirichlet_js": 0.3056535550633158
+    },
+    {
+      "dataset": "iris",
+      "seed": 2,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.009668695186169335,
+      "dirichlet_js": 0.21629026940219737
+    },
+    {
+      "dataset": "iris",
+      "seed": 2,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.009668695186169335,
+      "dirichlet_js": 0.21629026940219737
+    },
+    {
+      "dataset": "iris",
+      "seed": 2,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.009668695186169335,
+      "dirichlet_js": 0.21629026940219737
+    },
+    {
+      "dataset": "wine",
+      "seed": 0,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.02186674789711953,
+      "dirichlet_js": 0.24984775546401464
+    },
+    {
+      "dataset": "wine",
+      "seed": 0,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.02186674789711953,
+      "dirichlet_js": 0.24984775546401464
+    },
+    {
+      "dataset": "wine",
+      "seed": 0,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.02186674789711953,
+      "dirichlet_js": 0.24984775546401464
+    },
+    {
+      "dataset": "wine",
+      "seed": 1,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.011779365399497806,
+      "dirichlet_js": 0.3026841575362514
+    },
+    {
+      "dataset": "wine",
+      "seed": 1,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.011779365399497806,
+      "dirichlet_js": 0.3026841575362514
+    },
+    {
+      "dataset": "wine",
+      "seed": 1,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.011779365399497806,
+      "dirichlet_js": 0.3026841575362514
+    },
+    {
+      "dataset": "wine",
+      "seed": 2,
+      "algorithm": "fed_kmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.012146328062782838,
+      "dirichlet_js": 0.31260262467605193
+    },
+    {
+      "dataset": "wine",
+      "seed": 2,
+      "algorithm": "fed_fuzzy_cmeans_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.012146328062782838,
+      "dirichlet_js": 0.31260262467605193
+    },
+    {
+      "dataset": "wine",
+      "seed": 2,
+      "algorithm": "fed_gmm_diag_numpy",
+      "same_ari": true,
+      "same_prediction": true,
+      "iid_js": 0.012146328062782838,
+      "dirichlet_js": 0.31260262467605193
+    }
+  ]
+}

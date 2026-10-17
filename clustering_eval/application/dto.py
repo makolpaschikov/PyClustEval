@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 RunMode = Literal["local", "federated"]
 PartitionMode = Literal["iid", "dirichlet", "quantity_skew", "label_limited"]
-PrivacyMode = Literal["none", "gaussian_dp"]
+PrivacyMode = Literal["none", "gaussian_dp", "gaussian_dp_aggregate", "public_clipped_control"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,6 +23,12 @@ class RunRequest:
     # Common benchmark controls. target_clusters=None means use the number of
     # ground-truth classes only as an explicit oracle-k benchmark condition.
     target_clusters: int | None = None
+    cluster_count_mode: Literal["known_k", "estimated_k"] = "known_k"
+    estimated_k_min: int = 2
+    estimated_k_max: int = 12
+    tuning_sample_size: int = 1000
+    tuning_budget: int = 8
+    tuning_mode: Literal["none", "unsupervised"] = "none"
     rounds: int = 10
     tol: float = 1e-4
     max_iter: int = 300
@@ -57,6 +63,16 @@ class RunRequest:
             raise ValueError("At least two algorithms are required")
         if len(set(self.algorithms)) != len(self.algorithms):
             raise ValueError("Algorithms must be unique")
+        if self.cluster_count_mode not in ("known_k", "estimated_k"):
+            raise ValueError("Invalid cluster_count_mode")
+        if self.cluster_count_mode == "estimated_k" and self.target_clusters is not None:
+            raise ValueError("estimated_k mode cannot use an explicit target_clusters")
+        if self.estimated_k_min < 2 or self.estimated_k_max < self.estimated_k_min:
+            raise ValueError("Invalid estimated k bounds")
+        if self.tuning_sample_size < 25 or self.tuning_budget < 1:
+            raise ValueError("Invalid tuning resource budget")
+        if self.tuning_mode not in ("none", "unsupervised"):
+            raise ValueError("Unsupported tuning mode")
         if self.target_clusters is not None and self.target_clusters < 2:
             raise ValueError("target_clusters must be at least 2 when provided")
         if self.rounds < 1:
@@ -75,7 +91,7 @@ class RunRequest:
             raise ValueError("participation_rate must be in (0, 1]")
         if not 0 <= self.dropout_rate < 1:
             raise ValueError("dropout_rate must be in [0, 1)")
-        if self.privacy_mode not in ("none", "gaussian_dp"):
+        if self.privacy_mode not in ("none", "gaussian_dp", "gaussian_dp_aggregate", "public_clipped_control"):
             raise ValueError(f"Unsupported privacy mode: {self.privacy_mode}")
         if self.dp_epsilon <= 0:
             raise ValueError("dp_epsilon must be greater than zero")
@@ -83,6 +99,8 @@ class RunRequest:
             raise ValueError("dp_delta must be in (0, 1)")
         if self.dp_clip_norm <= 0:
             raise ValueError("dp_clip_norm must be greater than zero")
+        if self.privacy_mode in ("gaussian_dp_aggregate", "public_clipped_control") and self.dp_clip_norm > 20:
+            raise ValueError("Aggregate DP uses a PUBLIC scaled feature space. Set clip norm to 4, NOT 100000.")
         if self.mode == "federated":
             if self.num_clients < 2:
                 raise ValueError("Federated mode requires at least two clients")
@@ -113,6 +131,7 @@ class AlgorithmRunReport:
     silhouette: float | None
     davies_bouldin: float | None
     calinski_harabasz: float | None
+    ami: float | None = None
     model_state: dict[str, Any] = field(default_factory=dict)
     history: list[Any] = field(default_factory=list)
 
@@ -120,6 +139,7 @@ class AlgorithmRunReport:
         return {
             "ari": self.ari,
             "nmi": self.nmi,
+            "ami": self.ami,
             "silhouette": self.silhouette,
             "davies_bouldin": self.davies_bouldin,
             "calinski_harabasz": self.calinski_harabasz,
@@ -138,6 +158,7 @@ class PartitionReport:
     participation_rate: float = 1.0
     dropout_rate: float = 0.0
     round_schedule: list[dict[str, Any]] = field(default_factory=list)
+    heterogeneity: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)

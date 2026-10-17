@@ -6,10 +6,12 @@ import time
 from typing import Any
 
 import numpy as np
+from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
 from sklearn.metrics import pairwise_distances_argmin
 
 from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
 from ..federated.environment import participation_entry_for_round
+from ..federated.initialization import federated_priority_sample_centers
 
 
 class FedKMeansFlowerAdapter(ClusteringAlgorithm):
@@ -21,7 +23,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
       2. Each client assigns local samples and returns cluster sums/counts.
       3. Server aggregates sufficient statistics and updates global centers.
 
-    Raw samples never leave the client.  PyClustEval can additionally impose a
+    After initialization, clients send only sufficient statistics.  The
+    deterministic benchmark initializer sends at most ``k`` candidate center
+    vectors per active client (Gaussian-DP mode sanitizes them because it
+    operates on X before initialization).  PyClustEval can additionally impose a
     deterministic per-round participation/dropout schedule.  Because Flower's
     strategy layer does not expose the dataset partition-id, all simulator
     supernodes remain alive and inactive clients return a no-op update; only the
@@ -75,9 +80,16 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
         if rounds <= 0:
             raise ValueError("rounds must be greater than zero")
 
-        rng = np.random.default_rng(seed)
-        initial_indices = rng.choice(len(X), size=k, replace=False)
-        initial_centers = X[initial_indices].copy()
+        init_participation = participation_entry_for_round(params, 0, num_clients)
+        dp = params.get('dp_aggregate')
+        if dp is None:
+            initial_centers, init_report = federated_priority_sample_centers(
+                X, partition, k, seed,
+                active_client_ids=init_participation["successful_clients"],
+            )
+        else:
+            initial_centers = public_initial_centers(k, X.shape[1], seed, dp['clip_norm'])
+            init_report = {'communication_bytes': 0, 'mode': 'public_data_independent'}
 
         class KMeansClient(fl.client.NumPyClient):
             def __init__(self, local_X: np.ndarray, client_id: int) -> None:
@@ -113,7 +125,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 inertia = float(
                     np.square(self.local_X - centers[labels]).sum()
                 )
-                return [sums, counts], len(self.local_X), {"inertia": inertia, "active": 1}
+                return [sums, counts], len(self.local_X), {"inertia": (None if dp is not None else inertia), "active": 1}
 
             def evaluate(self, parameters, config):
                 return 0.0, len(self.local_X), {}
@@ -122,7 +134,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
             def __init__(self) -> None:
                 self.centers = initial_centers.copy()
                 self.history: list[dict[str, Any]] = []
-                self.communication_bytes = 0
+                self.communication_bytes = int(init_report["communication_bytes"])
                 self.converged = False
 
             def initialize_parameters(self, client_manager: ClientManager):
@@ -181,13 +193,16 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                         f"Flower round {server_round} has no successful benchmark clients"
                     )
 
+                if dp is not None:
+                    total_sums, total_counts = noisy_joint_aggregate(dp, total_sums, total_counts)
                 new_centers = self.centers.copy()
-                nonempty = total_counts > 0
+                nonempty = total_counts > (stable_noisy_count_threshold(dp) if dp is not None else 0)
                 new_centers[nonempty] = (
                     total_sums[nonempty] / total_counts[nonempty, None]
                 )
                 shift = float(np.linalg.norm(new_centers - self.centers))
-                self.centers = new_centers
+                self.centers = (project_centers(new_centers, dp['clip_norm'])
+                                if dp is not None else new_centers)
                 self.converged = shift < tol
                 participation = participation_entry_for_round(
                     params, max(int(server_round) - 1, 0), num_clients
@@ -196,7 +211,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                     {
                         "round": server_round,
                         "shift": shift,
-                        "inertia": inertia,
+                        "inertia": (None if dp is not None else inertia),
                         "selected_clients": participation["selected_clients"],
                         "successful_clients": participation["successful_clients"],
                         "dropped_clients": participation["dropped_clients"],
@@ -204,7 +219,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 )
                 return ndarrays_to_parameters([self.centers]), {
                     "shift": shift,
-                    "inertia": inertia,
+                    "inertia": (None if dp is not None else inertia),
                 }
 
             def configure_evaluate(self, server_round, parameters, client_manager):
@@ -257,6 +272,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 "num_clients": num_clients,
                 "participation_schedule": params.get("participation_schedule", []),
                 "participation_backend": "logical-noop-client-simulation",
+                "initialization": init_report,
             },
             history=strategy.history,
             runtime_sec=runtime,

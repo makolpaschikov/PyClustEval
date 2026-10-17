@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import inspect
+import platform
+import sys
+import sklearn
+import scipy
 import time
 import uuid
 from datetime import datetime
@@ -18,8 +22,22 @@ from ..datasets.partitioning import (
 )
 from ..datasets.registry import default_registry as dataset_registry
 from ..federated.environment import make_participation_schedule
-from ..metrics.clustering import compute_metrics
+from ..metrics.clustering import (
+    METRIC_SCHEMA_VERSION,
+    SILHOUETTE_MAX_POINTS,
+    SILHOUETTE_SAMPLING_SEED,
+    compute_metrics,
+    silhouette_reference_indices,
+)
+from ..metrics.diagnostics import (
+    active_data_diagnostics,
+    array_fingerprint,
+    client_external_metrics,
+    prediction_fingerprint,
+)
 from ..privacy.gaussian import apply_gaussian_input_dp
+from ..privacy.aggregate_dp import clipped_public_features, make_dp_aggregate_config
+from ..metrics.protocol_v2 import (estimate_k_unlabeled, tune_dbscan_unlabeled, measure_partition_heterogeneity)
 from ..results.excel_export import export_comparison_xlsx
 from ..results.history_store import HistoryStore
 from .dto import (
@@ -33,6 +51,7 @@ from .dto import (
 METRICS = (
     "ari",
     "nmi",
+    "ami",
     "silhouette",
     "davies_bouldin",
     "calinski_harabasz",
@@ -93,6 +112,11 @@ class ComparisonService:
         dataset = _load_dataset(self.dataset_registry, request.dataset_name)
         X_raw, y, dataset_display_name = _extract_xy(dataset)
         X_raw = np.asarray(X_raw, dtype=np.float64)
+        dataset_metadata = dict(getattr(dataset, "metadata", {}) or {})
+        if X_raw.ndim != 2 or X_raw.shape[0] < 3 or X_raw.shape[1] < 1:
+            raise ValueError(f"Invalid benchmark feature shape: {X_raw.shape}")
+        if not np.isfinite(X_raw).all():
+            raise ValueError("Benchmark dataset contains NaN or infinite features")
         if request.dataset_name == "dry_bean":
             log(
                 "Dry Bean: 13 611 объектов × 16 признаков × 7 классов. "
@@ -139,6 +163,88 @@ class ComparisonService:
                 "Приватизированная матрица сэмплируется один раз и одинаково "
                 "используется всеми выбранными алгоритмами и всеми раундами."
             )
+            privacy_report["end_to_end_report_is_dp"] = False
+            privacy_report["nonprivate_report_outputs"] = [
+                "ARI/NMI computed using original unprotected y_true",
+                "silhouette/DB/CH computed using original unprotected X_raw",
+                "label-aware partitions and original class-distribution reports",
+                "deterministic clean-data evaluation hash",
+                "fraction of records clipped before the DP noise is added",
+            ]
+            privacy_report["public_release_warning"] = (
+                "Gaussian calibration only applies to the privatized training feature "
+                "matrix. The full benchmark report is NOT end-to-end differentially private."
+            )
+            log("PRIVACY WARNING: весь benchmark report НЕ имеет end-to-end DP гарантий: "
+                "оценочные метрики используют raw X / y и label-aware partitions.")
+
+        aggregate_privacy = request.privacy_mode in ('gaussian_dp_aggregate', 'public_clipped_control')
+        if aggregate_privacy:
+            if request.privacy_mode == 'gaussian_dp_aggregate' and request.partition_mode in ('dirichlet', 'label_limited'):
+                raise ValueError('Label-dependent partitioning uses private y and is not accounted by aggregate DP. Use IID/quantity_skew.')
+            if request.cluster_count_mode != 'known_k':
+                raise ValueError('Aggregate DP requires a public known-k; private estimated-k tuning is not DP-accounted.')
+            supported_dp = {
+                'fed_kmeans_numpy', 'fed_kmeans_flower',
+                'fed_fuzzy_cmeans_numpy', 'fed_fuzzy_cmeans_flower',
+                'fed_gmm_diag_numpy', 'fed_gmm_diag_flower',
+                'Adapted FKM', 'Adapted FKDC', 'Adapted HF_DBSCAN',
+                'Adapted NN-FC', 'Adapted p-FClus',
+            }
+            not_supported = sorted(set(request.algorithms) - supported_dp)
+            if not_supported:
+                raise ValueError('Aggregate-DP is not implemented for: '
+                                 + ', '.join(not_supported)
+                                 + '. Remove these algorithms or use the non-DP mode.')
+        if aggregate_privacy:
+            X_benchmark_raw, public_info = clipped_public_features(
+                X_raw, request.dataset_name, request.dp_clip_norm
+            )
+            is_dp = request.privacy_mode == 'gaussian_dp_aggregate'
+            privacy_report = {
+                'mode': request.privacy_mode,
+                'privacy_protocol_version': 'trusted_aggregate_dp_v2_author_server_surrogates',
+                'author_algorithm_dp_scope': ('selected Adapted author methods use Gaussian DP local aggregates and modified author-server postprocessing'
+                    if any(str(a).startswith('Adapted ') for a in request.algorithms) else 'no Adapted author algorithms selected'),
+                'comparability_warning': ('DP author-server variants are NOT original author algorithms; changed private client stages. Analyze separately from unmodified author methods.'
+                    if any(str(a).startswith('Adapted ') for a in request.algorithms) else 'DP quality must be assessed against matched clipping control'),
+                'mechanism': 'trusted-server Gaussian aggregate sufficient statistics' if is_dp
+                             else 'matched fixed-public-scaled clipping control; NO PRIVACY',
+                'epsilon': request.dp_epsilon if is_dp else None,
+                'delta': request.dp_delta if is_dp else None,
+                'clip_norm_public_space': request.dp_clip_norm,
+                'public_preprocessing': public_info,
+                'per_algorithm_privacy_budgets_compose': True,
+                'algorithm_count': len(request.algorithms),
+                'upper_bound_epsilon_across_selected_algorithms': (
+                    len(request.algorithms) * request.dp_epsilon if is_dp else None),
+                'upper_bound_delta_across_selected_algorithms': (
+                    min(1.0, len(request.algorithms) * request.dp_delta) if is_dp else None),
+
+                'end_to_end_report_is_dp': False,
+                'server_receives_unprotected_client_statistics': True,
+                'public_release_warning': (
+                    'TRUSTED SERVER ONLY. Client updates are NOT locally private and NOT '
+                    'securely aggregated. Benchmark report with ground truth, diagnostics '
+                    'and labels is NOT DP. Multiple different algorithm runs compose privacy loss.'
+                ),
+            }
+            log(f"Aggregate mode: {request.privacy_mode}, public-space clip={request.dp_clip_norm:g}, "
+                f"clipped={public_info['clipped_record_fraction_trusted_only']:.1%}; "
+                "raw data never used to FIT normalization")
+            log(privacy_report['public_release_warning'])
+
+        # All internal geometric metrics are evaluated in one algorithm-independent
+        # space.  For DP experiments we intentionally keep the clean benchmark
+        # evaluator outside the privacy mechanism, just like y_true for ARI/NMI.
+        X_eval = StandardScaler().fit_transform(X_raw)
+        benchmark_input_hash = array_fingerprint(X_benchmark_raw)
+        evaluation_input_hash = array_fingerprint(X_eval)
+        silhouette_reference = silhouette_reference_indices(len(X_eval))
+        log(
+            f"Benchmark input hash: {benchmark_input_hash}; "
+            f"common evaluation-space hash: {evaluation_input_hash}."
+        )
 
         selected_algorithms = {
             name: _get_registry_item(self.algorithm_registry, name)
@@ -148,6 +254,7 @@ class ComparisonService:
         partition = None
         partition_report = None
         participation_schedule: list[dict[str, Any]] = []
+        active_data_report: dict[str, Any] = {"rounds": [], "active_data_fingerprint": None}
         if request.mode == "federated":
             if request.num_clients > len(X_raw):
                 raise ValueError(
@@ -192,6 +299,12 @@ class ComparisonService:
                 dropout_rate=request.dropout_rate,
                 seed=request.seed,
             )
+            active_data_report = active_data_diagnostics(partition, participation_schedule)
+            by_round = {int(item["round"]): item for item in active_data_report["rounds"]}
+            for entry in participation_schedule:
+                diagnostics_for_round = by_round.get(int(entry["round"]), {})
+                entry["active_sample_count"] = int(diagnostics_for_round.get("active_sample_count", 0))
+                entry["active_data_hash"] = str(diagnostics_for_round.get("active_data_hash", ""))
             partition_report = PartitionReport(
                 mode=request.partition_mode,
                 num_clients=request.num_clients,
@@ -211,8 +324,11 @@ class ComparisonService:
                 participation_rate=request.participation_rate,
                 dropout_rate=request.dropout_rate,
                 round_schedule=participation_schedule,
+                heterogeneity=measure_partition_heterogeneity(partition, y),
             )
             log(f"Partition ID: {fingerprint}")
+            log(f"Realized heterogeneity: {partition_report.heterogeneity}")
+            log(f"Active-data schedule ID: {active_data_report['active_data_fingerprint']}")
             log(f"Размеры клиентов: {counts}")
             if y is not None:
                 for client_id, distribution in enumerate(class_counts, start=1):
@@ -234,10 +350,27 @@ class ComparisonService:
                 dropped = [client + 1 for client in entry["dropped_clients"]]
                 log(
                     f"Round {entry['round']}: selected={selected} | "
-                    f"successful={successful} | dropped={dropped}"
+                    f"successful={successful} | dropped={dropped} | "
+                    f"active_samples={entry.get('active_sample_count', 0)} | "
+                    f"active_hash={entry.get('active_data_hash', '')}"
                 )
 
-        if request.target_clusters is not None:
+        k_tuning: dict[str, Any] | None = None
+        if aggregate_privacy and request.target_clusters is None:
+            # Public dataset class counts, NOT computed from the private y array.
+            benchmark_k = {'dry_bean': 7, 'iris': 3, 'wine': 3, 'digits': 10}.get(request.dataset_name)
+            if benchmark_k is None:
+                raise ValueError('Set a PUBLIC target_clusters for aggregate DP')
+            cluster_count_source = 'published_public_dataset_k'
+        elif request.cluster_count_mode == "estimated_k":
+            benchmark_k, k_tuning = estimate_k_unlabeled(
+                X_benchmark_raw, seed=request.seed, minimum=request.estimated_k_min,
+                maximum=request.estimated_k_max, sample_size=request.tuning_sample_size,
+                budget=request.tuning_budget,
+            )
+            cluster_count_source = "estimated_unlabeled_silhouette"
+            log(f"Label-free estimated-k={benchmark_k}; candidates={k_tuning['candidates']}")
+        elif request.target_clusters is not None:
             benchmark_k = int(request.target_clusters)
             cluster_count_source = "user"
         elif y is not None:
@@ -268,8 +401,11 @@ class ComparisonService:
         for name in request.algorithms:
             log(f"\nЗапуск {name}…")
             algorithm = selected_algorithms[name]
-            X = _preprocess_algorithm_input(X_benchmark_raw, algorithm)
-            preprocessing = getattr(algorithm, "input_preprocessing", "standard")
+            wall_started = time.perf_counter()
+            X = (np.asarray(X_benchmark_raw, dtype=np.float64)
+                 if aggregate_privacy else _preprocess_algorithm_input(X_benchmark_raw, algorithm))
+            preprocessing = ('fixed_public_reference_then_l2_clip' if aggregate_privacy
+                             else getattr(algorithm, "input_preprocessing", "standard"))
             log(f"Preprocessing {name}: {preprocessing}")
 
             params = dict(common_params)
@@ -280,6 +416,42 @@ class ComparisonService:
             params.update(defaults_for(name))
             params.update(request.algorithm_params)
             params.update(request.algorithm_params_by_name.get(name, {}))
+            if aggregate_privacy:
+                kind_map = {
+                    'fed_kmeans_numpy': 'kmeans', 'fed_kmeans_flower': 'kmeans',
+                    'fed_fuzzy_cmeans_numpy': 'fuzzy', 'fed_fuzzy_cmeans_flower': 'fuzzy',
+                    'fed_gmm_diag_numpy': 'gmm', 'fed_gmm_diag_flower': 'gmm',
+                    'Adapted FKM': 'kmeans', 'Adapted FKDC': 'kmeans',
+                    'Adapted HF_DBSCAN': 'kmeans', 'Adapted NN-FC': 'kmeans',
+                    'Adapted p-FClus': 'kmeans',
+                }
+                if name not in kind_map:
+                    raise ValueError(f"{name}: no vetted aggregate DP mechanism available")
+                params['dp_aggregate'] = make_dp_aggregate_config(
+                    kind=kind_map[name], epsilon=request.dp_epsilon,
+                    delta=request.dp_delta, clip_norm=request.dp_clip_norm,
+                    rounds=(request.rounds if name not in ('Adapted FKDC','Adapted HF_DBSCAN','Adapted NN-FC','Adapted p-FClus') else 1),
+                    enabled=(request.privacy_mode == 'gaussian_dp_aggregate'),
+                )
+                if name == 'Adapted HF_DBSCAN' and params['dp_aggregate']['enabled']:
+                    log(f"DP aggregate {name}: 2-stage split epsilon/2 + epsilon/2; "
+                        "actual per-stage sigma in model_state, not single-round value")
+                else:
+                    log(f"DP aggregate {name}: sigma/coordinate/round="
+                        f"{params['dp_aggregate']['sigma_per_coordinate']:.4f}; "
+                        f"epsilon/round={params['dp_aggregate']['epsilon_per_round']}")
+
+            tuning_diagnostics: dict[str, Any] | None = None
+            if request.tuning_mode == "unsupervised" and name == "dbscan":
+                # Explicit eps beats automatic tuning. All candidate scores use only X.
+                if params.get("eps") is None:
+                    tuned_params, tuning_diagnostics = tune_dbscan_unlabeled(
+                        X, seed=request.seed, sample_size=request.tuning_sample_size
+                    )
+                    params.update(tuned_params)
+                    log(f"DBSCAN unsupervised tuning: selected={tuning_diagnostics.get('selected')}")
+                else:
+                    tuning_diagnostics = {"skipped": "explicit_eps_override"}
 
             actual_federated = _is_federated(name, algorithm)
             if request.mode == "local" and actual_federated:
@@ -300,6 +472,7 @@ class ComparisonService:
                 seed=request.seed,
             )
             elapsed = time.perf_counter() - started
+            wall_including_preprocessing = time.perf_counter() - wall_started
 
             labels, runtime, communication, state, history = _extract_result(
                 raw_result
@@ -331,9 +504,27 @@ class ComparisonService:
                 "cluster_count_excluding_noise": len(non_noise),
                 "cluster_count_delta_vs_benchmark_k": len(non_noise) - benchmark_k,
                 "noise_fraction": float(noise_count / len(labels)),
+                "assigned_fraction": float(non_noise_total / len(labels)),
+                "assigned_sample_count": int(non_noise_total),
+                "metric_schema_version": METRIC_SCHEMA_VERSION,
+                "unsupervised_parameter_tuning": tuning_diagnostics,
+                "silhouette_reference_sample_count": int(len(silhouette_reference)),
+                "silhouette_assigned_sample_count": int(np.sum(labels[silhouette_reference] != -1)),
+                "silhouette_reference_hash": array_fingerprint(silhouette_reference),
+                "silhouette_sampling_policy": (
+                    f"full if n<={SILHOUETTE_MAX_POINTS}, otherwise fixed "
+                    f"{SILHOUETTE_MAX_POINTS}-point index sample, seed={SILHOUETTE_SAMPLING_SEED}"
+                ),
+                "runtime_wall_including_preprocessing_sec": float(wall_including_preprocessing),
+                "runtime_algorithm_call_sec": float(elapsed),
+                "runtime_reported_by_algorithm_sec": float(runtime),
                 "dominant_cluster_fraction": dominant_fraction,
                 "degenerate": len(non_noise) < 2,
                 "near_degenerate": len(non_noise) >= 2 and dominant_fraction >= 0.95,
+                "low_coverage": non_noise_total / len(labels) < 0.5,
+                "prediction_hash": prediction_fingerprint(labels),
+                "raw_prediction_hash": array_fingerprint(np.asarray(labels, dtype=np.int64)),
+                "client_metrics": client_external_metrics(y, labels, partition),
             }
             if diagnostics["degenerate"]:
                 log(
@@ -344,6 +535,12 @@ class ComparisonService:
                 log(
                     f"WARNING: {name} выдал почти вырожденную кластеризацию: "
                     f"dominant_cluster_fraction={dominant_fraction:.3f}"
+                )
+            if diagnostics["low_coverage"]:
+                log(
+                    f"WARNING: {name} assigned only "
+                    f"{diagnostics['assigned_fraction']:.1%} of samples. "
+                    "Internal metrics on assigned samples may be selection-biased."
                 )
 
             state = dict(state)
@@ -358,6 +555,14 @@ class ComparisonService:
                 "seed": request.seed,
                 "target_clusters": benchmark_k,
                 "cluster_count_source": cluster_count_source,
+                "cluster_count_tuning": k_tuning,
+                "cluster_count_mode": request.cluster_count_mode,
+                "parameter_tuning_mode": request.tuning_mode,
+                "fairness_note": "Algorithm-specific budgets and computational equivalence require explicit matched control experiments.",
+                "environment": {"python": sys.version.split()[0], "numpy": np.__version__,
+                                "sklearn": sklearn.__version__, "scipy": scipy.__version__,
+                                "platform": platform.platform(), "machine": platform.machine()},
+                "communication_scope": "logical_payload_only_not_network_wire_bytes",
                 "round_budget": request.rounds,
                 "tol": request.tol,
                 "max_iter": request.max_iter,
@@ -369,13 +574,22 @@ class ComparisonService:
                 "dropout_rate": request.dropout_rate if request.mode == "federated" else None,
                 "participation_schedule": participation_schedule if request.mode == "federated" else [],
                 "privacy_mode": request.privacy_mode if request.mode == "federated" else "none",
-                "dp_epsilon": request.dp_epsilon if request.privacy_mode == "gaussian_dp" else None,
-                "dp_delta": request.dp_delta if request.privacy_mode == "gaussian_dp" else None,
-                "dp_clip_norm": request.dp_clip_norm if request.privacy_mode == "gaussian_dp" else None,
+                "dp_epsilon": request.dp_epsilon if request.privacy_mode in ("gaussian_dp", "gaussian_dp_aggregate") else None,
+                "dp_delta": request.dp_delta if request.privacy_mode in ("gaussian_dp", "gaussian_dp_aggregate") else None,
+                "dp_clip_norm": request.dp_clip_norm if request.privacy_mode != "none" else None,
                 "privacy_report": dict(privacy_report),
+                "benchmark_input_hash": benchmark_input_hash,
+                "evaluation_input_hash": evaluation_input_hash,
+                "evaluation_space": "StandardScaler(original_raw_X)",
+                "metric_schema_version": METRIC_SCHEMA_VERSION,
+                "internal_metric_population": "non-noise assigned samples only",
+                "external_metric_population": "all samples, with -1 as an assigned noise label",
+                "active_data_fingerprint": active_data_report.get("active_data_fingerprint"),
+                "round_active_data": list(active_data_report.get("rounds", [])),
                 "preprocessing": str(preprocessing),
                 "common_param_support": supported_common,
                 "common_params_not_applicable": [name for name in shared_names if name not in supported_common],
+                "dataset_source_metadata": dataset_metadata,
                 "parameter_profile": PROFILE_NAME,
                 "profile_defaults": defaults_for(name),
                 "effective_params": dict(params),
@@ -383,7 +597,7 @@ class ComparisonService:
             state["diagnostics"] = diagnostics
 
             metrics = compute_metrics(
-                X=X,
+                X=X_eval,
                 y_true=y,
                 y_pred=labels,
                 requested=list(METRICS),
@@ -399,14 +613,18 @@ class ComparisonService:
                 len(history) if history else "—",
             )
 
+            is_author_dp_proxy = bool(state.get('not_equivalent_to_author_original', False))
+            if is_author_dp_proxy:
+                log(f"WARNING {name}: DP proxy author-SERVER variant, not the original author implementation")
             result = AlgorithmRunReport(
-                algorithm=name,
-                backend=backend,
+                algorithm=f"{name} [DP proxy]" if is_author_dp_proxy else name,
+                backend='author-server DP proxy' if is_author_dp_proxy else backend,
                 runtime_sec=runtime,
                 communication_bytes=communication,
                 rounds=rounds,
                 ari=metrics.get("ari"),
                 nmi=metrics.get("nmi"),
+                ami=metrics.get("ami"),
                 silhouette=metrics.get("silhouette"),
                 davies_bouldin=metrics.get("davies_bouldin"),
                 calinski_harabasz=metrics.get("calinski_harabasz"),
@@ -414,7 +632,16 @@ class ComparisonService:
                 history=history,
             )
             results.append(result)
-            log(f"{name} завершён за {runtime:.4f} сек.")
+            client_ari = ((diagnostics.get("client_metrics") or {}).get("ari") or {})
+            client_summary = (
+                f"; client ARI mean={client_ari.get('mean'):.4f}, "
+                f"worst={client_ari.get('worst'):.4f}"
+                if client_ari else ""
+            )
+            log(
+                f"{name} завершён за {runtime:.4f} сек.; "
+                f"prediction_hash={diagnostics['prediction_hash']}{client_summary}"
+            )
 
         report = ComparisonReport(
             experiment_id=uuid.uuid4().hex,

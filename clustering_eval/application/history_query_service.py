@@ -155,6 +155,7 @@ class HistoryQueryService:
             rounds=item.get("rounds", "—"),
             ari=_optional_float(item.get("ari")),
             nmi=_optional_float(item.get("nmi")),
+            ami=_optional_float(item.get("ami")),
             silhouette=_optional_float(item.get("silhouette")),
             davies_bouldin=_optional_float(item.get("davies_bouldin")),
             calinski_harabasz=_optional_float(item.get("calinski_harabasz")),

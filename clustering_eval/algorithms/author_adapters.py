@@ -192,6 +192,9 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
+        if params.get("dp_aggregate") is not None:
+            from ..privacy.author_dp_proxy import run_dp_author_proxy
+            return run_dp_author_proxy(self.name, X, part, params, seed)
         k = _cluster_count(params)
         rounds = int(params.get("rounds", params.get("crounds", 10)))
         local_iter = int(params.get("iter_local", params.get("local_iter", 1)))
@@ -318,6 +321,9 @@ class AdaptedAuthorPFClus(ClusteringAlgorithm):
         seed: int,
     ) -> AlgorithmResult:
         part = _require_partition(partition)
+        if params.get("dp_aggregate") is not None:
+            from ..privacy.author_dp_proxy import run_dp_author_proxy
+            return run_dp_author_proxy(self.name, X, part, params, seed)
         k = _cluster_count(params)
         max_iters = int(params.get("pfclus_max_iters", params.get("max_iters", 10)))
         if max_iters < 1:
@@ -464,6 +470,9 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
+        if params.get("dp_aggregate") is not None:
+            from ..privacy.author_dp_proxy import run_dp_author_proxy
+            return run_dp_author_proxy(self.name, X, part, params, seed)
         # The author repository uses L=0.03 for the banana dataset specifically.
         # PyClustEval benchmarks arbitrary datasets, so 0.15 is the UI/framework
         # default after MinMax scaling; callers can pass L=0.03 to reproduce banana.
@@ -634,6 +643,9 @@ class AdaptedAuthorFKDC(ClusteringAlgorithm):
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
+        if params.get("dp_aggregate") is not None:
+            from ..privacy.author_dp_proxy import run_dp_author_proxy
+            return run_dp_author_proxy(self.name, X, part, params, seed)
         if any(len(idx) < 2 for idx in part):
             raise ValueError("FKDC author code requires at least 2 samples per client")
         participation = _one_shot_participation(params, len(part))
@@ -688,6 +700,9 @@ class AdaptedAuthorNNFC(ClusteringAlgorithm):
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
         part = _require_partition(partition)
+        if params.get("dp_aggregate") is not None:
+            from ..privacy.author_dp_proxy import run_dp_author_proxy
+            return run_dp_author_proxy(self.name, X, part, params, seed)
         if any(len(idx) < 3 for idx in part):
             raise ValueError("NN-FC author code requires at least 3 samples per client")
         participation = _one_shot_participation(params, len(part))

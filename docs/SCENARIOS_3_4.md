@@ -62,3 +62,14 @@ privacy loss and are not tracked by a global accountant.
 The mechanism protects `X` only. Ground-truth labels, oracle-k, label-based
 partition creation, and exported partition class counts are evaluation metadata
 and are not DP-protected.
+
+## DP randomness security note (audit patch 2026-10-14)
+
+Private noise now draws from OS CSPRNG entropy; the public run seed affects
+other benchmark elements but does not reproduce DP noise. The old predictable
+privacy_seed mechanism was unsafe for external DP claims.
+
+The end-to-end report itself is **NOT** DP: clean X statistics, label-aware
+partition information, raw-data-derived hashes and evaluation metrics are
+publicly recorded. Never disclose benchmark reports as if they have an
+`(epsilon, delta)` DP guarantee.

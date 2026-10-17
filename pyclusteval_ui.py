@@ -6,7 +6,14 @@ history access live in ``clustering_eval.application`` services.
 
 from __future__ import annotations
 
+import csv
+import io
+import os
+from pathlib import Path
 import queue
+import shutil
+import subprocess
+import sys
 import threading
 import traceback
 import tkinter as tk
@@ -29,13 +36,17 @@ from clustering_eval.application import (
 
 RESULT_COLUMNS = (
     "algorithm", "backend", "runtime", "communication", "rounds",
-    "ari", "nmi", "silhouette", "db", "ch",
+    "ari", "ami", "nmi", "silhouette", "db", "ch",
+    "client_ari_mean", "client_ari_worst", "pred_hash",
 )
 RESULT_HEADINGS = {
     "algorithm": "Алгоритм", "backend": "Backend", "runtime": "Время, сек",
-    "communication": "Трафик, байт", "rounds": "Раунды", "ari": "ARI",
+    "communication": "Трафик, байт", "rounds": "Раунды", "ari": "ARI", "ami": "AMI",
     "nmi": "NMI", "silhouette": "Silhouette", "db": "Davies-Bouldin",
     "ch": "Calinski-Harabasz",
+    "client_ari_mean": "Client ARI mean",
+    "client_ari_worst": "Client ARI worst",
+    "pred_hash": "Prediction hash",
 }
 
 
@@ -50,13 +61,16 @@ PARTITION_MODE_VALUES = {
 
 PRIVACY_MODE_VALUES = {
     "None": "none",
-    "Gaussian DP": "gaussian_dp",
+    "Gaussian DP (входы, legacy)": "gaussian_dp",
+    "Gaussian DP (агрегаты; Adapted = DP proxy)": "gaussian_dp_aggregate",
+    "Контроль для DP (только clipping)": "public_clipped_control",
 }
 
 RESULT_WIDTHS = {
     "algorithm": 190, "backend": 150, "runtime": 90, "communication": 110,
-    "rounds": 70, "ari": 80, "nmi": 80, "silhouette": 90, "db": 110,
-    "ch": 130,
+    "rounds": 70, "ari": 80, "ami": 80, "nmi": 80, "silhouette": 90, "db": 110,
+    "ch": 130, "client_ari_mean": 115, "client_ari_worst": 115,
+    "pred_hash": 150,
 }
 
 
@@ -65,7 +79,79 @@ def _create_results_table(master: tk.Misc, *, height: int = 8) -> ttk.Treeview:
     for column in RESULT_COLUMNS:
         table.heading(column, text=RESULT_HEADINGS[column])
         table.column(column, width=RESULT_WIDTHS[column], anchor="center")
+    table.bind("<Control-c>", _copy_results_hotkey)
+    table.bind("<Control-a>", _select_all_results_hotkey)
     return table
+
+
+
+def open_exported_workbook(path: str | Path) -> None:
+    """Ask the OS to open an exported workbook with its associated application.
+
+    The file was successfully exported before this is called; opening it is a
+    separate, best-effort desktop action. No shell or blocking process waits.
+    """
+    filename = str(Path(path).resolve())
+    if not Path(filename).is_file():
+        raise FileNotFoundError(filename)
+    if sys.platform == "win32":
+        os.startfile(filename)  # type: ignore[attr-defined]
+    else:
+        command = "open" if sys.platform == "darwin" else "xdg-open"
+        executable = shutil.which(command)
+        if executable is None:
+            raise FileNotFoundError(f"Системная команда {command!r} не найдена")
+        subprocess.Popen(
+            [executable, filename],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+
+def results_table_as_tsv(table: ttk.Treeview, *, selected_only: bool = False) -> str:
+    """Create Excel-compatible TSV with human-readable headings and values.
+
+    Clicking the Copy Table button always copies all rows. Ctrl+C copies the
+    selected rows, or all rows when there is no selection.
+    """
+    columns = tuple(str(name) for name in table["columns"])
+    rows = table.selection() if selected_only and table.selection() else table.get_children("")
+    if not rows:
+        return ""
+    output = io.StringIO(newline="")
+    writer = csv.writer(output, delimiter="\t", lineterminator="\r\n")
+    writer.writerow([table.heading(column, "text") for column in columns])
+    for row in rows:
+        values = table.item(row, "values")
+        writer.writerow([str(value) if value is not None else "" for value in values])
+    return output.getvalue()
+
+
+def copy_results_to_clipboard(table: ttk.Treeview, *, selected_only: bool = False) -> int:
+    """Copy a tab-separated table to the system clipboard; return row count."""
+    text = results_table_as_tsv(table, selected_only=selected_only)
+    if not text:
+        return 0
+    table.clipboard_clear()
+    table.clipboard_append(text)
+    table.update_idletasks()
+    selected = table.selection() if selected_only else ()
+    return len(selected) if selected else len(table.get_children(""))
+
+
+def _copy_results_hotkey(event: tk.Event[Any]) -> str:
+    copy_results_to_clipboard(event.widget, selected_only=True)
+    return "break"
+
+
+def _select_all_results_hotkey(event: tk.Event[Any]) -> str:
+    table = event.widget
+    rows = table.get_children("")
+    if rows:
+        table.selection_set(rows)
+    return "break"
 
 
 def _fmt(value: Any) -> str:
@@ -82,18 +168,23 @@ def _insert_results(table: ttk.Treeview, results: list[AlgorithmRunReport]) -> N
     for item in table.get_children():
         table.delete(item)
     for result in results:
+        diagnostics = dict(result.model_state.get("diagnostics") or {})
+        client_ari = dict((diagnostics.get("client_metrics") or {}).get("ari") or {})
         table.insert("", "end", values=(
             result.algorithm, result.backend, _fmt(result.runtime_sec),
             result.communication_bytes, result.rounds, _fmt(result.ari),
-            _fmt(result.nmi), _fmt(result.silhouette),
+            _fmt(result.ami), _fmt(result.nmi), _fmt(result.silhouette),
             _fmt(result.davies_bouldin), _fmt(result.calinski_harabasz),
+            _fmt(client_ari.get("mean")), _fmt(client_ari.get("worst")),
+            diagnostics.get("prediction_hash", "—"),
         ))
 
 
 class ComparisonTab(ttk.Frame):
     def __init__(self, master: tk.Misc, *, mode: str, datasets: list[str],
                  algorithms: list[str], on_run: Callable[[RunRequest], None],
-                 on_export: Callable[[ComparisonReport], None]) -> None:
+                 on_export: Callable[[ComparisonReport], None],
+                 auto_open_var: tk.BooleanVar | None = None) -> None:
         super().__init__(master, padding=12)
         self.mode = mode
         self.on_run = on_run
@@ -127,6 +218,8 @@ class ComparisonTab(ttk.Frame):
         ttk.Button(algorithm_buttons, text="Выбрать все", command=self._select_all_algorithms).pack(fill="x")
         ttk.Button(algorithm_buttons, text="Снять выбор", command=self._clear_algorithm_selection).pack(fill="x", pady=(6, 0))
 
+        self.cluster_count_mode = tk.StringVar(value="Known-k (по числу классов)")
+        self.tuning_mode = tk.StringVar(value="Параметры по умолчанию")
         self.seed = tk.StringVar(value="42")
         self.rounds = tk.StringVar(value="10")
         self.clients = tk.StringVar(value="5")
@@ -172,7 +265,7 @@ class ComparisonTab(ttk.Frame):
                 textvariable=self.privacy_mode_display,
                 values=tuple(PRIVACY_MODE_VALUES),
                 state="readonly",
-                width=18,
+                width=37,
             )
             self.privacy_combo.grid(row=5, column=3, sticky="w")
             self.privacy_combo.bind("<<ComboboxSelected>>", self._privacy_mode_changed)
@@ -183,13 +276,14 @@ class ComparisonTab(ttk.Frame):
             ttk.Label(controls, text="DP delta").grid(row=6, column=1, sticky="w", pady=(10, 0))
             self.dp_delta_entry = ttk.Entry(controls, textvariable=self.dp_delta, width=12)
             self.dp_delta_entry.grid(row=7, column=1, padx=(0, 10), sticky="w")
-            ttk.Label(controls, text="DP clip norm (raw X)").grid(row=6, column=2, sticky="w", pady=(10, 0))
+            ttk.Label(controls, text="DP clip norm (raw / scaled)").grid(row=6, column=2, sticky="w", pady=(10, 0))
             self.dp_clip_entry = ttk.Entry(controls, textvariable=self.dp_clip_norm, width=12)
             self.dp_clip_entry.grid(row=7, column=2, padx=(0, 10), sticky="w")
             fixed_text = (
                 "Generic sane defaults: K=oracle • DBSCAN auto-eps(q50 k-distance)/min_samples=5 • "
                 "HF_DBSCAN L=0.15/MIN_POINTS=4 • min samples/client=3 • "
-                "Label-limited=2 класса/client"
+                "Label-limited=2 класса/client • При aggregate DP пять Adapted-алгоритмов "
+                "запускаются как DP proxy server variants (НЕ исходные авторские алгоритмы)"
             )
             ttk.Label(controls, text=fixed_text, foreground="#555555", wraplength=330).grid(
                 row=6, column=3, rowspan=2, sticky="w", padx=(0, 8), pady=(8, 0)
@@ -208,6 +302,15 @@ class ComparisonTab(ttk.Frame):
             ).grid(row=2, column=2, columnspan=2, rowspan=2, sticky="w", pady=(0, 0))
             run_row = 4
 
+        ttk.Label(controls, text="Режим выбора k").grid(row=run_row, column=0, sticky="w", pady=(8,0))
+        ttk.Combobox(controls, textvariable=self.cluster_count_mode, state="readonly",
+                     values=("Known-k (по числу классов)", "Estimated-k (без меток)"), width=29).grid(
+                     row=run_row+1,column=0,sticky="ew",padx=(0,10))
+        ttk.Label(controls, text="Подбор параметров DBSCAN").grid(row=run_row,column=1,sticky="w",pady=(8,0))
+        ttk.Combobox(controls, textvariable=self.tuning_mode, state="readonly",
+                     values=("Параметры по умолчанию", "Без меток: silhouette × coverage"),
+                     width=36).grid(row=run_row+1,column=1,columnspan=3,sticky="w")
+        run_row += 2
         self.run_button = ttk.Button(controls, text="Запустить выбранные алгоритмы", command=self._submit)
         self.run_button.grid(row=run_row, column=0, columnspan=4, pady=(14, 0), sticky="ew")
         for column in range(4):
@@ -243,7 +346,7 @@ class ComparisonTab(ttk.Frame):
                 ),
                 foreground="#555555",
             ).pack(anchor="w", pady=(0, 5))
-            schedule_columns = ("round", "selected", "successful", "dropped")
+            schedule_columns = ("round", "selected", "successful", "dropped", "active_samples", "active_hash")
             self.participation_table = ttk.Treeview(
                 participation_box,
                 columns=schedule_columns,
@@ -254,7 +357,9 @@ class ComparisonTab(ttk.Frame):
                 ("round", "Раунд", 70),
                 ("selected", "Выбраны", 300),
                 ("successful", "Успешно", 300),
-                ("dropped", "Dropout", 300),
+                ("dropped", "Dropout", 220),
+                ("active_samples", "Активных объектов", 130),
+                ("active_hash", "Active-data hash", 150),
             ):
                 self.participation_table.heading(column, text=title)
                 self.participation_table.column(column, width=width, anchor="center")
@@ -275,6 +380,18 @@ class ComparisonTab(ttk.Frame):
             result_toolbar, text="Экспорт в Excel…", command=self._export_current, state="disabled"
         )
         self.export_button.pack(side="right")
+        self.copy_button = ttk.Button(
+            result_toolbar, text="Копировать таблицу", command=self._copy_table, state="disabled"
+        )
+        self.copy_button.pack(side="right", padx=(0, 8))
+        if auto_open_var is not None:
+            ttk.Checkbutton(
+                result_toolbar, text="Открывать файл после экспорта", variable=auto_open_var
+            ).pack(side="left")
+        self.export_status = tk.StringVar(value="")
+        ttk.Label(results_box, textvariable=self.export_status, foreground="#555555").pack(
+            anchor="w", pady=(0, 4)
+        )
 
         self.table = _create_results_table(results_box)
         scrollbar = ttk.Scrollbar(results_box, orient="horizontal", command=self.table.xview)
@@ -310,7 +427,14 @@ class ComparisonTab(ttk.Frame):
     def _privacy_mode_changed(self, _event: tk.Event[Any] | None = None) -> None:
         if self.mode != "federated":
             return
-        enabled = PRIVACY_MODE_VALUES.get(self.privacy_mode_display.get()) == "gaussian_dp"
+        mode = PRIVACY_MODE_VALUES.get(self.privacy_mode_display.get())
+        enabled = mode in ('gaussian_dp', 'gaussian_dp_aggregate', 'public_clipped_control')
+        if mode in ('gaussian_dp_aggregate', 'public_clipped_control'):
+            try:
+                if float(self.dp_clip_norm.get()) > 20.0 or self.dp_clip_norm.get().strip() == "1.0":
+                    self.dp_clip_norm.set('4.0')
+            except ValueError:
+                self.dp_clip_norm.set('4.0')
         state = "normal" if enabled else "disabled"
         self.dp_epsilon_entry.configure(state=state)
         self.dp_delta_entry.configure(state=state)
@@ -347,6 +471,8 @@ class ComparisonTab(ttk.Frame):
                 partition_mode=partition_mode,  # type: ignore[arg-type]
                 dirichlet_alpha=float(self.alpha.get()),
                 rounds=int(self.rounds.get()),
+                cluster_count_mode=("estimated_k" if self.cluster_count_mode.get().startswith("Estimated") else "known_k"),
+                tuning_mode=("unsupervised" if self.tuning_mode.get().startswith("Без меток") else "none"),
                 algorithm_params_by_name={},
                 **federated_options,
             )
@@ -357,6 +483,11 @@ class ComparisonTab(ttk.Frame):
         self.clear()
         self.set_busy(True)
         self.on_run(request)
+
+    def _copy_table(self) -> None:
+        count = copy_results_to_clipboard(self.table)
+        if count:
+            self.export_status.set(f"Скопировано в буфер обмена: {count} строк(и) с заголовками")
 
     def _export_current(self) -> None:
         if self.last_report is not None:
@@ -371,6 +502,8 @@ class ComparisonTab(ttk.Frame):
     def clear(self) -> None:
         self.last_report = None
         self.export_button.configure(state="disabled")
+        self.copy_button.configure(state="disabled")
+        self.export_status.set("")
         _insert_results(self.table, [])
         self._clear_partition()
         self.set_log("")
@@ -402,7 +535,11 @@ class ComparisonTab(ttk.Frame):
                 self.participation_table.insert(
                     "",
                     "end",
-                    values=(entry.get("round", "—"), selected, successful, dropped),
+                    values=(
+                        entry.get("round", "—"), selected, successful, dropped,
+                        entry.get("active_sample_count", "—"),
+                        entry.get("active_data_hash", "—"),
+                    ),
                 )
 
     def set_log(self, text: str) -> None:
@@ -423,6 +560,7 @@ class ComparisonTab(ttk.Frame):
         if report.partition is not None:
             self.show_partition(report.partition)
         self.export_button.configure(state="normal")
+        self.copy_button.configure(state="normal" if report.results else "disabled")
 
 
 class HistoryTab(ttk.Frame):
@@ -435,6 +573,10 @@ class HistoryTab(ttk.Frame):
         toolbar.pack(fill="x", pady=(0, 8))
         self.refresh_button = ttk.Button(toolbar, text="Обновить историю", command=self.on_refresh)
         self.refresh_button.pack(side="left")
+        self.copy_button = ttk.Button(
+            toolbar, text="Копировать результаты", command=self._copy_results, state="disabled"
+        )
+        self.copy_button.pack(side="left", padx=(8, 0))
         self.status = ttk.Label(toolbar, text="")
         self.status.pack(side="left", padx=12)
 
@@ -466,6 +608,11 @@ class HistoryTab(ttk.Frame):
         ttk.Label(details_box, text="Лог эксперимента").pack(anchor="w", pady=(10, 3))
         self.log = tk.Text(details_box, height=10, wrap="word", state="disabled")
         self.log.pack(fill="both", expand=True)
+
+    def _copy_results(self) -> None:
+        count = copy_results_to_clipboard(self.results_table)
+        if count:
+            self.status.configure(text=f"Скопировано {count} строк(и) с заголовками")
 
     def set_busy(self, busy: bool, text: str = "") -> None:
         self.refresh_button.configure(state="disabled" if busy else "normal")
@@ -504,7 +651,7 @@ class HistoryTab(ttk.Frame):
         if details.results:
             benchmark = dict(details.results[0].model_state.get("benchmark") or {})
             privacy_mode = str(benchmark.get("privacy_mode", "none"))
-            if privacy_mode == "gaussian_dp":
+            if privacy_mode in ("gaussian_dp", "gaussian_dp_aggregate", "public_clipped_control"):
                 privacy_text = (
                     f" | Gaussian DP ε={benchmark.get('dp_epsilon')}"
                     f", δ={benchmark.get('dp_delta')}"
@@ -516,6 +663,7 @@ class HistoryTab(ttk.Frame):
             f" | duration={details.duration_sec:.3f}s{partition_text}{privacy_text}"
         )
         _insert_results(self.results_table, details.results)
+        self.copy_button.configure(state="normal" if details.results else "disabled")
         self.log.configure(state="normal")
         self.log.delete("1.0", "end")
         self.log.insert("end", details.log_text)
@@ -524,6 +672,7 @@ class HistoryTab(ttk.Frame):
     def clear_details(self, message: str) -> None:
         self.summary.set(message)
         _insert_results(self.results_table, [])
+        self.copy_button.configure(state="disabled")
         self.log.configure(state="normal")
         self.log.delete("1.0", "end")
         self.log.configure(state="disabled")
@@ -541,14 +690,15 @@ class PyClustEvalApp(tk.Tk):
         self.geometry("1400x1000")
         self.minsize(1100, 820)
         self.service = ComparisonService()
+        self.auto_open_excel = tk.BooleanVar(value=True)
         self.history_service = HistoryQueryService("history")
         self.events: queue.Queue[tuple[str, Any]] = queue.Queue()
 
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
         datasets = self.service.dataset_names()
-        self.local_tab = ComparisonTab(notebook, mode="local", datasets=datasets, algorithms=self.service.algorithm_names(federated=False), on_run=self.start_run, on_export=self.export_report)
-        self.federated_tab = ComparisonTab(notebook, mode="federated", datasets=datasets, algorithms=self.service.algorithm_names(federated=True), on_run=self.start_run, on_export=self.export_report)
+        self.local_tab = ComparisonTab(notebook, mode="local", datasets=datasets, algorithms=self.service.algorithm_names(federated=False), on_run=self.start_run, on_export=self.export_report, auto_open_var=self.auto_open_excel)
+        self.federated_tab = ComparisonTab(notebook, mode="federated", datasets=datasets, algorithms=self.service.algorithm_names(federated=True), on_run=self.start_run, on_export=self.export_report, auto_open_var=self.auto_open_excel)
         self.history_tab = HistoryTab(notebook, on_refresh=self.refresh_history, on_select=self.load_history_details)
         notebook.add(self.local_tab, text="Локальный запуск")
         notebook.add(self.federated_tab, text="Федеративный запуск")
@@ -575,7 +725,20 @@ class PyClustEvalApp(tk.Tk):
         except Exception as error:
             messagebox.showerror("Экспорт в Excel", f"Не удалось создать файл:\n{error}")
             return
-        messagebox.showinfo("Экспорт в Excel", f"Отчёт сохранён:\n{saved}")
+        status = f"Отчёт сохранён: {Path(saved).name}"
+        if self.auto_open_excel.get():
+            try:
+                open_exported_workbook(saved)
+            except (OSError, ValueError) as error:
+                self._tab_for_mode(report.request.mode).export_status.set(status)
+                messagebox.showwarning(
+                    "Экспорт в Excel",
+                    f"Отчёт успешно сохранён:\n{saved}\n\n"
+                    f"Не удалось автоматически открыть файл:\n{error}",
+                )
+                return
+            status += " (передан системе для открытия)"
+        self._tab_for_mode(report.request.mode).export_status.set(status)
 
     def refresh_history(self) -> None:
         self.history_tab.set_busy(True, "Чтение истории…")
