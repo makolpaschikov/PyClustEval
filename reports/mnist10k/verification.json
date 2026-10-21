@@ -1,0 +1,38 @@
+{
+  "run_count": 180,
+  "comparison_count": 23,
+  "mnist_input_shape": [
+    10000,
+    784
+  ],
+  "native_history_load_success": true,
+  "exact_global_metrics_match": true,
+  "exact_round_history_match": true,
+  "exact_original_model_state_preserved": true,
+  "all_prediction_fingerprints_match": true,
+  "archive_crc_valid": true,
+  "timestamp_policy": "explicit filesystem-derived estimates, not original recorded UTC timestamps",
+  "files": {
+    "mnist10k_history.zip": {
+      "bytes": 50470683,
+      "sha256": "8a55791cb28d27006b603e7dbf413fc344bbf590ec5857f59605d685ef268db9"
+    },
+    "report.json": {
+      "bytes": 3804322,
+      "sha256": "53ae8f64756dac62751e6ed21ce8f0dfe119f2493fc942c7d64f345e170d4470"
+    },
+    "results.csv": {
+      "bytes": 29415,
+      "sha256": "f887b221760c8e3a38d717c121fc04afef1d8cc2922ba7d07344a345466db32c"
+    },
+    "quality_diagnostics.json": {
+      "bytes": 5572,
+      "sha256": "e6496249cd40de44ec936c3c98c7014b0e1b329ceaa79cc08fc774e09a2dd675"
+    },
+    "quality_review.md": {
+      "bytes": 7687,
+      "sha256": "6b2c7e1ae60df30abf1bbe878d43699d8ff886452ee19a9c82794b3d5f3f90ad"
+    }
+  },
+  "published_base_code_history_load_success": true
+}

@@ -1,0 +1,277 @@
+{
+  "scope": "post-hoc exploratory diagnostics, separate from the 180 report runs",
+  "runs": [
+    {
+      "name": "original_Adapted NN-FC",
+      "ari": 1.3726304688566446e-05,
+      "nmi": 0.0046010618144022835,
+      "cluster_sizes": [
+        9973,
+        5,
+        4,
+        4,
+        4,
+        3,
+        2,
+        2,
+        2,
+        1
+      ],
+      "runtime_sec": 9.9002647719999
+    },
+    {
+      "name": "original_fed_fuzzy_cmeans_flower",
+      "ari": 0.05123133751406784,
+      "nmi": 0.10566154338756596,
+      "cluster_sizes": [
+        5323,
+        4667,
+        5,
+        4,
+        1
+      ],
+      "runtime_sec": 13.497652936999657
+    },
+    {
+      "name": "kmeans_raw_pixels",
+      "ari": 0.36737633936878894,
+      "nmi": 0.4977549183175896,
+      "cluster_sizes": [
+        1538,
+        1430,
+        1183,
+        1132,
+        969,
+        968,
+        917,
+        787,
+        545,
+        531
+      ],
+      "runtime_sec": 4.967129980001118,
+      "n_iter": 86
+    },
+    {
+      "name": "kmeans_pca50_raw_pixels",
+      "ari": 0.36221617457659677,
+      "nmi": 0.48549749230821065,
+      "cluster_sizes": [
+        1259,
+        1251,
+        1239,
+        1172,
+        896,
+        874,
+        861,
+        845,
+        830,
+        773
+      ],
+      "runtime_sec": 0.40136758600056055,
+      "n_iter": 52
+    },
+    {
+      "name": "federated_kmeans_same_initialization_20",
+      "ari": 0.2687211275865274,
+      "nmi": 0.39143422058315147,
+      "cluster_sizes": [
+        1866,
+        1615,
+        1303,
+        1268,
+        1048,
+        1037,
+        654,
+        589,
+        578,
+        42
+      ],
+      "runtime_sec": 0.879424830998687,
+      "rounds": 20,
+      "converged": false
+    },
+    {
+      "name": "federated_kmeans_same_initialization_100",
+      "ari": 0.31234743889808897,
+      "nmi": 0.42508578905122363,
+      "cluster_sizes": [
+        1810,
+        1643,
+        1233,
+        1176,
+        1074,
+        1021,
+        712,
+        595,
+        542,
+        194
+      ],
+      "runtime_sec": 4.318509159000314,
+      "rounds": 100,
+      "converged": false
+    },
+    {
+      "name": "fuzzy_cmeans_m1.2",
+      "ari": 0.20475736127949953,
+      "nmi": 0.3153821076793004,
+      "cluster_sizes": [
+        3343,
+        3136,
+        2056,
+        994,
+        276,
+        101,
+        62,
+        30,
+        2
+      ],
+      "runtime_sec": 3.2272307080002065,
+      "rounds": 20
+    },
+    {
+      "name": "NN-FC_internal_noise_disabled_diagnostic_only",
+      "ari": 1.7915803731893112e-06,
+      "nmi": 0.005207656077092467,
+      "cluster_sizes": [
+        9971,
+        5,
+        4,
+        4,
+        4,
+        4,
+        3,
+        2,
+        2,
+        1
+      ],
+      "runtime_sec": 1.715117925999948
+    },
+    {
+      "name": "kmeans_raw_pixels_float64",
+      "ari": 0.36737633936878894,
+      "nmi": 0.4977549183175896,
+      "cluster_sizes": [
+        1538,
+        1430,
+        1183,
+        1132,
+        969,
+        968,
+        917,
+        787,
+        545,
+        531
+      ],
+      "runtime_sec": 3.534897640000054,
+      "n_iter": 86
+    },
+    {
+      "name": "clipped_kmeans_data_initialization_no_noise",
+      "ari": 0.377923717793606,
+      "nmi": 0.5158735276777746,
+      "cluster_sizes": [
+        1826,
+        1504,
+        1253,
+        1211,
+        995,
+        989,
+        977,
+        436,
+        429,
+        380
+      ],
+      "runtime_sec": 1.1954243489999499,
+      "rounds": 20,
+      "initialization": "federated_priority_sample"
+    },
+    {
+      "name": "clipped_kmeans_public_initialization_no_noise",
+      "ari": 0.4000144426206684,
+      "nmi": 0.529320342970819,
+      "cluster_sizes": [
+        1437,
+        1401,
+        1187,
+        1177,
+        930,
+        927,
+        868,
+        837,
+        627,
+        609
+      ],
+      "runtime_sec": 1.1798257989994454,
+      "rounds": 20,
+      "initialization": "public_data_independent"
+    },
+    {
+      "name": "NN-FC_raw_pixels_original_internal_noise",
+      "ari": 0.10865547494963007,
+      "nmi": 0.33928531374318194,
+      "cluster_sizes": [
+        5154,
+        1639,
+        752,
+        593,
+        489,
+        362,
+        296,
+        287,
+        263,
+        165
+      ],
+      "runtime_sec": 8.90885138700105,
+      "prototype_diagnostics": {
+        "k": 2,
+        "total_prototypes": 500,
+        "prototype_norm_median": 12.85323700770005,
+        "chosen_prototype_norms": [
+          13.650246645692187,
+          13.968133468973615,
+          13.192087011027438,
+          13.411118548386508,
+          14.523863715738573,
+          15.38810466635641,
+          12.935368033163408,
+          14.119056258000048,
+          10.796256339575953,
+          12.409394492347559
+        ]
+      }
+    },
+    {
+      "name": "flower_kmeans_public_initialization_no_noise",
+      "ari": 0.4000144426206684,
+      "nmi": 0.529320342970819,
+      "cluster_sizes": [
+        1437,
+        1401,
+        1187,
+        1177,
+        930,
+        927,
+        868,
+        837,
+        627,
+        609
+      ],
+      "runtime_sec": 13.510800219000885,
+      "rounds": 20,
+      "backend": "flower-simulation"
+    }
+  ],
+  "fcm_original_max_pairwise_center_distance": 2.4585130161871044e-05,
+  "raw_image_norms": {
+    "median": 9.259510785636353,
+    "p95": 12.025562443533492,
+    "fraction_clipped_at_4": 0.9998
+  },
+  "hf_dbscan_grid": {
+    "cell_size": 0.15,
+    "min_points": 4,
+    "occupied_cells": 10000,
+    "max_occupancy": 1,
+    "dense_cells": 0
+  }
+}
