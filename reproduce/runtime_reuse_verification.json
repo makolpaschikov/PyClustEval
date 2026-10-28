@@ -1,0 +1,20 @@
+[
+  {
+    "job": "iid_full_5",
+    "predictions_identical": true,
+    "metrics_identical": true,
+    "communication_identical": true,
+    "cold_runtime_sec": 25.83990014900337,
+    "reused_runtime_sec": 11.344096027009073,
+    "check": "FCM -> GMM -> FCM on the same actor pool; fresh simulation state"
+  },
+  {
+    "job": "iid_full_6",
+    "predictions_identical": true,
+    "metrics_identical": true,
+    "communication_identical": true,
+    "cold_runtime_sec": 33.84529883800133,
+    "reused_runtime_sec": 22.135286894990713,
+    "check": "FCM -> GMM -> FCM on the same actor pool; fresh simulation state"
+  }
+]

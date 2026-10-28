@@ -1,0 +1,895 @@
+diff --git a/README.md b/README.md
+index 40fc51a..2267fa4 100644
+--- a/README.md
++++ b/README.md
+@@ -140,6 +140,33 @@ python -m pytest
+ 
+ Flower-тесты требуют установленного `flwr[simulation]` и Ray.
+ 
++### Non-IID и остановка федеративных алгоритмов
++
++Встроенные `fed_*` K-Means, FCM и diagonal GMM в NumPy и Flower суммируют
++достаточные статистики общей модели. При одинаковом входе, полном участии,
++нулевом dropout и без aggregate-DP шума переразбиение данных между клиентами
++не меняет глобальный шаг. Инициализация также не зависит от разбиения. Поэтому
++одинаковый ARI для IID/Dirichlet/quantity-skew/label-limited здесь ожидаем;
++это не проверка устойчивости методов с самостоятельным локальным обучением.
++
++При меняющемся составе успешных клиентов или случайном aggregate-DP шуме
++выполняется весь бюджет раундов. Для постоянного состава без такого шума
++действует ранняя остановка по `tol`, одинаковая в NumPy и Flower. В GMM
++проверяются изменения средних, дисперсий и весов. В отчёте сохраняются
++`converged`, `stopping_policy` и фактическое число выполненных обновлений.
++Flower после сходимости пропускает оставшиеся client fit-вызовы.
++
++Программные overrides числа раундов учитываются в расписании и калибровке
++DP-шума. Служебные `dp_aggregate` и `participation_schedule` нельзя передавать
++через overrides `RunRequest`; используйте его privacy/participation поля.
++
++Регрессии основного протокола и реальные Flower/Ray-симуляции:
++
++```bash
++python -m pytest -q tests/test_federated_execution_regressions.py
++python -m pytest -q tests/test_flower_simulation_integration.py
++```
++
+ ## Author-source adapted algorithms
+ 
+ The federated registry also contains five adapters that execute the specific author implementations supplied with this project:
+diff --git a/clustering_eval/algorithms/author_adapters.py b/clustering_eval/algorithms/author_adapters.py
+index bed93a0..6af42c1 100644
+--- a/clustering_eval/algorithms/author_adapters.py
++++ b/clustering_eval/algorithms/author_adapters.py
+@@ -549,10 +549,14 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
+             communication += outbound_size * len(clients)
+ 
+             labels = np.full(len(X), -1, dtype=int)
+-            for indices, client in zip(part, clients):
+-                client.assign_points_to_cluster(cells, cell_labels)
+-                local_labels, _unused_true, _points = client.get_labels()
+-                labels[indices] = np.asarray(local_labels, dtype=int)
++            # With no server cells every membership/neighbor lookup necessarily
++            # fails. Avoid building O(d^2) neighbor tuples for every point just
++            # to search an empty list (especially costly for 784-pixel MNIST).
++            if cells:
++                for indices, client in zip(part, clients):
++                    client.assign_points_to_cluster(cells, cell_labels)
++                    local_labels, _unused_true, _points = client.get_labels()
++                    labels[indices] = np.asarray(local_labels, dtype=int)
+ 
+         runtime = perf_counter() - start
+         state = _source_state(
+@@ -576,6 +580,7 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
+                 "PyClustEval partition arrays replace author ARFF loader/StratifiedKFold",
+                 "NumPy/Python client-selection RNG seeded by benchmark harness",
+                 "FDBSCAN_Client/FDBSCAN_Server are vendored author source with exact-semantics scalability fixes: sparse occupied-cell counting and direct 2*d axial-neighbor generation",
++                "empty server cell lists return the identical all-noise assignment without constructing neighbors for membership tests against an empty set",
+                 "the untouched uploaded fd_dbscan.py is preserved as fd_dbscan_original.py for audit",
+                 "when a PyClustEval participation schedule is present, its first-round successful clients replace the author's missing_clients_percentage sampling so all algorithms share the same availability scenario",
+             ],
+diff --git a/clustering_eval/algorithms/fed_kmeans_numpy.py b/clustering_eval/algorithms/fed_kmeans_numpy.py
+index 2a5ad56..a7a2ca1 100644
+--- a/clustering_eval/algorithms/fed_kmeans_numpy.py
++++ b/clustering_eval/algorithms/fed_kmeans_numpy.py
+@@ -5,7 +5,7 @@ import numpy as np
+ from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
+ from sklearn.metrics import pairwise_distances_argmin
+ from .base import ClusteringAlgorithm, AlgorithmResult
+-from ..federated.environment import participation_entry_for_round
++from ..federated.environment import early_stopping_allowed, participation_entry_for_round
+ from ..federated.initialization import federated_priority_sample_centers
+ 
+ class FedKMeansNumpy(ClusteringAlgorithm):
+@@ -18,10 +18,13 @@ class FedKMeansNumpy(ClusteringAlgorithm):
+     name = "fed_kmeans_numpy"
+ 
+     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
++        X = np.asarray(X, dtype=np.float64)
+         if partition is None:
+             partition = [np.arange(len(X))]
+-        k = int(params.get("k", 3))
++        k = int(params.get("k", params.get("n_clusters", 3)))
+         rounds = int(params.get("rounds", 20))
++        can_stop = early_stopping_allowed(params, rounds, len(partition))
++        converged = False
+         init_participation = participation_entry_for_round(params, 0, len(partition))
+         dp = params.get('dp_aggregate')
+         if dp is None:
+@@ -43,6 +46,7 @@ class FedKMeansNumpy(ClusteringAlgorithm):
+             participation = participation_entry_for_round(
+                 params, rnd, len(partition)
+             )
++            communication_bytes += centers.nbytes * len(participation["selected_clients"])
+             for client_id in participation["successful_clients"]:
+                 idx = partition[client_id]
+                 if len(idx) == 0:
+@@ -55,7 +59,7 @@ class FedKMeansNumpy(ClusteringAlgorithm):
+                         sums[cluster_id] += Xc[mask].sum(axis=0)
+                         counts[cluster_id] += int(mask.sum())
+                 inertia += float(((Xc - centers[local_labels]) ** 2).sum())
+-                communication_bytes += sums.nbytes + counts.nbytes + centers.nbytes
++                communication_bytes += sums.nbytes + counts.nbytes
+ 
+             if dp is not None:
+                 sums, counts = noisy_joint_aggregate(dp, sums, counts)
+@@ -73,7 +77,8 @@ class FedKMeansNumpy(ClusteringAlgorithm):
+                 "successful_clients": participation["successful_clients"],
+                 "dropped_clients": participation["dropped_clients"],
+             })
+-            if shift < float(params.get("tol", 1e-4)):
++            converged = can_stop and shift < float(params.get("tol", 1e-4))
++            if converged:
+                 break
+ 
+         labels = pairwise_distances_argmin(X, centers)
+@@ -82,6 +87,8 @@ class FedKMeansNumpy(ClusteringAlgorithm):
+             model_state={
+                 "centers": centers.tolist(),
+                 "rounds": len(history),
++                "converged": converged,
++                "stopping_policy": "tolerance_fixed_clients" if can_stop else "fixed_round_budget",
+                 "initialization": init_report,
+                 "backend": "numpy-federated",
+             },
+diff --git a/clustering_eval/algorithms/federated_extra.py b/clustering_eval/algorithms/federated_extra.py
+index e6e8002..86a3973 100644
+--- a/clustering_eval/algorithms/federated_extra.py
++++ b/clustering_eval/algorithms/federated_extra.py
+@@ -7,7 +7,7 @@ import numpy as np
+ from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
+ 
+ from .base import AlgorithmResult, ClusteringAlgorithm
+-from ..federated.environment import participation_entry_for_round
++from ..federated.environment import early_stopping_allowed, participation_entry_for_round
+ from ..federated.initialization import federated_priority_sample_centers, federated_global_variance
+ 
+ 
+@@ -43,6 +43,8 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
+         m = float(params.get("fuzziness", 2.0))
+         if m <= 1:
+             raise ValueError("fuzziness must be greater than 1")
++        can_stop = early_stopping_allowed(params, rounds, len(partition))
++        converged = False
+ 
+         init_participation = participation_entry_for_round(params, 0, len(partition))
+         dp = params.get('dp_aggregate')
+@@ -66,6 +68,7 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
+             participation = participation_entry_for_round(
+                 params, rnd, len(partition)
+             )
++            communication += centers.nbytes * len(participation["selected_clients"])
+             for client_id in participation["successful_clients"]:
+                 indices = partition[client_id]
+                 Xc = X[indices]
+@@ -78,7 +81,7 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
+                 weighted_sums += um.T @ Xc
+                 weights += um.sum(axis=0)
+                 objective += float((um * dist2).sum())
+-                communication += centers.nbytes + weighted_sums.nbytes + weights.nbytes
++                communication += weighted_sums.nbytes + weights.nbytes
+ 
+             if dp is not None:
+                 weighted_sums, weights = noisy_joint_aggregate(dp, weighted_sums, weights)
+@@ -96,7 +99,8 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
+                 "successful_clients": participation["successful_clients"],
+                 "dropped_clients": participation["dropped_clients"],
+             })
+-            if shift < tol:
++            converged = can_stop and shift < tol
++            if converged:
+                 break
+ 
+         labels = np.argmin(_squared_distances(X, centers), axis=1)
+@@ -105,6 +109,8 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
+             model_state={
+                 "centers": centers.tolist(),
+                 "rounds": len(history),
++                "converged": converged,
++                "stopping_policy": "tolerance_fixed_clients" if can_stop else "fixed_round_budget",
+                 "fuzziness": m,
+                 "backend": "numpy-federated",
+                 "initialization": init_report,
+@@ -137,6 +143,8 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+         rounds = int(params.get("rounds", 20))
+         tol = float(params.get("tol", 1e-4))
+         reg = float(params.get("reg_covar", 1e-6))
++        can_stop = early_stopping_allowed(params, rounds, len(partition))
++        converged = False
+ 
+         init_participation = participation_entry_for_round(params, 0, len(partition))
+         dp = params.get('dp_aggregate')
+@@ -170,6 +178,8 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+             participation = participation_entry_for_round(
+                 params, rnd, len(partition)
+             )
++            payload = means.nbytes + variances.nbytes + weights.nbytes
++            communication += payload * len(participation["selected_clients"])
+             for client_id in participation["successful_clients"]:
+                 indices = partition[client_id]
+                 Xc = X[indices]
+@@ -192,8 +202,7 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+                 sum_x += resp.T @ Xc
+                 sum_x2 += resp.T @ (Xc * Xc)
+                 communication += (
+-                    means.nbytes + variances.nbytes + weights.nbytes
+-                    + nk.nbytes + sum_x.nbytes + sum_x2.nbytes
++                    nk.nbytes + sum_x.nbytes + sum_x2.nbytes
+                 )
+ 
+             if dp is not None:
+@@ -205,7 +214,10 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+                 sum_x2 / safe_nk[:, None] - new_means * new_means,
+                 reg,
+             )
+-            shift = float(np.linalg.norm(new_means - means))
++            # EM has not converged while variances or mixture weights still move.
++            shift = max(float(np.linalg.norm(new_means - means)),
++                        float(np.linalg.norm(new_variances - variances)),
++                        float(np.linalg.norm(new_weights - weights)))
+             if dp is not None:
+                 new_means = project_centers(new_means, dp['clip_norm'])
+                 new_variances = np.clip(new_variances, reg, dp['clip_norm']**2)
+@@ -220,7 +232,8 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+                     "dropped_clients": participation["dropped_clients"],
+                 }
+             )
+-            if shift < tol:
++            converged = can_stop and shift < tol
++            if converged:
+                 break
+ 
+         scores = []
+@@ -238,6 +251,8 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
+                 "variances": variances.tolist(),
+                 "weights": weights.tolist(),
+                 "rounds": len(history),
++                "converged": converged,
++                "stopping_policy": "tolerance_fixed_clients" if can_stop else "fixed_round_budget",
+                 "backend": "numpy-federated",
+                 "initialization": {
+                     "means": means_init_report,
+diff --git a/clustering_eval/application/comparison_service.py b/clustering_eval/application/comparison_service.py
+index 41bc8bc..fd0ec04 100644
+--- a/clustering_eval/application/comparison_service.py
++++ b/clustering_eval/application/comparison_service.py
+@@ -21,7 +21,7 @@ from ..datasets.partitioning import (
+     partition_fingerprint,
+ )
+ from ..datasets.registry import default_registry as dataset_registry
+-from ..federated.environment import make_participation_schedule
++from ..federated.environment import make_participation_schedule, validate_round_budget
+ from ..metrics.clustering import (
+     METRIC_SCHEMA_VERSION,
+     SILHOUETTE_MAX_POINTS,
+@@ -250,6 +250,24 @@ class ComparisonService:
+             name: _get_registry_item(self.algorithm_registry, name)
+             for name in request.algorithms
+         }
++        # Resolve budgets BEFORE creating the shared schedule. Per-algorithm
++        # overrides may run beyond the requested common budget; every adapter
++        # receives the same deterministic prefix, never a repeated last round.
++        algorithm_overrides = {}
++        effective_rounds = {}
++        for name, algorithm in selected_algorithms.items():
++            overrides = {}
++            for layer in (dict(getattr(algorithm, "default_params", {}) or {}),
++                          defaults_for(name), request.algorithm_params,
++                          request.algorithm_params_by_name.get(name, {})):
++                if "k" in layer and "n_clusters" in layer and layer["k"] != layer["n_clusters"]:
++                    raise ValueError(f"{name}: k and n_clusters must agree")
++                overrides.update(layer)
++                # Aliases obey the same precedence as every other parameter.
++                if "k" in layer or "n_clusters" in layer:
++                    overrides["k"] = overrides["n_clusters"] = layer.get("k", layer.get("n_clusters"))
++            algorithm_overrides[name] = overrides
++            effective_rounds[name] = validate_round_budget(overrides.get("rounds", request.rounds))
+ 
+         partition = None
+         partition_report = None
+@@ -294,7 +312,7 @@ class ComparisonService:
+             class_counts = partition_class_counts(partition, y)
+             participation_schedule = make_participation_schedule(
+                 num_clients=request.num_clients,
+-                rounds=request.rounds,
++                rounds=max(request.rounds, *effective_rounds.values()),
+                 participation_rate=request.participation_rate,
+                 dropout_rate=request.dropout_rate,
+                 seed=request.seed,
+@@ -358,7 +376,8 @@ class ComparisonService:
+         k_tuning: dict[str, Any] | None = None
+         if aggregate_privacy and request.target_clusters is None:
+             # Public dataset class counts, NOT computed from the private y array.
+-            benchmark_k = {'dry_bean': 7, 'iris': 3, 'wine': 3, 'digits': 10}.get(request.dataset_name)
++            benchmark_k = {'dry_bean': 7, 'iris': 3, 'wine': 3, 'digits': 10,
++                           'mnist_10k': 10, 'mnist_full': 10}.get(request.dataset_name)
+             if benchmark_k is None:
+                 raise ValueError('Set a PUBLIC target_clusters for aggregate DP')
+             cluster_count_source = 'published_public_dataset_k'
+@@ -409,13 +428,12 @@ class ComparisonService:
+             log(f"Preprocessing {name}: {preprocessing}")
+ 
+             params = dict(common_params)
+-            params.update(dict(getattr(algorithm, "default_params", {}) or {}))
+-            # Dataset-agnostic profile: sklearn/common conventions for local
+-            # baselines, author-preserving constants for Adapted algorithms.
+-            # Explicit caller overrides remain highest priority.
+-            params.update(defaults_for(name))
+-            params.update(request.algorithm_params)
+-            params.update(request.algorithm_params_by_name.get(name, {}))
++            params.update(algorithm_overrides[name])
++            params["rounds"] = effective_rounds[name]
++            overrides = algorithm_overrides[name]
++            effective_k = int(overrides.get("k", overrides.get("n_clusters", benchmark_k)))
++            params["k"] = params["n_clusters"] = effective_k
++            k_is_overridden = "k" in overrides or "n_clusters" in overrides
+             if aggregate_privacy:
+                 kind_map = {
+                     'fed_kmeans_numpy': 'kmeans', 'fed_kmeans_flower': 'kmeans',
+@@ -430,7 +448,7 @@ class ComparisonService:
+                 params['dp_aggregate'] = make_dp_aggregate_config(
+                     kind=kind_map[name], epsilon=request.dp_epsilon,
+                     delta=request.dp_delta, clip_norm=request.dp_clip_norm,
+-                    rounds=(request.rounds if name not in ('Adapted FKDC','Adapted HF_DBSCAN','Adapted NN-FC','Adapted p-FClus') else 1),
++                    rounds=(params['rounds'] if name not in ('Adapted FKDC','Adapted HF_DBSCAN','Adapted NN-FC','Adapted p-FClus') else 1),
+                     enabled=(request.privacy_mode == 'gaussian_dp_aggregate'),
+                 )
+                 if name == 'Adapted HF_DBSCAN' and params['dp_aggregate']['enabled']:
+@@ -502,7 +520,7 @@ class ComparisonService:
+             diagnostics = {
+                 "unique_labels": [int(value) for value in unique_labels],
+                 "cluster_count_excluding_noise": len(non_noise),
+-                "cluster_count_delta_vs_benchmark_k": len(non_noise) - benchmark_k,
++                "cluster_count_delta_vs_benchmark_k": len(non_noise) - effective_k,
+                 "noise_fraction": float(noise_count / len(labels)),
+                 "assigned_fraction": float(non_noise_total / len(labels)),
+                 "assigned_sample_count": int(non_noise_total),
+@@ -553,8 +571,9 @@ class ComparisonService:
+             shared_names = ("k", "rounds", "tol", "max_iter", "density_min_samples", "seed")
+             state["benchmark"] = {
+                 "seed": request.seed,
+-                "target_clusters": benchmark_k,
+-                "cluster_count_source": cluster_count_source,
++                "target_clusters": effective_k,
++                "requested_target_clusters": benchmark_k,
++                "cluster_count_source": "algorithm_override" if k_is_overridden else cluster_count_source,
+                 "cluster_count_tuning": k_tuning,
+                 "cluster_count_mode": request.cluster_count_mode,
+                 "parameter_tuning_mode": request.tuning_mode,
+@@ -563,7 +582,8 @@ class ComparisonService:
+                                 "sklearn": sklearn.__version__, "scipy": scipy.__version__,
+                                 "platform": platform.platform(), "machine": platform.machine()},
+                 "communication_scope": "logical_payload_only_not_network_wire_bytes",
+-                "round_budget": request.rounds,
++                "round_budget": params["rounds"],
++                "requested_common_round_budget": request.rounds,
+                 "tol": request.tol,
+                 "max_iter": request.max_iter,
+                 "density_min_samples": request.density_min_samples,
+diff --git a/clustering_eval/application/dto.py b/clustering_eval/application/dto.py
+index d2c7b19..1d8d141 100644
+--- a/clustering_eval/application/dto.py
++++ b/clustering_eval/application/dto.py
+@@ -4,6 +4,10 @@ from dataclasses import asdict, dataclass, field
+ from datetime import datetime
+ from pathlib import Path
+ from typing import Any, Literal
++from math import isfinite
++from numbers import Integral
++
++from ..federated.environment import validate_round_budget
+ 
+ 
+ RunMode = Literal["local", "federated"]
+@@ -75,9 +79,21 @@ class RunRequest:
+             raise ValueError("Unsupported tuning mode")
+         if self.target_clusters is not None and self.target_clusters < 2:
+             raise ValueError("target_clusters must be at least 2 when provided")
+-        if self.rounds < 1:
+-            raise ValueError("rounds must be at least 1")
+-        if self.tol <= 0:
++        validate_round_budget(self.rounds)
++        for overrides in (self.algorithm_params, *self.algorithm_params_by_name.values()):
++            internal = {"participation_schedule", "dp_aggregate"}.intersection(overrides)
++            if internal:
++                raise ValueError("Use RunRequest privacy/participation controls instead of overriding "
++                                 + ", ".join(sorted(internal)))
++            if "rounds" in overrides:
++                validate_round_budget(overrides["rounds"])
++            for key in ("k", "n_clusters"):
++                if key in overrides and (isinstance(overrides[key], bool)
++                        or not isinstance(overrides[key], Integral) or overrides[key] < 1):
++                    raise ValueError(f"{key} must be a positive integer")
++            if "k" in overrides and "n_clusters" in overrides and overrides["k"] != overrides["n_clusters"]:
++                raise ValueError("k and n_clusters must agree")
++        if not isfinite(self.tol) or self.tol <= 0:
+             raise ValueError("tol must be greater than zero")
+         if self.max_iter < 1:
+             raise ValueError("max_iter must be at least 1")
+@@ -93,11 +109,11 @@ class RunRequest:
+             raise ValueError("dropout_rate must be in [0, 1)")
+         if self.privacy_mode not in ("none", "gaussian_dp", "gaussian_dp_aggregate", "public_clipped_control"):
+             raise ValueError(f"Unsupported privacy mode: {self.privacy_mode}")
+-        if self.dp_epsilon <= 0:
++        if not isfinite(self.dp_epsilon) or self.dp_epsilon <= 0:
+             raise ValueError("dp_epsilon must be greater than zero")
+         if not 0 < self.dp_delta < 1:
+             raise ValueError("dp_delta must be in (0, 1)")
+-        if self.dp_clip_norm <= 0:
++        if not isfinite(self.dp_clip_norm) or self.dp_clip_norm <= 0:
+             raise ValueError("dp_clip_norm must be greater than zero")
+         if self.privacy_mode in ("gaussian_dp_aggregate", "public_clipped_control") and self.dp_clip_norm > 20:
+             raise ValueError("Aggregate DP uses a PUBLIC scaled feature space. Set clip norm to 4, NOT 100000.")
+diff --git a/clustering_eval/experiments/runner.py b/clustering_eval/experiments/runner.py
+index 773f4bb..6727bfc 100644
+--- a/clustering_eval/experiments/runner.py
++++ b/clustering_eval/experiments/runner.py
+@@ -6,6 +6,7 @@ import numpy as np
+ from sklearn.preprocessing import StandardScaler
+ 
+ from ..algorithms.registry import default_registry as default_algorithm_registry
++from ..default_profile import defaults_for
+ from ..datasets.partitioning import make_partition, partition_fingerprint
+ from ..datasets.registry import default_registry as default_dataset_registry
+ from ..metrics.clustering import compute_metrics
+@@ -41,7 +42,7 @@ class ExperimentRunner:
+             num_clients=spec.num_clients,
+             seed=spec.seed,
+             y=dataset.y,
+-            alpha=spec.dirichlet_alpha or 0.5,
++            alpha=spec.dirichlet_alpha if spec.dirichlet_alpha is not None else 0.5,
+             min_samples_per_client=min_client_samples,
+         )
+         partition_id = partition_fingerprint(partition)
+@@ -65,6 +66,7 @@ class ExperimentRunner:
+             "client_gpus": 0.0,
+         }
+         params.update(dict(getattr(algorithm, "default_params", {}) or {}))
++        params.update(defaults_for(spec.algorithm_name))
+         params.update(spec.algorithm_params)
+ 
+         X_raw = np.asarray(dataset.X, dtype=float)
+diff --git a/clustering_eval/federated/environment.py b/clustering_eval/federated/environment.py
+index 61a3af6..d0af0bb 100644
+--- a/clustering_eval/federated/environment.py
++++ b/clustering_eval/federated/environment.py
+@@ -1,10 +1,17 @@
+ from __future__ import annotations
+ 
++from numbers import Integral
+ from typing import Any
+ 
+ import numpy as np
+ 
+ 
++def validate_round_budget(value: Any) -> int:
++    if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
++        raise ValueError("rounds must be a positive integer")
++    return int(value)
++
++
+ def make_participation_schedule(
+     *,
+     num_clients: int,
+@@ -61,19 +68,27 @@ def participation_entry_for_round(
+ ) -> dict[str, Any]:
+     schedule = params.get("participation_schedule")
+     if isinstance(schedule, list) and schedule:
+-        item = schedule[min(max(int(round_index), 0), len(schedule) - 1)]
++        if not 0 <= round_index < len(schedule):
++            raise ValueError("Participation schedule does not cover the requested round")
++        item = schedule[round_index]
+         if isinstance(item, dict):
+             selected = _validated_client_ids(item.get("selected_clients"), num_clients)
+             successful = _validated_client_ids(item.get("successful_clients"), num_clients)
+             dropped = _validated_client_ids(item.get("dropped_clients"), num_clients)
+             if not successful:
+                 raise ValueError("Participation schedule contains a round with no successful clients")
++            if (set(successful) & set(dropped)
++                    or (set(successful) | set(dropped)) != set(selected)):
++                raise ValueError("Successful and dropped clients must partition the selected clients")
+             return {
+                 "round": int(item.get("round", round_index + 1)),
+                 "selected_clients": selected,
+                 "successful_clients": successful,
+                 "dropped_clients": dropped,
+             }
++        raise ValueError("Participation schedule entries must be dictionaries")
++    if schedule is not None and schedule != []:
++        raise ValueError("Participation schedule must be a list")
+     all_clients = list(range(num_clients))
+     return {
+         "round": int(round_index) + 1,
+@@ -83,6 +98,26 @@ def participation_entry_for_round(
+     }
+ 
+ 
++def early_stopping_allowed(params: dict[str, Any], rounds: int, num_clients: int) -> bool:
++    """A stationary step implies convergence only for a fixed, noiseless objective.
++
++    Validate the complete planned schedule even if the first round converges.
++    Random aggregate noise and changes in successful clients require the full
++    round budget; one stationary update says nothing about the next update.
++    """
++    if rounds < 1:
++        raise ValueError("rounds must be at least 1")
++    successful_sets = {
++        tuple(participation_entry_for_round(params, rnd, num_clients)["successful_clients"])
++        for rnd in range(rounds)
++    }
++    dp = params.get("dp_aggregate")
++    if dp is not None and dp.get("enabled") and rounds > int(dp["budgeted_rounds"]):
++        raise ValueError("Requested rounds exceed the calibrated aggregate-DP budget")
++    noisy = dp is not None and float(dp["sigma_per_coordinate"]) > 0
++    return len(successful_sets) == 1 and not noisy
++
++
+ def successful_clients_for_round(
+     params: dict[str, Any],
+     round_index: int,
+diff --git a/clustering_eval/flower_adapter/fed_kmeans_flower_adapter.py b/clustering_eval/flower_adapter/fed_kmeans_flower_adapter.py
+index dcc09b8..f2b641f 100644
+--- a/clustering_eval/flower_adapter/fed_kmeans_flower_adapter.py
++++ b/clustering_eval/flower_adapter/fed_kmeans_flower_adapter.py
+@@ -10,7 +10,7 @@ from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate
+ from sklearn.metrics import pairwise_distances_argmin
+ 
+ from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
+-from ..federated.environment import participation_entry_for_round
++from ..federated.environment import early_stopping_allowed, participation_entry_for_round
+ from ..federated.initialization import federated_priority_sample_centers
+ 
+ 
+@@ -47,7 +47,6 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+             from flwr.client import ClientApp
+             from flwr.common import (
+                 FitIns,
+-                Parameters,
+                 ndarrays_to_parameters,
+                 parameters_to_ndarrays,
+             )
+@@ -69,7 +68,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+ 
+         X = np.asarray(X, dtype=np.float64)
+         num_clients = len(partition)
+-        k = int(params.get("k", 3))
++        k = int(params.get("k", params.get("n_clusters", 3)))
+         rounds = int(params.get("rounds", 20))
+         tol = float(params.get("tol", 1e-4))
+         client_cpus = float(params.get("client_cpus", 1.0))
+@@ -79,6 +78,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+             raise ValueError(f"k must be in [1, {len(X)}], got {k}")
+         if rounds <= 0:
+             raise ValueError("rounds must be greater than zero")
++        can_stop = early_stopping_allowed(params, rounds, num_clients)
+ 
+         init_participation = participation_entry_for_round(params, 0, num_clients)
+         dp = params.get('dp_aggregate')
+@@ -125,7 +125,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+                 inertia = float(
+                     np.square(self.local_X - centers[labels]).sum()
+                 )
+-                return [sums, counts], len(self.local_X), {"inertia": (None if dp is not None else inertia), "active": 1}
++                metrics = {"active": 1}
++                if dp is None:
++                    metrics["inertia"] = inertia
++                return [sums, counts], len(self.local_X), metrics
+ 
+             def evaluate(self, parameters, config):
+                 return 0.0, len(self.local_X), {}
+@@ -141,6 +144,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+                 return ndarrays_to_parameters([self.centers])
+ 
+             def configure_fit(self, server_round, parameters, client_manager):
++                # Flower may tick through the remaining budget, but no more
++                # client updates or benchmark traffic occur after convergence.
++                if self.converged:
++                    return []
+                 # Flower proxies do not expose the dataset partition-id to the
+                 # strategy layer.  We therefore keep all simulator clients alive
+                 # and enforce the shared benchmark schedule inside each client,
+@@ -203,7 +210,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+                 shift = float(np.linalg.norm(new_centers - self.centers))
+                 self.centers = (project_centers(new_centers, dp['clip_norm'])
+                                 if dp is not None else new_centers)
+-                self.converged = shift < tol
++                self.converged = can_stop and shift < tol
+                 participation = participation_entry_for_round(
+                     params, max(int(server_round) - 1, 0), num_clients
+                 )
+@@ -217,10 +224,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+                         "dropped_clients": participation["dropped_clients"],
+                     }
+                 )
+-                return ndarrays_to_parameters([self.centers]), {
+-                    "shift": shift,
+-                    "inertia": (None if dp is not None else inertia),
+-                }
++                metrics = {"shift": shift}
++                if dp is None:
++                    metrics["inertia"] = inertia
++                return ndarrays_to_parameters([self.centers]), metrics
+ 
+             def configure_evaluate(self, server_round, parameters, client_manager):
+                 return []
+@@ -268,6 +275,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
+                 "centers": strategy.centers.tolist(),
+                 "rounds": len(strategy.history),
+                 "converged": strategy.converged,
++                "stopping_policy": "tolerance_fixed_clients" if can_stop else "fixed_round_budget",
+                 "backend": "flower-simulation",
+                 "num_clients": num_clients,
+                 "participation_schedule": params.get("participation_schedule", []),
+diff --git a/clustering_eval/flower_adapter/federated_extra_flower.py b/clustering_eval/flower_adapter/federated_extra_flower.py
+index b5b1f42..0ffad6c 100644
+--- a/clustering_eval/flower_adapter/federated_extra_flower.py
++++ b/clustering_eval/flower_adapter/federated_extra_flower.py
+@@ -7,7 +7,7 @@ import numpy as np
+ from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
+ 
+ from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
+-from ..federated.environment import participation_entry_for_round
++from ..federated.environment import early_stopping_allowed, participation_entry_for_round
+ from ..federated.initialization import federated_priority_sample_centers, federated_global_variance
+ 
+ 
+@@ -67,6 +67,9 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
+         rounds = int(params.get("rounds", 20))
+         tol = float(params.get("tol", 1e-4))
+         m = float(params.get("fuzziness", 2.0))
++        if m <= 1:
++            raise ValueError("fuzziness must be greater than 1")
++        can_stop = early_stopping_allowed(params, rounds, n_clients)
+         init_participation = participation_entry_for_round(params, 0, n_clients)
+         dp = params.get('dp_aggregate')
+         if dp is None:
+@@ -104,7 +107,10 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
+                 sums = powered.T @ self.local_x
+                 weights = powered.sum(axis=0)
+                 objective = float((powered * distances).sum())
+-                return [sums, weights], len(self.local_x), {"objective": (None if dp is not None else objective), "active": 1}
++                metrics = {"active": 1}
++                if dp is None:
++                    metrics["objective"] = objective
++                return [sums, weights], len(self.local_x), metrics
+ 
+             def evaluate(self, parameters, config):
+                 return 0.0, len(self.local_x), {}
+@@ -114,11 +120,14 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
+                 self.centers = initial.copy()
+                 self.history = []
+                 self.communication_bytes = int(init_report["communication_bytes"])
++                self.converged = False
+ 
+             def initialize_parameters(self, client_manager):
+                 return ndarrays_to_parameters([self.centers])
+ 
+             def configure_fit(self, server_round, parameters, client_manager):
++                if self.converged:
++                    return []
+                 clients = client_manager.sample(n_clients, min_num_clients=n_clients)
+                 participation = participation_entry_for_round(
+                     params, max(int(server_round) - 1, 0), n_clients
+@@ -161,6 +170,7 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
+                 shift = float(np.linalg.norm(updated - self.centers))
+                 self.centers = (project_centers(updated, dp['clip_norm'])
+                                 if dp is not None else updated)
++                self.converged = can_stop and shift < tol
+                 participation = participation_entry_for_round(
+                     params, max(int(server_round) - 1, 0), n_clients
+                 )
+@@ -213,6 +223,8 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
+             model_state={
+                 "centers": strategy.centers.tolist(),
+                 "rounds": len(strategy.history),
++                "converged": strategy.converged,
++                "stopping_policy": "tolerance_fixed_clients" if can_stop else "fixed_round_budget",
+                 "fuzziness": m,
+                 "backend": "flower-simulation",
+                 "num_clients": n_clients,
+@@ -246,7 +258,9 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+         n_clients = len(partition)
+         k = int(params.get("k", params.get("n_clusters", 3)))
+         rounds = int(params.get("rounds", 20))
++        tol = float(params.get("tol", 1e-4))
+         reg = float(params.get("reg_covar", 1e-6))
++        can_stop = early_stopping_allowed(params, rounds, n_clients)
+         init_participation = participation_entry_for_round(params, 0, n_clients)
+         dp = params.get('dp_aggregate')
+         if dp is None:
+@@ -307,7 +321,10 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+                 sum_x = resp.T @ self.local_x
+                 sum_x2 = resp.T @ (self.local_x * self.local_x)
+                 ll = float((maximum[:, 0] + np.log(normalizer[:, 0])).sum())
+-                return [nk, sum_x, sum_x2], len(self.local_x), {"ll": ll, "active": 1}
++                metrics = {"active": 1}
++                if dp is None:
++                    metrics["ll"] = ll
++                return [nk, sum_x, sum_x2], len(self.local_x), metrics
+ 
+             def evaluate(self, parameters, config):
+                 return 0.0, len(self.local_x), {}
+@@ -318,6 +335,7 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+                 self.variances = variances0.copy()
+                 self.weights = weights0.copy()
+                 self.history = []
++                self.converged = False
+                 self.communication_bytes = int(means_init_report["communication_bytes"]) + int(variance_init_report["communication_bytes"])
+ 
+             def _parameters(self):
+@@ -329,6 +347,8 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+                 return self._parameters()
+ 
+             def configure_fit(self, server_round, parameters, client_manager):
++                if self.converged:
++                    return []
+                 clients = client_manager.sample(n_clients, min_num_clients=n_clients)
+                 participation = participation_entry_for_round(
+                     params, max(int(server_round) - 1, 0), n_clients
+@@ -376,13 +396,16 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+                     sum_x2 / safe_nk[:, None] - new_means * new_means,
+                     reg,
+                 )
+-                shift = float(np.linalg.norm(new_means - self.means))
++                shift = max(float(np.linalg.norm(new_means - self.means)),
++                            float(np.linalg.norm(new_variances - self.variances)),
++                            float(np.linalg.norm(new_weights - self.weights)))
+                 if dp is not None:
+                     new_means = project_centers(new_means, dp['clip_norm'])
+                     new_variances = np.clip(new_variances, reg, dp['clip_norm']**2)
+                 self.means = new_means
+                 self.variances = new_variances
+                 self.weights = new_weights
++                self.converged = can_stop and shift < tol
+                 participation = participation_entry_for_round(
+                     params, max(int(server_round) - 1, 0), n_clients
+                 )
+@@ -396,7 +419,10 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+                         "dropped_clients": participation["dropped_clients"],
+                     }
+                 )
+-                return self._parameters(), {"shift": shift, "log_likelihood": (None if dp is not None else ll)}
++                metrics = {"shift": shift}
++                if dp is None:
++                    metrics["log_likelihood"] = ll
++                return self._parameters(), metrics
+ 
+             def configure_evaluate(self, server_round, parameters, client_manager):
+                 return []
+@@ -448,6 +474,8 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
+                 "variances": strategy.variances.tolist(),
+                 "weights": strategy.weights.tolist(),
+                 "rounds": len(strategy.history),
++                "converged": strategy.converged,
++                "stopping_policy": "tolerance_fixed_clients" if can_stop else "fixed_round_budget",
+                 "backend": "flower-simulation",
+                 "num_clients": n_clients,
+                 "participation_schedule": params.get("participation_schedule", []),
+diff --git a/clustering_eval/privacy/aggregate_dp.py b/clustering_eval/privacy/aggregate_dp.py
+index 55b6ee1..685bea7 100644
+--- a/clustering_eval/privacy/aggregate_dp.py
++++ b/clustering_eval/privacy/aggregate_dp.py
+@@ -39,6 +39,14 @@ def public_scaled_features(X_raw: np.ndarray, dataset_name: str) -> tuple[np.nda
+         center = _DRY_BEAN_MEDIANS
+         scale = _DRY_BEAN_IQRS / 1.349
+         reference = 'published Dry Bean median/IQR, Krishnan et al. 2023, Table 2'
++    elif dataset_name in ('mnist_10k', 'mnist_full'):
++        if X.shape[1] != 784:
++            raise ValueError('MNIST public pixel reference requires 784 features')
++        # The loader already applies the public uint8 / 255 transform. Keep
++        # that fixed coordinate system; fit no moments on private images.
++        center = np.zeros(784)
++        scale = np.ones(784)
++        reference = 'MNIST public pixel range [0,1], uint8 / 255; no fitted moments'
+     elif dataset_name in ('iris', 'wine', 'digits'):
+         public_ds = {'iris': load_iris, 'wine': load_wine, 'digits': load_digits}[dataset_name]()
+         public_x = np.asarray(public_ds.data, dtype=np.float64)
+diff --git a/clustering_eval/results/excel_export.py b/clustering_eval/results/excel_export.py
+index 5a2655a..cb32ac3 100644
+--- a/clustering_eval/results/excel_export.py
++++ b/clustering_eval/results/excel_export.py
+@@ -3,12 +3,13 @@ from __future__ import annotations
+ import json
+ import math
+ from pathlib import Path
+-from typing import Any
++from typing import Any, TYPE_CHECKING
+ 
+ import numpy as np
+ import xlsxwriter
+ 
+-from ..application.dto import ComparisonReport
++if TYPE_CHECKING:
++    from ..application.dto import ComparisonReport
+ 
+ 
+ def _jsonable(value: Any) -> Any:
+diff --git a/clustering_eval/results/history_store.py b/clustering_eval/results/history_store.py
+index 9efd371..29b614f 100644
+--- a/clustering_eval/results/history_store.py
++++ b/clustering_eval/results/history_store.py
+@@ -7,11 +7,12 @@ import os
+ import re
+ from pathlib import Path
+ from tempfile import NamedTemporaryFile
+-from typing import Any
++from typing import Any, TYPE_CHECKING
+ 
+ import numpy as np
+ 
+-from ..application.dto import ComparisonReport
++if TYPE_CHECKING:
++    from ..application.dto import ComparisonReport
+ 
+ 
+ CSV_COLUMNS = (
+diff --git a/clustering_eval/results/public_release.py b/clustering_eval/results/public_release.py
+index 88034ad..656502a 100644
+--- a/clustering_eval/results/public_release.py
++++ b/clustering_eval/results/public_release.py
+@@ -5,8 +5,10 @@ claims of DP requires a separately audited end-to-end accounting mechanism.
+ """
+ from __future__ import annotations
+ 
+-from typing import Any
+-from ..application.dto import ComparisonReport
++from typing import Any, TYPE_CHECKING
++
++if TYPE_CHECKING:
++    from ..application.dto import ComparisonReport
+ 
+ 
+ def build_public_report(report: ComparisonReport) -> dict[str, Any]:
+diff --git a/pyclusteval_ui.py b/pyclusteval_ui.py
+index 1184f46..54d7a8f 100644
+--- a/pyclusteval_ui.py
++++ b/pyclusteval_ui.py
+@@ -342,9 +342,12 @@ class ComparisonTab(ttk.Frame):
+                 participation_box,
+                 text=(
+                     "Итеративные алгоритмы используют расписание по раундам; "
+-                    "one-shot Adapted алгоритмы используют только Round 1."
++                    "one-shot Adapted алгоритмы используют только Round 1.\n"
++                    "K-Means/FCM/GMM (NumPy и Flower): при 100% участия, dropout=0 "
++                    "и без DP-шума одинаковый ARI при разных разбиениях ожидаем."
+                 ),
+                 foreground="#555555",
++                wraplength=1050,
+             ).pack(anchor="w", pady=(0, 5))
+             schedule_columns = ("round", "selected", "successful", "dropped", "active_samples", "active_hash")
+             self.participation_table = ttk.Treeview(
+diff --git a/tests/test_author_adapters.py b/tests/test_author_adapters.py
+index 5afd69c..93cbafd 100644
+--- a/tests/test_author_adapters.py
++++ b/tests/test_author_adapters.py
+@@ -105,7 +105,10 @@ def test_pfclus_executes_uploaded_author_functions_without_rewriting_source():
+     )
+     vendored = (root / "p-FClus.py").read_bytes()
+     import hashlib
+-    assert hashlib.sha256(vendored).hexdigest() == (
++    # The supplied author file used CRLF; Git may check it out with LF.
++    # Preserve the pinned source digest while accepting either newline style.
++    canonical_crlf = vendored.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
++    assert hashlib.sha256(canonical_crlf).hexdigest() == (
+         "1ab947e641b5bc95213041eda98e663d105d7c342b7d638b404a421c1b1cee3e"
+     )
+ 
+diff --git a/tests/test_hfdbscan_compatibility_patch.py b/tests/test_hfdbscan_compatibility_patch.py
+index 37eb47e..629c827 100644
+--- a/tests/test_hfdbscan_compatibility_patch.py
++++ b/tests/test_hfdbscan_compatibility_patch.py
+@@ -55,3 +55,15 @@ def test_sparse_hfdbscan_client_handles_high_dimensional_input_without_dense_gri
+     contribution = client.compute_local_update()
+     assert sum(contribution.values()) == len(X)
+     assert len(contribution) <= len(X)
++
++
++def test_empty_server_cells_preserve_author_noise_assignments():
++    from clustering_eval.algorithms.author_adapters import AdaptedAuthorFDBSCAN
++    X = np.random.default_rng(3).random((12, 4))
++    reference = FDBSCAN_Client()
++    reference.initialize({'dataset': X, 'L': .15, 'true_labels': np.zeros(len(X), dtype=int)})
++    reference.assign_points_to_cluster([], [])
++    expected, _, _ = reference.get_labels()
++    result = AdaptedAuthorFDBSCAN().run(X, [np.arange(6), np.arange(6, 12)],
++                                       {'L': .15, 'min_points': 100}, 42)
++    np.testing.assert_array_equal(result.labels, expected)

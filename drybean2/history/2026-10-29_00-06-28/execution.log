@@ -1,0 +1,488 @@
+Export of original completed benchmark workers; no algorithms rerun.
+Exact UTC timestamps recorded by each worker. Comparison dates span grouped workers; individual measured algorithm times are preserved.
+
+===== quantity_p80_0 =====
+RESULT drybean2 quantity_p80_0 ok {'ari': 0.5303282360750938, 'ami': 0.6578848240087063, 'nmi': 0.6581433408874444, 'silhouette': 0.3172857487246381, 'davies_bouldin': 1.3410239522799035, 'calinski_harabasz': 6631.011353260041} 5.909704100995441
+
+
+===== quantity_p80_1 =====
+RESULT drybean2 quantity_p80_1 ok {'ari': 0.6649146053142126, 'ami': 0.7100222435264825, 'nmi': 0.7102337855582092, 'silhouette': 0.3075808091884766, 'davies_bouldin': 1.1143227908600526, 'calinski_harabasz': 7840.53073529687} 3.2790598760038847
+
+
+===== quantity_p80_2 =====
+RESULT drybean2 quantity_p80_2 ok {'ari': 0.3818197761705063, 'ami': 0.5256957105409382, 'nmi': 0.5284069654300291, 'silhouette': -0.11677926702441738, 'davies_bouldin': 1.7760522768827334, 'calinski_harabasz': 481.09195235872875} 17.415105528009008
+
+
+===== quantity_p80_3 =====
+/workspace/PyClustEval/clustering_eval/third_party/nnfc/utils.py:213: RuntimeWarning: divide by zero encountered in scalar divide
+  epsilon = 1.01 * maxratio / minvalue
+/workspace/PyClustEval/clustering_eval/third_party/nnfc/utils.py:213: RuntimeWarning: divide by zero encountered in scalar divide
+  epsilon = 1.01 * maxratio / minvalue
+/workspace/PyClustEval/clustering_eval/third_party/nnfc/utils.py:213: RuntimeWarning: divide by zero encountered in scalar divide
+  epsilon = 1.01 * maxratio / minvalue
+RESULT drybean2 quantity_p80_3 ok {'ari': 0.3432593986002932, 'ami': 0.5292214195206877, 'nmi': 0.5296164247688367, 'silhouette': 0.25512970242082694, 'davies_bouldin': 1.1125916055019436, 'calinski_harabasz': 4575.998874040575} 2.0274675550026586
+
+
+===== quantity_p80_4 =====
+RESULT drybean2 quantity_p80_4 ok {'ari': 0.3857585126859625, 'ami': 0.48918578936128804, 'nmi': 0.48959978197803233, 'silhouette': 0.1060648807354688, 'davies_bouldin': 2.2246303966475396, 'calinski_harabasz': 2678.16883645413} 17.27610152499983
+
+
+===== quantity_p80_5 =====
+WARNING :   DEPRECATED FEATURE: The `run_simulation` function is deprecated and will be removed in a future version of Flower. Please use `flwr run` in the CLI instead to run your simulation. Refer to the Flower Tutorials for more details: https://flower.ai/docs/framework/tutorial-quickstart-pytorch.html
+
+            This is a deprecated feature. It will be removed
+            entirely in future versions of Flower.
+        
+INFO :      Starting Flower ServerApp, config: num_rounds=20, no round_timeout
+INFO :      
+INFO :      [INIT]
+INFO :      Using initial global parameters provided by strategy
+INFO :      Starting evaluation of initial global parameters
+INFO :      Evaluation returned no results (`None`)
+INFO :      
+INFO :      [ROUND 1]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 2]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 3]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 4]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 5]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 6]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 7]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 8]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 9]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 10]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 11]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 12]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 13]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 14]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 15]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 16]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 17]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 18]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 19]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 20]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [SUMMARY]
+INFO :      Run finished 20 round(s) in 5.69s
+INFO :      	History (metrics, distributed, fit):
+INFO :      	{'shift': [(1, 3.9520510604500694),
+INFO :      	           (2, 1.2199228963942792),
+INFO :      	           (3, 0.9262034032355868),
+INFO :      	           (4, 0.7089076313078733),
+INFO :      	           (5, 0.6040592512686047),
+INFO :      	           (6, 0.5936700655641881),
+INFO :      	           (7, 0.587193521950952),
+INFO :      	           (8, 0.48998956755413764),
+INFO :      	           (9, 0.4064906397752611),
+INFO :      	           (10, 0.24637396413479587),
+INFO :      	           (11, 0.18931103864559107),
+INFO :      	           (12, 0.14559200236659256),
+INFO :      	           (13, 0.12355232171735014),
+INFO :      	           (14, 0.14467493638307158),
+INFO :      	           (15, 0.11501959474246792),
+INFO :      	           (16, 0.0999758177609017),
+INFO :      	           (17, 0.11117529961785658),
+INFO :      	           (18, 0.11655753611237211),
+INFO :      	           (19, 0.08798628015480366),
+INFO :      	           (20, 0.08525668972496908)]}
+INFO :      
+RESULT drybean2 quantity_p80_5 ok {'ari': 0.5942889730499066, 'ami': 0.6518236939170211, 'nmi': 0.6520692062380268, 'silhouette': 0.21408426099255454, 'davies_bouldin': 1.486038304026409, 'calinski_harabasz': 5303.263983913038} 6.801862922991859
+
+
+===== quantity_p80_6 =====
+WARNING :   DEPRECATED FEATURE: The `run_simulation` function is deprecated and will be removed in a future version of Flower. Please use `flwr run` in the CLI instead to run your simulation. Refer to the Flower Tutorials for more details: https://flower.ai/docs/framework/tutorial-quickstart-pytorch.html
+
+            This is a deprecated feature. It will be removed
+            entirely in future versions of Flower.
+        
+INFO :      Starting Flower ServerApp, config: num_rounds=20, no round_timeout
+INFO :      
+INFO :      [INIT]
+INFO :      Using initial global parameters provided by strategy
+INFO :      Starting evaluation of initial global parameters
+INFO :      Evaluation returned no results (`None`)
+INFO :      
+INFO :      [ROUND 1]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 2]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 3]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 4]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 5]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 6]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 7]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 8]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 9]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 10]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 11]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 12]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 13]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 14]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 15]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 16]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 17]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 18]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 19]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 20]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [SUMMARY]
+INFO :      Run finished 20 round(s) in 7.49s
+INFO :      	History (metrics, distributed, fit):
+INFO :      	{'log_likelihood': [(1, -217832.26080087776),
+INFO :      	                    (2, -146089.53073649819),
+INFO :      	                    (3, -106583.09797957362),
+INFO :      	                    (4, -96691.68895839392),
+INFO :      	                    (5, -90504.12288589838),
+INFO :      	                    (6, -89649.1208000692),
+INFO :      	                    (7, -96609.92762295414),
+INFO :      	                    (8, -92717.561911514),
+INFO :      	                    (9, -88902.45069794031),
+INFO :      	                    (10, -86729.45803012903),
+INFO :      	                    (11, -94583.33605051281),
+INFO :      	                    (12, -90700.90401623529),
+INFO :      	                    (13, -98402.62876246199),
+INFO :      	                    (14, -88657.54160634274),
+INFO :      	                    (15, -89397.32296491663),
+INFO :      	                    (16, -91498.21429893885),
+INFO :      	                    (17, -79044.0860815109),
+INFO :      	                    (18, -94776.78555497824),
+INFO :      	                    (19, -85843.1327543613),
+INFO :      	                    (20, -85732.09377458012)],
+INFO :      	 'shift': [(1, 7.5311999053725485),
+INFO :      	           (2, 2.6950674368979763),
+INFO :      	           (3, 1.4814157654068478),
+INFO :      	           (4, 0.9681397049406267),
+INFO :      	           (5, 1.0091621171875778),
+INFO :      	           (6, 0.5411839520630369),
+INFO :      	           (7, 0.7058582130894593),
+INFO :      	           (8, 0.6290185455698337),
+INFO :      	           (9, 0.4578417383396333),
+INFO :      	           (10, 0.8155102593108252),
+INFO :      	           (11, 0.8179245877468198),
+INFO :      	           (12, 1.202723880971579),
+INFO :      	           (13, 1.4222978257682473),
+INFO :      	           (14, 1.263022589801904),
+INFO :      	           (15, 0.6169907340804643),
+INFO :      	           (16, 0.2875813053173549),
+INFO :      	           (17, 0.2727656366097311),
+INFO :      	           (18, 0.3326775540898238),
+INFO :      	           (19, 0.42477743522820605),
+INFO :      	           (20, 0.30778852695475384)]}
+INFO :      
+RESULT drybean2 quantity_p80_6 ok {'ari': 0.712669893180438, 'ami': 0.7448310047105812, 'nmi': 0.745015680240228, 'silhouette': 0.28393341314547116, 'davies_bouldin': 1.2553656822497057, 'calinski_harabasz': 6817.981093336943} 8.689083916993695
+
+
+===== quantity_p80_7 =====
+WARNING :   DEPRECATED FEATURE: The `run_simulation` function is deprecated and will be removed in a future version of Flower. Please use `flwr run` in the CLI instead to run your simulation. Refer to the Flower Tutorials for more details: https://flower.ai/docs/framework/tutorial-quickstart-pytorch.html
+
+            This is a deprecated feature. It will be removed
+            entirely in future versions of Flower.
+        
+INFO :      Starting Flower ServerApp, config: num_rounds=20, no round_timeout
+INFO :      
+INFO :      [INIT]
+INFO :      Using initial global parameters provided by strategy
+INFO :      Starting evaluation of initial global parameters
+INFO :      Evaluation returned no results (`None`)
+INFO :      
+INFO :      [ROUND 1]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 2]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 3]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 4]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 5]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 6]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 7]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 8]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 9]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 10]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 11]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 12]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 13]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 14]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 15]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 16]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 17]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 18]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 19]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [ROUND 20]
+INFO :      configure_fit: strategy sampled 10 clients (out of 10)
+INFO :      aggregate_fit: received 10 results and 0 failures
+INFO :      configure_evaluate: no clients selected, skipping evaluation
+INFO :      
+INFO :      [SUMMARY]
+INFO :      Run finished 20 round(s) in 7.28s
+INFO :      	History (metrics, distributed, fit):
+INFO :      	{'inertia': [(1, 108571.20964034658),
+INFO :      	             (2, 73665.2527232207),
+INFO :      	             (3, 60028.75228128723),
+INFO :      	             (4, 57542.759671330656),
+INFO :      	             (5, 55897.7348413621),
+INFO :      	             (6, 55458.76354297111),
+INFO :      	             (7, 60058.335227089556),
+INFO :      	             (8, 57558.87285170553),
+INFO :      	             (9, 53989.85108657305),
+INFO :      	             (10, 50241.084604841635),
+INFO :      	             (11, 50752.886828993665),
+INFO :      	             (12, 45223.80290706221),
+INFO :      	             (13, 47873.772825532025),
+INFO :      	             (14, 41421.1246796417),
+INFO :      	             (15, 41035.84390887387),
+INFO :      	             (16, 41700.5909673155),
+INFO :      	             (17, 35596.325133147904),
+INFO :      	             (18, 42720.205956049416),
+INFO :      	             (19, 38961.06890943877),
+INFO :      	             (20, 38795.5364563133)],
+INFO :      	 'shift': [(1, 4.320836021321726),
+INFO :      	           (2, 2.2457188975145472),
+INFO :      	           (3, 0.8009289447137433),
+INFO :      	           (4, 0.37205078741200837),
+INFO :      	           (5, 0.32970562474079657),
+INFO :      	           (6, 0.33281971944804306),
+INFO :      	           (7, 0.4202276128013271),
+INFO :      	           (8, 0.6271086672416993),
+INFO :      	           (9, 1.099970551378516),
+INFO :      	           (10, 1.5467457365023733),
+INFO :      	           (11, 2.0323472750292813),
+INFO :      	           (12, 0.8874882671961296),
+INFO :      	           (13, 0.5530518269904175),
+INFO :      	           (14, 0.6536520998755573),
+INFO :      	           (15, 0.5976200527801314),
+INFO :      	           (16, 0.3941816045001434),
+INFO :      	           (17, 0.27249118468917527),
+INFO :      	           (18, 0.19521104148371057),
+INFO :      	           (19, 0.17511214576908005),
+INFO :      	           (20, 0.13629725436624168)]}
+INFO :      
+RESULT drybean2 quantity_p80_7 ok {'ari': 0.6627318777026978, 'ami': 0.7121972858068399, 'nmi': 0.7124076015188857, 'silhouette': 0.30868020513470085, 'davies_bouldin': 1.1020181701392495, 'calinski_harabasz': 7846.407259275394} 8.330172248999588
+

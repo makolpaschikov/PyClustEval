@@ -1,0 +1,149 @@
+{
+  "format": "pyclusteval.three-datasets-three-seeds.v1",
+  "exported_at": "2026-10-28T22:06:08.850993+00:00",
+  "run_count": 1620,
+  "comparison_count": 207,
+  "series_count": 9,
+  "series": [
+    {
+      "name": "drybean1",
+      "dataset": "dry_bean",
+      "seed": 17,
+      "n_samples": 13611,
+      "n_features": 16,
+      "n_classes": 7,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "drybean1"
+    },
+    {
+      "name": "drybean2",
+      "dataset": "dry_bean",
+      "seed": 43,
+      "n_samples": 13611,
+      "n_features": 16,
+      "n_classes": 7,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "drybean2"
+    },
+    {
+      "name": "drybean3",
+      "dataset": "dry_bean",
+      "seed": 101,
+      "n_samples": 13611,
+      "n_features": 16,
+      "n_classes": 7,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "drybean3"
+    },
+    {
+      "name": "mnist1",
+      "dataset": "mnist_10k",
+      "seed": 211,
+      "n_samples": 10000,
+      "n_features": 784,
+      "n_classes": 10,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "mnist1"
+    },
+    {
+      "name": "mnist2",
+      "dataset": "mnist_10k",
+      "seed": 307,
+      "n_samples": 10000,
+      "n_features": 784,
+      "n_classes": 10,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "mnist2"
+    },
+    {
+      "name": "mnist3",
+      "dataset": "mnist_10k",
+      "seed": 401,
+      "n_samples": 10000,
+      "n_features": 784,
+      "n_classes": 10,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "mnist3"
+    },
+    {
+      "name": "synthetic1",
+      "dataset": "synthetic_anisotropic",
+      "seed": 503,
+      "n_samples": 12000,
+      "n_features": 24,
+      "n_classes": 8,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "synthetic1"
+    },
+    {
+      "name": "synthetic2",
+      "dataset": "synthetic_anisotropic",
+      "seed": 601,
+      "n_samples": 12000,
+      "n_features": 24,
+      "n_classes": 8,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "synthetic2"
+    },
+    {
+      "name": "synthetic3",
+      "dataset": "synthetic_anisotropic",
+      "seed": 709,
+      "n_samples": 12000,
+      "n_features": 24,
+      "n_classes": 8,
+      "run_count": 180,
+      "comparison_count": 23,
+      "path": "synthetic3"
+    }
+  ],
+  "common_protocol": {
+    "clients": 10,
+    "round_budget": 20,
+    "tol": 0.0001,
+    "max_iter": 300,
+    "dirichlet_alphas": [
+      0.1,
+      0.5,
+      5.0
+    ],
+    "availability_pairs": [
+      [
+        1,
+        0
+      ],
+      [
+        0.8,
+        0
+      ],
+      [
+        1,
+        0.2
+      ],
+      [
+        0.5,
+        0.2
+      ]
+    ],
+    "dp_epsilons": [
+      20,
+      10,
+      5,
+      1
+    ],
+    "dp_delta": 1e-05,
+    "dp_clip_norm": 4,
+    "representation": "All original features; no PCA or subsampling of the selected datasets",
+    "dataset_repetitions": "Fixed data within each dataset; different pre-registered algorithm/partition/availability seeds",
+    "dp_randomness": "OS-backed random noise, not fixed by benchmark seeds"
+  },
+  "source_head": "6c79b384e7537c4b94c6c1887ba36eceded7314c"
+}
