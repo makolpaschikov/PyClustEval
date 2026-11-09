@@ -37,3 +37,15 @@
 - Status: resolved
 - Decision: [DEC-003](DECISIONS.md#dec-003), [DEC-004](DECISIONS.md#dec-004)
 - Agreement: Human explicitly requested removal of automatic history from the script, instructions, and existing records in this chat on 2026-11-10; earlier choices are recorded in DEC-003.
+
+<a id="sig-004"></a>
+## SIG-004: Maintainer branch and commit rules
+
+- Date: 2026-11-10
+- Origin: Human request in the current PyClustEval maintenance chat
+- Owner: harness-maintainer
+- Request: Define branch selection before writes, scoped commit permissions for new/existing branches, and Harness-prefixed commit messages with a short body.
+- Evidence: Human supplied the rules and selected the current experiments-series-runner branch; a session means one agreed change and its review fixes.
+- Status: resolved
+- Decision: [DEC-005](DECISIONS.md#dec-005)
+- Agreement: Human requested this skill change and chose current branch plus per-change session scope in this chat on 2026-11-10.

@@ -15,6 +15,48 @@ Resolve the target PyClustEval repository from the request and skill location, n
 
 Distinguish installed components from plans. Initially this skill is the only implemented role. Missing agents, journals, or scripts do not prevent an interview or read-only investigation. Do not create the rest of the harness merely because it is listed as planned. Include any necessary initialization in the proposed change.
 
+## Branches and commits
+
+A maintenance session covers one agreed harness change and its review fixes,
+not every task in the chat. Resuming the same work after a pause or context
+restoration preserves its branch choice and permissions within that scope.
+
+Before the first file change in a session, ask the human whether to use the
+current branch, another existing branch, or a new branch. This includes journal
+entries and temporary input files. Read-only investigation may precede the
+choice; keep a pending signal in chat until its registration can be written.
+Reuse the choice for subsequent edits in the same session. For agent-origin
+work, obtain the human's choice and permissions through the analyst.
+
+If a new branch is chosen, agree on its base and name; propose a name using
+the project's branch prefix. Before creating it, explicitly tell the human
+that commits for the agreed change on that new branch will not need further
+confirmation. Once the base and name are agreed and the warning has been
+given, create the branch and commit within that scope without repeated
+approval; the warning does not require a separate acknowledgment.
+An already-existing branch is not a new branch, even if its name was proposed
+for creation; resolve that choice before proceeding.
+
+On an existing branch, obtain explicit human permission before committing.
+When multiple commits are planned, ask for permission covering all commits
+needed for this agreed change and its review fixes on the selected branch.
+Reuse that permission within its scope; honor any narrower limit from the
+human. Selecting an existing branch alone does not authorize commits.
+
+Verify that the checked-out branch matches the selection before writing or
+committing. If it differs, resolve the branch choice before proceeding; do
+not transfer commit permission to a different branch. A separate maintenance
+change starts a new session and requires a fresh branch choice and applicable
+commit permission. Approval of the harness change itself remains necessary,
+including when commits are automatic on a new branch.
+
+Present the intended commit title before committing. Use the title
+`Harness: <commit summary>`, with a concise English imperative summary, and
+a required English body of one to three lines describing the most important
+changes. These role-specific permission and message rules override the
+corresponding defaults; all other [root Git rules](../../../AGENTS.md#commits)
+remain in force.
+
 ## Human-request workflow
 
 1. Inspect enough context to ask informed questions. Conduct a detailed interview covering the actual problem or desired capability, observed and expected behavior, affected roles, available evidence, constraints, and meaningful tradeoffs. Use small question blocks and adapt follow-ups to the answers. Do not repeat questions already answered or collect details that cannot affect the solution.

@@ -51,3 +51,15 @@
 - Result: Removed automatic history and actor/reason arguments; updated helper, instructions, tests, and all seven records to format v2. Current fields and substantive decision links are preserved.
 - Check: 22 fixture tests, independent code/instruction review, static checks, and live migration/check passed. Exact comparison preserved all current fields in seven records. Power-loss recovery was not tested.
 - Supersedes: [DEC-003](DECISIONS.md#dec-003)
+
+<a id="dec-005"></a>
+## DEC-005: Maintainer branch and commit workflow
+
+- Date: 2026-11-10
+- Signal: [SIG-004](SIGNALS.md#sig-004)
+- Status: verified
+- Decision: Ask for branch choice before the first write of each agreed harness change. Confirm base/name and announce automatic commits before creating a new branch; existing branches require explicit commit permission, reusable across the agreed change and review fixes. Require a Harness-prefixed title and a body of one to three lines.
+- Why: Make branch ownership and commit authorization explicit without repeated confirmations within the same work.
+- Agreement: Human supplied these rules, chose experiments-series-runner, and defined session scope as one agreed change plus review fixes (current chat, 2026-11-10).
+- Result: Added Branches and commits to the harness-maintainer skill; root Git defaults remain effective except for the explicit role overrides.
+- Check: Twelve independent textual scenarios and static metadata/link/format checks passed. No live branch creation or commit workflow was executed.
