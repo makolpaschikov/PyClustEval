@@ -4,9 +4,11 @@ This harness supports development and maintenance across PyClustEval. It defines
 
 ## Current state and entry point
 
-The harness is being bootstrapped. This document and the [harness-maintainer skill](../.agents/skills/harness-maintainer/SKILL.md) are available. All other roles and components below are planned; their descriptions are the target design, not a claim that agents, routing, or automation are already configured.
+The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this document, the [harness-maintainer skill](../.agents/skills/harness-maintainer/SKILL.md), and the [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals are available. The other roles and executable helpers below remain planned; their descriptions are the target design, not a claim that agents, routing, or automation are already configured.
 
-Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` with a request to develop or repair the harness. The maintainer interviews the human, proposes a concrete change, obtains agreement, implements it, and verifies the result. It can be used before the other roles or journals exist.
+Follow the temporary bootstrap scope in [AGENTS.md](../AGENTS.md#purpose-and-current-scope). The target application-development workflow below does not lift that restriction.
+
+Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` with a request to develop or repair the harness. The maintainer interviews the human, proposes a concrete change, obtains agreement, implements it, and verifies the result. It can be used before the other roles exist.
 
 ## Roles
 
@@ -21,7 +23,7 @@ Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` wi
 | Specification validator | Check whether a specification is self-contained, unambiguous, internally consistent, and ready to implement, with verifiable acceptance criteria. | Specific readiness defects or a readiness assessment with limits. This is not a code review. |
 | Specification auditor | Independently compare the specification with the original human request and verified project facts. Look for missing requirements, unsupported assumptions, unnecessary scope, and incorrect constraints. | Evidence-backed alignment findings and questions for the analyst. This is distinct from checking the document's internal readiness. |
 
-Only the maintainer skill is implemented at this stage. The remaining roles' concrete definitions, invocation mechanisms, and configuration will be established through subsequent maintenance requests.
+Among the roles, only the maintainer skill is implemented at this stage. The remaining roles' concrete definitions, invocation mechanisms, and configuration will be established through subsequent maintenance requests.
 
 ## Target development workflow
 
@@ -50,7 +52,7 @@ The analyst owns agent-origin signal registration and coordination. The maintain
 Paths are relative to the PyClustEval repository root.
 
 ```text
-AGENTS.md                                  planned: shared project instructions
+AGENTS.md                                  available: shared project instructions
 .agents/
   skills/
     harness-maintainer/
@@ -59,8 +61,8 @@ harness/
   README.md                                available: harness map and role overview
   scripts/                                 planned: executable harness helpers
   signals/
-    SIGNALS.md                             planned: requests, evidence, and progress
-    DECISIONS.md                           planned: linked decisions and outcomes
+    SIGNALS.md                             available: requests, evidence, and progress
+    DECISIONS.md                           available: linked decisions and outcomes
 ```
 
 Definitions for the other agents and subagents are planned. Their file format and location should be chosen when they are implemented, using the capabilities of the target agent host.
@@ -69,7 +71,7 @@ Definitions for the other agents and subagents are planned. Their file format an
 - `harness/signals/SIGNALS.md` tracks the source, problem or desired improvement, evidence, owner, status, and related decisions for each substantive request.
 - `harness/signals/DECISIONS.md` explains the selected resolution, its rationale, human agreement where applicable, affected scope, and actual implementation and verification results. Rejected or deferred proposals remain traceable.
 
-These planned directories and journals are not required to invoke the maintainer. Their initialization should be included in an agreed maintenance change; until then, the maintainer can present proposed records in the chat.
+The journals are initialized by [DEC-001](signals/DECISIONS.md#dec-001-root-project-instructions-and-journal-initialization). Until the analyst is implemented, human-led maintenance requests provide the entry point; journal entries do not launch work automatically. Planned helpers and role definitions are not required to invoke the maintainer.
 
 ## Verification of harness changes
 
