@@ -1,71 +1,53 @@
 # Harness decisions
 
-Use stable decision IDs and link their signals. Record agreement separately
-from implementation and verification. Preserve prior decisions; link any
-later decision that supersedes them.
+<!-- journal-format: 2 -->
 
-## DEC-001: Root project instructions and journal initialization
+<a id="dec-001"></a>
+## DEC-001: Root instructions and journal initialization
 
-- Date: 2026-11-10.
-- Signal: [SIG-001](SIGNALS.md#sig-001-root-project-instructions).
-- Owner: harness maintainer.
-- Resolution: introduce compact English root instructions, update the harness
-  map, and initialize these two journals. Limit bootstrap work to the harness;
-  keep application development, environment changes, and experiments deferred
-  until explicit agreement changes that scope. Allow relevant in-project
-  investigation without separate file-read permission.
-- Shared rules: preserve scientific conditions and unrelated work, verify
-  changed behavior, and distinguish evidence from assumptions and authority.
-  Require human permission and a proposed title before commits by default;
-  an applicable role skill may explicitly replace individual Git requirements.
-  Keep `AGENTS.md` at most 32,000 UTF-8 bytes, with essential cross-session
-  instructions and links to detailed procedures.
-- Communication: adapt the human-supplied `CLAUDE.md` rules into English;
-  omit the rejected passage about the agent's conversational persona. Use a
-  dedicated questions subsection adapted without semantic loss from
-  `F:/Python/UniversityResearch/AGENTS.md`, retaining optional sections,
-  two to five options where applicable, justified recommendations, and
-  localized Russian labels. Keep finding disposition as a general rule.
-- Rationale and alternatives: compact shared rules avoid duplicating role
-  procedures. The human chose harness-only bootstrap over autonomous
-  application work or an improvised analyst workflow, and project/task access
-  boundaries over the stricter skill-only file-reading boundary. Role-specific
-  commit exceptions leave future role workflows configurable.
-- Human agreement: in this chat on 2026-11-10, the human explicitly approved
-  the complete four-file package with all discussed revisions. This agreement
-  authorizes file changes, not a commit, push, or history rewrite.
-- Affected files: [AGENTS.md](../../AGENTS.md), [harness map](../README.md),
-  [signals](SIGNALS.md), and this decision journal. No application code,
-  computational environment, role definitions, or skill files are changed.
-- Implementation: all four agreed files have been created or updated and
-  verified before the separately requested commit.
-- Git follow-up: the human subsequently authorized a commit after checking
-  the repository and branch. Git was paused in a reword rebase with HEAD and
-  `experiments-series-runner` both at `34f03e0`. Exiting the rebase with
-  `git rebase --quit` and switching to that branch restored attached HEAD
-  without rewriting existing commits or discarding worktree changes.
-- Proposal verification: an independent subagent exercised the proposed rules
-  against eight scenarios covering bootstrap restrictions, project inspection,
-  incomplete requirements, commit authorization and role overrides, existing
-  permission, unsupported approval claims, and instructions in source material.
-  Two ambiguities were clarified; a focused recheck of the affected scenarios
-  found no remaining ambiguity.
-- Final artifact verification: a separate independent subagent read the root
-  instructions, harness map, journals, and existing maintainer skill. It
-  exercised nine scenarios, including meaningful alternatives and open-ended
-  naming questions in Russian, and found no actionable defects or semantic
-  loss in the imported question rules. The excluded persona rule is absent.
-  Maintainer checks confirmed strict UTF-8 decoding, working relative links
-  and heading anchors, no trailing whitespace or conflict markers in all four
-  files, and a passing `git diff --check`. The final root file is 7,374 bytes,
-  below the 32,000-byte limit. The worktree contains only the four agreed
-  file changes.
-- Verification limits: behavioral checks exercised instructions through
-  textual scenarios. No live application tasks, experiments, Git mutations,
-  or automatic instruction-loading behavior were tested. The independent
-  checker did not separately corroborate the human approval or earlier
-  review history; those are recorded from this maintenance chat.
-- Handoff: root instructions apply to the maintainer and future project roles.
-  Pass the current file explicitly to already-active agents; editing it does
-  not prove that their context has changed. Other roles and helpers remain
-  planned, and journal entries do not launch agents.
+- Date: 2026-11-10
+- Signal: [SIG-001](SIGNALS.md#sig-001)
+- Status: verified
+- Decision: Adopt compact English AGENTS.md (at most 32,000 UTF-8 bytes), harness-only bootstrap, shared communication and verification rules, and explicit commit permission with role-skill overrides. Initialize the signal and decision journals.
+- Why: Avoid duplicate role procedures; preserve human control and scientific conditions. Allow relevant project reads instead of the stricter skill-only access boundary.
+- Agreement: Human approved the four-file package after removing the persona passage and revising the questions subsection (this chat, 2026-11-10: Вноси весь пакет из четырёх файлов).
+- Result: Created AGENTS.md and both journals; updated harness/README.md. No application, environment, or other role implementation changes.
+- Check: Independent scenario reviews and static checks passed; no live application or instruction-loading checks. Agreement and prior-review history came from this chat, without independent corroboration.
+- Details: A later explicit request authorized commit eb6f665. Recovery from the paused reword rebase restored experiments-series-runner without rewriting earlier history. Existing active agents must receive revised instructions explicitly.
+
+<a id="dec-002"></a>
+## DEC-002: Focused reading
+
+- Date: 2026-11-10
+- Signal: [SIG-002](SIGNALS.md#sig-002)
+- Status: verified
+- Decision: Prefer targeted, context-aware reading; allow justified whole-file reads and require complete applicable instructions unless already current in context. Recheck changed or incomplete sources.
+- Why: Reduce irrelevant context without losing dependencies or constraints; avoid fixed line caps.
+- Agreement: Human accepted the exact proposed rule in this chat on 2026-11-10: Правило ок.
+- Result: Added [Reading files](../../AGENTS.md#reading-files) and related journal records; no script or skill change in this decision.
+- Check: Seven independent textual scenarios and static checks passed; root file was 8,156 bytes. Runtime improvements and context savings were not measured.
+
+<a id="dec-003"></a>
+## DEC-003: Journal helper and compact decisions
+
+- Date: 2026-11-10
+- Signal: [SIG-003](SIGNALS.md#sig-003)
+- Status: superseded
+- Decision: Use a standard-library Python helper for agent creation, updating, validation, and reviewed migration of Markdown journals. Keep compact decisions and short inline history; supersede agreed substantive decisions instead of rewriting them.
+- Why: Control format drift and record changes without repeating instructions, review transcripts, or complete old/new field texts.
+- Agreement: Human chose create/update/check, mandatory agent use and inline history, then approved the compact schema/history and rewriting existing DEC-001 through DEC-003 in this chat on 2026-11-10: Да, согласен.
+- Result: Added journal.py, isolated tests, the format guide, and mandatory-helper instructions; migrated all six existing records to the compact Markdown format with stable IDs.
+- Check: 18 isolated unittest checks, independent code/migration/instruction reviews, live journal migration/check, and static link/format checks passed. Power-loss recovery and evidence authenticity are not established by these checks.
+
+<a id="dec-004"></a>
+## DEC-004: Current-state records without automatic history
+
+- Date: 2026-11-10
+- Signal: [SIG-003](SIGNALS.md#sig-003)
+- Status: verified
+- Decision: Remove automatic update history from the helper, instructions, and existing journals. Preserve current status, approval, result, checks, and substantive decision links; record exceptional facts only when material.
+- Why: Routine status transitions duplicate current fields and add little value; substantive revisions remain traceable through superseding decisions.
+- Agreement: Human explicitly authorized this change in the current chat on 2026-11-10: Обнови скрипт, инструкции и существующие записи.
+- Result: Removed automatic history and actor/reason arguments; updated helper, instructions, tests, and all seven records to format v2. Current fields and substantive decision links are preserved.
+- Check: 22 fixture tests, independent code/instruction review, static checks, and live migration/check passed. Exact comparison preserved all current fields in seven records. Power-loss recovery was not tested.
+- Supersedes: [DEC-003](DECISIONS.md#dec-003)

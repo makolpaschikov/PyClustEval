@@ -4,7 +4,7 @@ This harness supports development and maintenance across PyClustEval. It defines
 
 ## Current state and entry point
 
-The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this document, the [harness-maintainer skill](../.agents/skills/harness-maintainer/SKILL.md), and the [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals are available. The other roles and executable helpers below remain planned; their descriptions are the target design, not a claim that agents, routing, or automation are already configured.
+The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this document, the [harness-maintainer skill](../.agents/skills/harness-maintainer/SKILL.md), the [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals, and their [helper and format guide](signals/README.md) are available. The other roles remain planned; their descriptions are the target design, not a claim that agents, routing, or automation are already configured.
 
 Follow the temporary bootstrap scope in [AGENTS.md](../AGENTS.md#purpose-and-current-scope). The target application-development workflow below does not lift that restriction.
 
@@ -43,9 +43,9 @@ An agent reports a harness problem or improvement opportunity to the analyst. Th
 
 The maintainer may investigate, ask the analyst for more evidence, and prepare a proposal without further human involvement. The analyst presents the proposal to the human. Agent-origin signals do not authorize the maintainer to change the harness without human agreement. Writing a signal in a file does not automatically launch an agent.
 
-All substantive requests to improve the harness, whether human- or agent-originated, belong in the signal and decision records. Ordinary questions without a proposed change do not need entries. Keep records concise and distinguish a reported issue, an agreed decision, an implemented change, and a verified outcome.
+All substantive requests to improve the harness, whether human- or agent-originated, belong in the signal and decision records. Ordinary questions without a proposed change do not need entries. Keep current status, decisions, and material evidence concise; omit automatic update history. Distinguish a reported issue, an agreed decision, an implemented change, and a verified outcome.
 
-The analyst owns agent-origin signal registration and coordination. The maintainer records its investigation, the human's decision, and implementation/verification outcomes, coordinating journal edits with the analyst. Avoid concurrent writes to the same journal.
+The analyst owns agent-origin signal registration and coordination. The maintainer records its investigation, the human's decision, and implementation/verification outcomes, coordinating journal edits with the analyst. Agents use the [journal helper](signals/README.md) for every create/update and validate human edits before continuing. Avoid concurrent writes to the same journal; the helper does not grant approval or launch agents.
 
 ## Repository layout
 
@@ -59,8 +59,12 @@ AGENTS.md                                  available: shared project instruction
       SKILL.md                             available: maintainer workflow
 harness/
   README.md                                available: harness map and role overview
-  scripts/                                 planned: executable harness helpers
+  scripts/
+    journal.py                             available: create, update, check, migrate
+  tests/
+    test_journal.py                         available: isolated helper checks
   signals/
+    README.md                              available: format and helper usage
     SIGNALS.md                             available: requests, evidence, and progress
     DECISIONS.md                           available: linked decisions and outcomes
 ```
@@ -71,7 +75,7 @@ Definitions for the other agents and subagents are planned. Their file format an
 - `harness/signals/SIGNALS.md` tracks the source, problem or desired improvement, evidence, owner, status, and related decisions for each substantive request.
 - `harness/signals/DECISIONS.md` explains the selected resolution, its rationale, human agreement where applicable, affected scope, and actual implementation and verification results. Rejected or deferred proposals remain traceable.
 
-The journals are initialized by [DEC-001](signals/DECISIONS.md#dec-001-root-project-instructions-and-journal-initialization). Until the analyst is implemented, human-led maintenance requests provide the entry point; journal entries do not launch work automatically. Planned helpers and role definitions are not required to invoke the maintainer.
+The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). Until the analyst is implemented, human-led maintenance requests provide the entry point; journal entries do not launch work automatically. Planned role definitions are not required to invoke the maintainer.
 
 ## Verification of harness changes
 

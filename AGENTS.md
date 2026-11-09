@@ -113,6 +113,22 @@ and option labels `А`, `Б`, `В`, etc.
   rewrites before applying them; make minor mechanical changes within an agreed
   scope without repeated approval and report them.
 
+### Reading files
+
+Read only the material needed for the current task. Locate relevant files,
+sections, and symbols with targeted searches before opening large files.
+Read coherent excerpts with enough surrounding context, expanding to related
+definitions and callers when needed to understand behavior.
+
+Read a whole file when its size and relevance justify it. Do not split files
+mechanically or apply fixed line limits that obscure dependencies.
+Read applicable instruction files in full unless their complete current
+contents are already available in context.
+
+Avoid rereading unchanged material already available in context. Recheck
+the source when edits, incomplete output, or uncertainty could affect
+the decision. Summarize large outputs instead of loading them wholesale.
+
 ## Commits
 
 By default, create commits only with explicit human permission and propose

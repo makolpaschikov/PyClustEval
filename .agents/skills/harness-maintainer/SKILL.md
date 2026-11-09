@@ -49,12 +49,12 @@ After a behavior change, identify which roles need the revised instructions and 
 
 ## Signal and decision records
 
-Record every substantive request for harness development or repair, including human requests. Do not log ordinary informational questions as change requests.
+Record every substantive request for harness development or repair, including human requests, once its concrete problem or proposed improvement is identifiable; do not wait for implementation approval. Add clarifications to the existing signal. Do not log ordinary informational questions as change requests.
 
-Use the existing journal conventions when available:
+Use [the journal helper and format guide](../../../harness/signals/README.md) for creation, updating, and validation. All agent writes to existing journals must use `harness/scripts/journal.py`; validate human edits before continuing. If it fails, diagnose and report the problem rather than silently writing by hand. Preserve these responsibilities:
 
 - `harness/signals/SIGNALS.md`: stable signal ID, date, origin, problem or desired improvement, evidence, owner, current status, and links to related decisions. Mark unverified reports as such and link duplicates without erasing useful evidence.
-- `harness/signals/DECISIONS.md`: stable decision ID, related signal IDs, selected resolution, rationale and relevant alternatives, the human agreement or rejection/deferment, affected scope, implementation state, and verification evidence or limitations. Distinguish proposal, agreement, implementation, and verification; do not mark an agreed but unimplemented change as resolved.
+- `harness/signals/DECISIONS.md`: compact decisions with date, related signals, current status, decision, reason, human agreement or rejection/deferment, result/affected scope, and verification evidence with material limitations. Mention alternatives only when they explain the choice; omit repeated instructions and routine work chronology. Distinguish proposal, agreement, implementation, and verification; do not mark an agreed but unimplemented change as resolved. Do not record automatic status-transition or update history. Keep unusual events only when materially useful, briefly in the relevant field or `details`. A substantive revision of an agreed decision requires a new linked decision.
 
 The analyst owns registration of agent-origin signals. Coordinate ownership of journal edits with it; do not overwrite simultaneous updates. Preserve earlier decisions and explicitly link a superseding decision rather than silently rewriting history.
 
