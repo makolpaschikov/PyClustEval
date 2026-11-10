@@ -7,6 +7,11 @@ local and federated clustering algorithms. See [project documentation](README.md
 for application details and [the harness map](harness/README.md) for role
 responsibilities, workflow, and component availability.
 
+Use [analyst-orchestrator](.agents/skills/analyst-orchestrator/SKILL.md) for task
+analysis, specifications and coordination. Its implementation does not expand
+the bootstrap scope below. Local task artifacts belong under the Git-ignored
+`.agent-work/tasks/`; use the skill's templates and helper for their format.
+
 During harness bootstrap, work is limited to developing and verifying the
 harness. Defer application implementation, computational-environment changes,
 and experiment execution; explain this boundary when such work is requested.

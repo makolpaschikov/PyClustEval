@@ -4,11 +4,19 @@ This harness supports development and maintenance across PyClustEval. It defines
 
 ## Current state and entry point
 
-The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this document, the [harness-maintainer skill](../.agents/skills/harness-maintainer/SKILL.md), the [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals, and their [helper and format guide](signals/README.md) are available. The other roles remain planned; their descriptions are the target design, not a claim that agents, routing, or automation are already configured.
+The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this map, the [harness-maintainer](../.agents/skills/harness-maintainer/SKILL.md) and [analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) skills, [shared Git procedure](git-workflow.md), [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals and their [helper](signals/README.md), and the analyst's [task templates and helper](../.agents/skills/analyst-orchestrator/references/task-artifacts.md) are available. Specialist roles remain planned. The analyst can assign bounded work to ordinary subagents when the host permits it; these are explicit assignments, not installed specialist agents or automatic routing.
 
 Follow the temporary bootstrap scope in [AGENTS.md](../AGENTS.md#purpose-and-current-scope). The target application-development workflow below does not lift that restriction.
 
 Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` with a request to develop or repair the harness. The maintainer interviews the human, proposes a concrete change, obtains agreement, implements it, and verifies the result. It can be used before the other roles exist.
+
+Invoke `$analyst-orchestrator` to analyze and coordinate a project task or resume a
+selected subtask. It proposes whole-task delivery or an epic with bounded,
+dependent subtasks, obtains specification approval, and coordinates implementation
+and independent review within the authorized scope. During bootstrap this remains
+limited to harness investigation and isolated verification; application execution
+still needs explicit human scope expansion. The analyst skill is an entry point
+for the main chat, not a background service.
 
 ## Roles
 
@@ -23,12 +31,17 @@ Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` wi
 | Specification validator | Check whether a specification is self-contained, unambiguous, internally consistent, and ready to implement, with verifiable acceptance criteria. | Specific readiness defects or a readiness assessment with limits. This is not a code review. |
 | Specification auditor | Independently compare the specification with the original human request and verified project facts. Look for missing requirements, unsupported assumptions, unnecessary scope, and incorrect constraints. | Evidence-backed alignment findings and questions for the analyst. This is distinct from checking the document's internal readiness. |
 
-Among the roles, only the maintainer skill is implemented at this stage. The remaining roles' concrete definitions, invocation mechanisms, and configuration will be established through subsequent maintenance requests.
+The maintainer and analyst roles are implemented as project skills. Their checks
+include isolated helper execution and independent behavioral scenarios, not a
+live application-delivery run. The remaining roles' concrete definitions,
+invocation mechanisms and role-specific automation will be established through
+subsequent maintenance requests. Until then the analyst uses the explicit
+[fallback assignment contracts](../.agents/skills/analyst-orchestrator/references/delegation.md).
 
 ## Target development workflow
 
 1. The analyst clarifies the request, obtains relevant evidence from scouts when needed, and prepares the specification.
-2. The validator checks implementation readiness; the auditor independently checks alignment with the request and project facts. The analyst resolves findings and records consequential clarifications. The depth of these checks should fit the task.
+2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst resolves findings and records consequential clarifications; implementation review remains independent.
 3. The analyst assigns bounded implementation tasks to developers, including the relevant specification, permitted scope, dependencies, and acceptance checks. Parallel assignments need clear ownership of shared files and integration work.
 4. The reviewer checks the resulting changes against the task and reports findings to the analyst. The analyst routes necessary fixes to a developer and arranges review of the corrections.
 5. The analyst reports what was delivered, what was actually verified, and any remaining limitations. Unresolved requirements are not silently treated as completed work.
@@ -57,25 +70,41 @@ AGENTS.md                                  available: shared project instruction
   skills/
     harness-maintainer/
       SKILL.md                             available: maintainer workflow
+    analyst-orchestrator/
+      SKILL.md                             available: analyst workflow
+      references/                          available: artifacts and delegation
+      assets/                              available: three versioned templates
 harness/
   README.md                                available: harness map and role overview
+  git-workflow.md                          available: shared branch/commit permissions
   scripts/
     journal.py                             available: create, update, check, migrate
+    task/
+      task.py                              available: init, lint, snapshot, check
+      task_support/                        available: formats, artifacts, lint, gates
   tests/
     test_journal.py                         available: isolated helper checks
+    test_task.py                            available: isolated task lifecycle checks
   signals/
     README.md                              available: format and helper usage
     SIGNALS.md                             available: requests, evidence, and progress
     DECISIONS.md                           available: linked decisions and outcomes
 ```
 
-Definitions for the other agents and subagents are planned. Their file format and location should be chosen when they are implemented, using the capabilities of the target agent host.
+`.agent-work/tasks/` holds local task instances, manifests and verification
+artifacts and is excluded from Git. Templates and helper code remain tracked.
+The analyst helper checks format, specification readiness, implementation start,
+completion and resumption. It checks recorded evidence and content fingerprints;
+it does not authenticate human consent, execute recorded test commands or prove
+that tests establish the intended behavior.
+
+Definitions for specialist agents and subagents are planned. Their file format and location should be chosen when they are implemented, using the capabilities of the target agent host.
 
 - `harness/scripts/` is for helpers with a concrete, repeatable purpose. Add scripts when needed rather than creating unused scaffolding.
 - `harness/signals/SIGNALS.md` tracks the source, problem or desired improvement, evidence, owner, status, and related decisions for each substantive request.
 - `harness/signals/DECISIONS.md` explains the selected resolution, its rationale, human agreement where applicable, affected scope, and actual implementation and verification results. Rejected or deferred proposals remain traceable.
 
-The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). Until the analyst is implemented, human-led maintenance requests provide the entry point; journal entries do not launch work automatically. Planned role definitions are not required to invoke the maintainer.
+The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). The analyst skill, local task format and helper were introduced in [DEC-006](signals/DECISIONS.md#dec-006). Human maintenance requests still go directly to the maintainer; agent-origin signals go through the analyst. Journal entries do not launch work automatically.
 
 ## Verification of harness changes
 

@@ -49,3 +49,16 @@
 - Status: resolved
 - Decision: [DEC-005](DECISIONS.md#dec-005)
 - Agreement: Human requested this skill change and chose current branch plus per-change session scope in this chat on 2026-11-10.
+
+<a id="sig-005"></a>
+## SIG-005: Analyst-orchestrator for complex multi-session work
+
+- Date: 2026-11-11
+- Origin: Human request in the analyst-orchestrator harness development chat
+- Owner: harness-maintainer
+- Request: Develop an analyst-orchestrator capable of coordinating a complex project change to completion or proposing concrete, bounded subtasks under a persistent parent task for execution across separate human-led sessions.
+- Evidence: The human selected future local experiment-series support as a capability benchmark and authorized a brief review of F:\Python\UniversityResearch\tmp\pyclusteval-local-experiments-agent-plan.md. Its historical claims were not independently rechecked. The human reports prior loss of requirements across sessions, excessive change scope, formalistic tests and premature completion claims; no individual historical incident was investigated. At registration the analyst role was planned only.
+- Status: resolved
+- Decision: [DEC-006](DECISIONS.md#dec-006)
+- Agreement: The human accepted an in-depth interview and new branch codex/analyst-orchestrator from experiments-series-runner. Agreed requirements: approve specifications before implementation, then coordinate autonomously within scope; store Git-excluded local task artifacts, with an epic and bounded subtasks for large tasks and one document for small tasks; define all subtask goals, boundaries, dependencies, shared contracts and acceptance criteria upfront, refining technical specifications before implementation. The analyst owns architecture and contracts; developers own implementation details. Use ordinary subagents for missing specialists, separate specification validation and alignment audit for large/risky tasks, a justified combined independent specification check for small tasks, and implementation review. Apply maintainer-style branch and commit permissions without granting push, merge or history rewriting. Escalate when meaningful progress stops, supported approaches are exhausted or scope/authority must change, without a fixed retry count. The human subsequently accepted the analyst gates, templates and modular helper, with scripts grouped under harness/scripts/task/.
+- Details: DEC-006 implements the agreed role, local templates, format linting and analyst gates with script grouping under harness/scripts/task/. Other-role gates remain deferred. Additional requirements can be handled as later maintenance changes.

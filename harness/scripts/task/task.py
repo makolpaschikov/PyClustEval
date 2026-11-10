@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""Create and check local analyst task artifacts. Requires Python 3.10+ and Git."""
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import sys
+
+from task_support.artifacts import (CODE_ROOT, initialize, load, repository,
+                                    spec_digest, stable_snapshot, workspace)
+from task_support.formats import SECTIONS, TaskError, require
+from task_support.gates import check_gate
+from task_support.lint import lint
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, default=CODE_ROOT, help="repository root; isolated repository for tests")
+    commands = parser.add_subparsers(dest="command", required=True)
+    init = commands.add_parser("init", help="create a draft from a versioned template; no overwrite")
+    init.add_argument("directory", type=Path)
+    init.add_argument("--id", required=True)
+    init.add_argument("--kind", choices=SECTIONS, required=True)
+    init.add_argument("--branch", required=True)
+    init.add_argument("--scope", choices=("harness", "application"), required=True)
+    init.add_argument("--parent")
+    init.add_argument("--expect-sha256", help="current manifest hash when adding to an existing task")
+    for name in ("lint", "snapshot", "check"):
+        command = commands.add_parser(name, help="read-only inspection")
+        command.add_argument("directory", type=Path)
+        if name != "lint":
+            command.add_argument("--id", required=True)
+        if name == "check":
+            command.add_argument("--gate", choices=("specification", "start", "completion", "resumption"), required=True)
+    args = parser.parse_args(argv)
+    try:
+        repo = repository(args.repo)
+        directory = workspace(repo, args.directory)
+        if args.command == "init":
+            initialize(repo, directory, args.id, args.kind, args.branch, args.scope, args.parent, args.expect_sha256)
+        manifest, revision = load(directory)
+        index, _ = lint(repo, directory, manifest)
+        report = {"command": args.command, "manifest_sha256": revision, "items": list(index)}
+        if args.command in ("snapshot", "check"):
+            require(args.id in index, f"Unknown item: {args.id}")
+            snapshot = stable_snapshot(repo)
+            report.update(snapshot)
+            report["spec_sha256"] = spec_digest(directory, manifest, index[args.id])
+            if args.command == "check":
+                report["gate"] = args.gate
+                report["receipt"] = check_gate(repo, directory, manifest, args.id, args.gate, snapshot)
+            require(snapshot == stable_snapshot(repo), "Source changed during inspection; retry when writers stop")
+            require(report["spec_sha256"] == spec_digest(directory, manifest, index[args.id]), "Task documents changed during inspection")
+        require(load(directory)[1] == revision, "Manifest changed during inspection")
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+        return 0
+    except (TaskError, OSError, UnicodeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
