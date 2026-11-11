@@ -1,8 +1,9 @@
 # Delegation and independent review
 
-Read when assigning implementation, evidence gathering or review. These are
-fallback assignment contracts for ordinary subagents, not installed specialist
-definitions. Use the host's available collaboration API and respect its actual
+Read when assigning implementation, evidence gathering or review. Python
+implementation uses the linked developer skill with an ordinary subagent; the
+other assignments below remain fallback contracts for roles without definitions.
+Use the host's available collaboration API and respect its actual
 concurrency limits. Inherit model/settings unless a specific selection is
 authorized; this skill does not prescribe a model or modify global configuration.
 
@@ -39,6 +40,37 @@ human explicitly asks for them.
 | Specification auditor | Give the original human request/corrections, verified source context and proposed spec. Ask about alignment, omissions, unsupported assumptions and excess scope. | Do not substitute the analyst's interpretation for the raw request. |
 | Python developer | Give the approved spec, shared contracts, writable scope and acceptance plan. Request implementation and actual checks with a handoff. | No changes to agreed requirements/scientific conditions or unassigned environment; route questions through analyst. |
 | Python reviewer | Give the request/spec, actual changes and execution evidence. Ask for defects, regressions, scope violations and verification gaps with precise references. | Independent from authors and analyst; do not implement the fixes under review. |
+
+## Python developer invocation
+
+Start an ordinary subagent and explicitly instruct it to read
+[python-developer](../../python-developer/SKILL.md) before acting. Pass an absolute
+skill path resolved in the assigned checkout. This is a skill-backed assignment,
+not a registered host agent type or automatic skill loading. Inherit model and
+settings unless the human has authorized a specific choice.
+
+Supply the common assignment above, current approved specification and relevant
+parent contracts, the actual authorization source/scope, implementation-start
+clearance, branch and file ownership, allowed environment changes, check/resource
+limits, and dedicated evidence paths inside the existing task directory. During
+bootstrap only explicitly isolated harness verification is permitted; an
+application specification alone does not expand that scope.
+
+Keep coordination with the analyst: the developer sends dependency proposals,
+requests for other agents, blockers, harness signals and review disagreements
+back to it. The analyst arranges assistance and independent review. The developer
+does not spawn agents, manage Git, update journals or shared task state, or decide
+task completion. Apply this developer-specific boundary even if the common
+assignment permits a coordinator to assign such duties to another role.
+
+Inspect the developer's diff, criterion outcomes, actual commands/results and raw
+evidence. Bind verified reports to the current source/specification using the
+existing [artifact contract](task-artifacts.md); do not copy a ready-for-review
+claim into a completed task state. Preserve unrelated failures and blocked checks
+when routing the result to review. No additional developer manifest or gate is
+required by this role.
+
+## Independent review
 
 Large/risky specs use distinct readiness and alignment reviewers. A small task
 may use one independent agent for both assessments if the rationale is recorded;

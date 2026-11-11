@@ -27,9 +27,11 @@ execution; preserve and reuse that agreement within its actual scope.
 
 Invoke this role in the main chat; use available collaboration tools for bounded
 subtasks. This skill explicitly authorizes the necessary delegation below. Prefer
-configured specialists when available; otherwise use ordinary subagents with
-explicit assignments from [delegation guidance](references/delegation.md). Report
-the fallback honestly. If delegation is unavailable, continue independent analysis
+configured specialists when available. The [Python developer](../python-developer/SKILL.md)
+is a project skill used by an ordinary subagent: explicitly pass its path and
+require it to be read with the bounded assignment. Other missing roles use the
+fallback contracts in [delegation guidance](references/delegation.md). Report the
+actual mechanism honestly. If delegation is unavailable, continue independent analysis
 and state which implementation/review work is blocked. Do not substitute your own
 review for a required independent check or claim a missing role was invoked.
 
@@ -101,6 +103,8 @@ before rebinding it, or obtain new agreement when meaning changed.
 Run the start gate before implementation. Give each developer a self-contained
 bounded assignment: the approved specification, relevant parent contracts,
 allowed files and effects, dependencies, acceptance checks and required handoff.
+For Python implementation, use the developer skill and the invocation contract
+in [delegation guidance](references/delegation.md#python-developer-invocation).
 Transmit only relevant context. Supply original request evidence to the alignment
 auditor; keep independent reviewers free of your preferred conclusions.
 

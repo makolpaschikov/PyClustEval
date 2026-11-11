@@ -62,3 +62,16 @@
 - Decision: [DEC-006](DECISIONS.md#dec-006)
 - Agreement: The human accepted an in-depth interview and new branch codex/analyst-orchestrator from experiments-series-runner. Agreed requirements: approve specifications before implementation, then coordinate autonomously within scope; store Git-excluded local task artifacts, with an epic and bounded subtasks for large tasks and one document for small tasks; define all subtask goals, boundaries, dependencies, shared contracts and acceptance criteria upfront, refining technical specifications before implementation. The analyst owns architecture and contracts; developers own implementation details. Use ordinary subagents for missing specialists, separate specification validation and alignment audit for large/risky tasks, a justified combined independent specification check for small tasks, and implementation review. Apply maintainer-style branch and commit permissions without granting push, merge or history rewriting. Escalate when meaningful progress stops, supported approaches are exhausted or scope/authority must change, without a fixed retry count. The human subsequently accepted the analyst gates, templates and modular helper, with scripts grouped under harness/scripts/task/.
 - Details: DEC-006 implements the agreed role, local templates, format linting and analyst gates with script grouping under harness/scripts/task/. Other-role gates remain deferred. Additional requirements can be handled as later maintenance changes.
+
+<a id="sig-006"></a>
+## SIG-006: Python developer role
+
+- Date: 2026-11-12
+- Origin: Human request in the Python developer harness development chat
+- Owner: harness-maintainer
+- Request: Define and implement the Python developer role and its integration with the analyst workflow after an in-depth interview and agreement on the concrete design.
+- Evidence: At registration the developer role was planned in the harness map and the analyst supplied a fallback assignment contract. The human chose role development as the next step and challenged using one pilot to infer general role requirements; broader behavioral improvements should draw on varied task experience.
+- Status: resolved
+- Decision: [DEC-007](DECISIONS.md#dec-007)
+- Agreement: The human approved the complete implementation and verification package in DEC-007 in this chat on 2026-11-12 with Да. Work uses the agreed codex/python-developer branch from experiments-series-runner with scoped automatic commits announced before creation; harness-only bootstrap remains in force.
+- Details: The interviewed requirements are implemented in the developer skill under DEC-007: analyst-only invocation, minimal maintainable/extensible implementation, informative docstrings and sparse rationale comments, concrete interface types, meaningful errors and project conventions, behavior-focused tests with reproduction first for bugs, visible unrelated failures and blocked acceptance, and analyst ownership of dependency decisions, additional agents, Git/task state and completion. Independent verification covers isolated behavior and instruction consistency; broader refinement should use experience from varied tasks.
