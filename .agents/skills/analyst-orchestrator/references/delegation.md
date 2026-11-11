@@ -45,27 +45,34 @@ human explicitly asks for them.
 
 Start an ordinary subagent and explicitly instruct it to read
 [python-developer](../../python-developer/SKILL.md) before acting. Pass an absolute
-skill path resolved in the assigned checkout. This is a skill-backed assignment,
+skill path and the assigned worktree root. Ensure the current instructions are
+available there, or supply explicit authorized instruction paths; do not assume
+task files or instructions transfer automatically. This is a skill-backed assignment,
 not a registered host agent type or automatic skill loading. Inherit model and
 settings unless the human has authorized a specific choice.
 
 Supply the common assignment above, current approved specification and relevant
 parent contracts, the actual authorization source/scope, implementation-start
-clearance, branch and file ownership, allowed environment changes, check/resource
-limits, and dedicated evidence paths inside the existing task directory. During
+clearance, assigned worktree/branch and exact base commit, file ownership,
+task-scoped commit authority and its human source, allowed environment changes,
+check/resource limits, and dedicated ignored evidence paths in that worktree. During
 bootstrap only explicitly isolated harness verification is permitted; an
 application specification alone does not expand that scope.
 
 Keep coordination with the analyst: the developer sends dependency proposals,
 requests for other agents, blockers, harness signals and review disagreements
 back to it. The analyst arranges assistance and independent review. The developer
-does not spawn agents, manage Git, update journals or shared task state, or decide
-task completion. Apply this developer-specific boundary even if the common
-assignment permits a coordinator to assign such duties to another role.
+does not spawn agents, allocate/switch worktrees or branches, integrate other
+branches, update journals or shared task state, or decide task completion. It
+does stage and commit its assigned work under the
+[delegated Git procedure](../../../../harness/git-workflow.md#delegated-developer-worktrees),
+including review-fix commits without advance title messages. This scoped
+permission does not authorize push or history rewriting.
 
-Inspect the developer's diff, criterion outcomes, actual commands/results and raw
-evidence. Bind verified reports to the current source/specification using the
-existing [artifact contract](task-artifacts.md); do not copy a ready-for-review
+Inspect the assigned base/head and created commits, all remaining local changes,
+criterion outcomes, actual commands/results and raw evidence. Transfer reports
+and verify their applicability using the existing
+[artifact contract](task-artifacts.md#delegated-worktrees-and-evidence); do not copy a ready-for-review
 claim into a completed task state. Preserve unrelated failures and blocked checks
 when routing the result to review. No additional developer manifest or gate is
 required by this role.

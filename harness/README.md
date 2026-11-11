@@ -23,7 +23,10 @@ developer skill and a self-contained assignment to an ordinary subagent using
 the [invocation contract](../.agents/skills/analyst-orchestrator/references/delegation.md#python-developer-invocation).
 The developer implements and checks the assigned behavior, then returns evidence
 and questions to the analyst. It has no standalone human-task entry point and
-does not own Git coordination, shared task state or completion decisions.
+stages and commits assigned changes in its dedicated worktree under delegated
+authority. The analyst owns worktree/branch allocation, integration, shared
+task state and completion decisions. Advance commit-title messages are not
+required for developer commits; see the [Git procedure](git-workflow.md#delegated-developer-worktrees).
 
 ## Roles
 
@@ -41,7 +44,9 @@ does not own Git coordination, shared task state or completion decisions.
 The maintainer, analyst and developer roles are implemented as project skills.
 Their checks include isolated helper execution, a developer fixture fix with
 executed tests, and independent behavioral scenarios. These do not establish
-live application delivery. The remaining roles' concrete definitions,
+live application delivery. The developer Git workflow also has isolated checks
+of commits, review corrections, evidence transfer and integration gates under
+DEC-008. The remaining roles' concrete definitions,
 invocation mechanisms and role-specific automation will be established through
 subsequent maintenance requests. Until then the analyst uses the explicit
 [fallback assignment contracts](../.agents/skills/analyst-orchestrator/references/delegation.md).
@@ -50,7 +55,7 @@ subsequent maintenance requests. Until then the analyst uses the explicit
 
 1. The analyst clarifies the request, obtains relevant evidence from scouts when needed, and prepares the specification.
 2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst resolves findings and records consequential clarifications; implementation review remains independent.
-3. The analyst assigns bounded implementation tasks to developers, including the relevant specification, permitted scope, dependencies, and acceptance checks. Parallel assignments need clear ownership of shared files and integration work.
+3. The analyst assigns bounded implementation tasks in dedicated developer worktrees, including the specification, permitted scope, base/branch, commit authority, dependencies and acceptance checks. Developers commit their assigned changes. Parallel assignments need clear ownership and analyst-led integration; local task evidence is transferred and revalidated before completion.
 4. The reviewer checks the resulting changes against the task and reports findings to the analyst. The analyst routes necessary fixes to a developer and arranges review of the corrections.
 5. The analyst reports what was delivered, what was actually verified, and any remaining limitations. Unresolved requirements are not silently treated as completed work.
 
@@ -116,7 +121,7 @@ planned; their formats should be chosen when needed for the target host.
 - `harness/signals/SIGNALS.md` tracks the source, problem or desired improvement, evidence, owner, status, and related decisions for each substantive request.
 - `harness/signals/DECISIONS.md` explains the selected resolution, its rationale, human agreement where applicable, affected scope, and actual implementation and verification results. Rejected or deferred proposals remain traceable.
 
-The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). The analyst skill, local task format and helper were introduced in [DEC-006](signals/DECISIONS.md#dec-006). The developer skill and its analyst invocation are tracked in [DEC-007](signals/DECISIONS.md#dec-007). Human maintenance requests still go directly to the maintainer; agent-origin signals go through the analyst. Journal entries do not launch work automatically.
+The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). The analyst skill, local task format and helper were introduced in [DEC-006](signals/DECISIONS.md#dec-006). The developer skill and its analyst invocation were introduced in [DEC-007](signals/DECISIONS.md#dec-007); [DEC-008](signals/DECISIONS.md#dec-008) retains that behavior while replacing Git ownership with delegated worktree commits. Human maintenance requests still go directly to the maintainer; agent-origin signals go through the analyst. Journal entries do not launch work automatically.
 
 ## Verification of harness changes
 

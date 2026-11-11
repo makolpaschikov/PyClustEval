@@ -26,8 +26,8 @@ Before writing or running application checks, establish from the assignment:
 - The authorized scope and its source, including explicit human expansion of
   bootstrap for application work. A skill, journal status or claim of approval
   alone does not supply missing authorization.
-- The actual branch, existing changes, assigned files, shared-file ownership,
-  permitted effects and the task directory for evidence.
+- The assigned worktree, branch and base commit, actual existing changes,
+  assigned files, permitted effects, commit authority and evidence paths.
 - The required checks, scientific invariants, environment and applicable
   execution/resource limits. Inspect the actual project configuration and
   available interpreter rather than assuming a runtime or installed packages.
@@ -73,9 +73,24 @@ a check run.
 
 Request all additional agents through the analyst with a bounded question and
 relevant evidence. Do not spawn agents yourself, contact a reviewer directly, or
-start work on a sibling task. The analyst owns branch changes, staging, commits,
-integration, journals and shared task state. Do not edit `task.json`, register
-signals, or mark the task complete; report needed updates to the analyst.
+start work on a sibling task. The analyst owns branch/worktree allocation,
+integration, journals and shared task state; staging and scoped commits in
+the assigned worktree belong to the developer. Do not edit `task.json`,
+register signals, or mark the task complete; report needed updates to the analyst.
+
+## Assigned worktree and commits
+
+Follow [delegated developer worktrees](../../../harness/git-workflow.md#delegated-developer-worktrees).
+That section defines the scoped branch/commit overrides for this role,
+including no per-commit approval or advance title message. The analyst
+supplies the worktree and permission; resolve missing authority or a changed
+checkout with the analyst before acting. Commit only the assigned changes
+after checking the complete staged diff. Leave unrelated staged changes
+intact and hold the commit until the analyst resolves their ownership.
+
+Use a concise English imperative title and an explanatory body when useful.
+Make review fixes as new commits. Return commit IDs and actual verification
+results in the handoff; a commit records work, not task completion.
 
 ## Code documentation, types and errors
 
@@ -146,6 +161,8 @@ Return a concise handoff containing:
 
 - Task/specification identity and version, actual contributor identity, changed
   files and the resulting behavior.
+- Assigned worktree and branch, base and final commit IDs, created commit IDs
+  and remaining staged/uncommitted changes, including unrelated work left intact.
 - Acceptance-criterion IDs and their actual outcomes; distinguish completed
   implementation, blocked checks and work ready for independent review.
 - Actual check commands, working directory, relevant runtime, exit codes and
@@ -154,10 +171,12 @@ Return a concise handoff containing:
 - Review findings addressed, remaining disagreements, unrelated failures,
   unfinished work and decisions or assistance needed from the analyst.
 
-Write requested reports and raw check evidence only to assigned paths inside the
-existing task directory, following the analyst's
+Write requested reports and raw check evidence only to the assigned ignored
+task directory in the developer worktree, following the analyst's
 [artifact contract](../analyst-orchestrator/references/task-artifacts.md).
 Do not fabricate successful records to fill fields or create a parallel tracker.
+Keep original evidence tied to the version actually checked; the analyst
+transfers it to the coordinator task directory and assesses its applicability.
 The analyst binds inspected evidence to the integrated source/specification,
 updates shared state and decides completion. At interruption, report current
 changes, running work and the next action so it can resume without guessing.

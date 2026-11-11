@@ -49,6 +49,59 @@ Do not edit a manifest concurrently with the helper or another agent. Keep old
 evidence on disk when it becomes obsolete; current record fields point to the
 evidence currently being claimed, not a fabricated history of success.
 
+## Delegated worktrees and evidence
+
+Keep one canonical manifest in the coordinator checkout on the selected task
+branch. Its `branch` remains that primary branch; run analyst gates there. A
+developer worktree is an execution workspace for an assignment, not a second
+task-state owner. Do not rewrite the manifest branch to bypass a branch mismatch
+or create independently editable manifest copies for parallel developers.
+
+Use existing `handoff.permissions` for the actual delegated commit authority and
+its human source, and `handoff.notes` for each assignment's agent/task ID, worktree
+path, branch, base commit, owned files, evidence location, current head and next
+action. No new manifest fields are introduced. Keep paths and ownership explicit:
+Git-ignored task files do not appear in a newly created worktree. Provide the
+needed specification/contract copies or authorized read paths and an ignored task
+directory for the developer's reports. These copies are inputs, not independent
+approval or state records. Reconcile specification changes before resuming work.
+
+The `task.py snapshot` CLI requires a task manifest and a task directory inside
+its selected checkout; it is not a manifest-free worker command. When recording
+worker source content, use the existing read-only module entry point instead.
+With an available Python interpreter, substitute the actual authorized paths in
+this snippet; no copied manifest or changed helper is needed:
+
+```python
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path("<harness-checkout>") / "harness/scripts/task"))
+from task_support.artifacts import repository, stable_snapshot
+
+print(json.dumps(stable_snapshot(repository("<developer-worktree>"))))
+```
+
+This records the worker branch and the same source-content digest used by analyst
+gates. It does not grant authority, record test execution or run a worker gate.
+
+Before integration or completion, inspect the developer's committed changes,
+remaining staged/uncommitted work and actual check reports. Copy needed raw
+evidence into the canonical task directory and verify hashes against the original
+reports; retain the originals and their source/specification identity. Record
+branch/base/head and the tested working-tree content, not just a final commit ID.
+Uncommitted or ignored inputs and runtime differences must remain visible.
+
+Review the exact version being integrated. Perform integration only under the
+existing task authority; receiving commits is not permission to merge, push or
+rewrite history. Then snapshot the coordinator source and verify the integrated
+result. Reuse a check only after assessing that its actual inputs and source are
+applicable; on content changes follow the reassessment rule below and obtain
+independent review of that reasoning, or rerun affected checks. Do not relabel a
+developer's old log as an execution against the integrated tree. Keep acceptance
+blockers open and run the completion gate only with current integrated evidence.
+
 ## Markdown contract
 
 The first line records format version, document kind and item ID. Preserve the

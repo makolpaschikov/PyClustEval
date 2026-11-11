@@ -44,8 +44,12 @@ explicitly authorized whole epic, plus its review fixes. Resuming that same unit
 preserves its branch choice and permission. A new unit requires a fresh choice.
 Ask before the first write, including ignored artifacts; read-only investigation
 may precede the choice. Use the root commit-title convention and present the
-title before committing. Delegate file changes, but keep branch switching,
-staging, commits, integration and task-state updates under one coordinator.
+title before coordinator commits. Apply the shared procedure's delegated
+worktree exception to developer assignments: allocate isolated worktrees and
+branches within the agreed task, and pass human-authorized, task-scoped commit
+permission. Developers stage and commit their own assigned work without
+advance title messages. Keep allocation, integration and task-state updates
+with the coordinator; other Git authority is not expanded.
 
 ## Understand and size the work
 
@@ -103,8 +107,11 @@ before rebinding it, or obtain new agreement when meaning changed.
 Run the start gate before implementation. Give each developer a self-contained
 bounded assignment: the approved specification, relevant parent contracts,
 allowed files and effects, dependencies, acceptance checks and required handoff.
-For Python implementation, use the developer skill and the invocation contract
-in [delegation guidance](references/delegation.md#python-developer-invocation).
+For Python implementation, allocate the developer's dedicated worktree and use
+the skill and [invocation contract](references/delegation.md#python-developer-invocation).
+Record assignment ownership and permissions in existing handoff fields. Keep
+the canonical manifest and gates on the selected task branch; follow
+[worktree evidence transfer](references/task-artifacts.md#delegated-worktrees-and-evidence).
 Transmit only relevant context. Supply original request evidence to the alignment
 auditor; keep independent reviewers free of your preferred conclusions.
 
@@ -113,7 +120,11 @@ Serialize shared-file and journal writes. Resolve routine questions from agreed
 requirements and evidence; ask the human about consequential intent or authority
 gaps. Track agent output as reported until you inspect its artifacts and checks.
 
-Request review of the actual diff and verification evidence. Route supported
+Request review of the actual committed changes, any remaining local diff and
+verification evidence at their recorded source versions. Integrate only under
+the task's existing authority, then verify the integrated result before
+completion; a reviewed developer commit does not establish integration safety.
+Route supported
 findings to developers, inspect their corrections and repeat affected checks.
 Give every finding a disposition: resolve it, explicitly defer it, retain the
 current behavior with a reason, or ask a material question. Keep unrelated
