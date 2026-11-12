@@ -1,7 +1,7 @@
 # Delegation and independent review
 
 Read when assigning implementation, evidence gathering or review. Python
-implementation uses the linked developer skill with an ordinary subagent; the
+implementation and review use their linked skills with ordinary subagents; the
 other assignments below remain fallback contracts for roles without definitions.
 Use the host's available collaboration API and respect its actual
 concurrency limits. Inherit model/settings unless a specific selection is
@@ -76,6 +76,40 @@ and verify their applicability using the existing
 claim into a completed task state. Preserve unrelated failures and blocked checks
 when routing the result to review. No additional developer manifest or gate is
 required by this role.
+
+## Python reviewer invocation
+
+Start an ordinary subagent independent of the analyst and implementation authors.
+Explicitly pass the absolute [python-reviewer](../../python-reviewer/SKILL.md)
+path and require it to be read before acting. Supply the common assignment, actual
+authorization source/scope, approved spec and parent contracts, acceptance criteria,
+scientific invariants, the review checkout/branch and exact base/head, local changes,
+developer handoff and raw evidence. Supply authoritative formula/algorithm sources
+when relevant, or make unresolved source questions explicit. Inherit model/settings;
+no dedicated mathematics specialist is implemented.
+
+Assign an ignored report/reproduction path and permitted checks, environment and
+resource limits. Provide instructions and input paths explicitly when they live
+outside the review checkout. During bootstrap use only explicitly isolated harness
+fixtures. The reviewer may run authorized tests and write isolated reproductions;
+it cannot edit reviewed source, tracked tests, Git state, dependencies, journals or
+the canonical manifest. Route questions, requests for expertise and corrections
+through the analyst. Do not provide desired conclusions or conceal missing checks.
+
+Freeze the assigned review content while the review runs, or coordinate changes
+and reassessment explicitly. Use the existing [artifact contract](task-artifacts.md#delegated-worktrees-and-evidence)
+for source fingerprints, evidence transfer and review of the exact integrated
+version; do not substitute commit IDs for working-tree content or relabel old logs.
+
+Inspect the returned findings, separate optional recommendations, raw check results,
+scientific uncertainty and source/spec bindings. Record each finding's disposition
+in the existing state; optional advice does not authorize scope expansion. A report
+may be accepted, request changes, or remain incomplete. Only a complete accepted
+review can supply an accepted `code_review` record. For incomplete review, retain
+its report and outstanding gaps in handoff/findings, invalidate any stale accepted
+binding and keep completion blocked; `incomplete` is not a new manifest enum.
+Return supported findings to the developer and obtain review of affected corrections.
+Shared-state updates, evidence integration and completion remain analyst-owned.
 
 ## Independent review
 

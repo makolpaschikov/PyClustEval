@@ -28,8 +28,9 @@ execution; preserve and reuse that agreement within its actual scope.
 Invoke this role in the main chat; use available collaboration tools for bounded
 subtasks. This skill explicitly authorizes the necessary delegation below. Prefer
 configured specialists when available. The [Python developer](../python-developer/SKILL.md)
-is a project skill used by an ordinary subagent: explicitly pass its path and
-require it to be read with the bounded assignment. Other missing roles use the
+and [Python reviewer](../python-reviewer/SKILL.md) are project skills used by
+ordinary subagents: explicitly pass the relevant path and require it to be read
+with the bounded assignment. Other missing roles use the
 fallback contracts in [delegation guidance](references/delegation.md). Report the
 actual mechanism honestly. If delegation is unavailable, continue independent analysis
 and state which implementation/review work is blocked. Do not substitute your own
@@ -121,7 +122,11 @@ requirements and evidence; ask the human about consequential intent or authority
 gaps. Track agent output as reported until you inspect its artifacts and checks.
 
 Request review of the actual committed changes, any remaining local diff and
-verification evidence at their recorded source versions. Integrate only under
+verification evidence at their recorded source versions using the reviewer
+skill and [invocation contract](references/delegation.md#python-reviewer-invocation).
+Keep incomplete review distinct from acceptance; inspect findings, optional
+recommendations and material verification gaps before updating task state.
+Integrate only under
 the task's existing authority, then verify the integrated result before
 completion; a reviewed developer commit does not establish integration safety.
 Route supported

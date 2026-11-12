@@ -75,3 +75,16 @@
 - Decision: [DEC-007](DECISIONS.md#dec-007), [DEC-008](DECISIONS.md#dec-008)
 - Agreement: The human approved the original role under DEC-007, then separately discussed Git ownership and approved the complete DEC-008 replacement with да in this chat on 2026-11-12. This continues the same maintenance work and review corrections on codex/python-developer with scoped automatic commits. Harness-only bootstrap is unchanged.
 - Details: The interviewed non-Git role requirements remain implemented from DEC-007. DEC-008 supersedes its Git boundary: analyst-allocated worktrees, developer-owned scoped commits without advance title messages, new commits for review corrections, and analyst-owned integration/state. Independent instruction, actual Git/worktree, evidence-transfer and textual checks completed; the worker-fingerprint documentation finding was resolved. Broader refinement should use experience from varied real tasks.
+
+<a id="sig-007"></a>
+## SIG-007: Python reviewer role
+
+- Date: 2026-11-13
+- Origin: Human request in the Python reviewer harness development chat
+- Owner: harness-maintainer
+- Request: Define the Python reviewer role, its analyst invocation and independent behavioral verification after an in-depth interview and agreement on the concrete design.
+- Evidence: At registration the harness map listed the reviewer as planned and analyst delegation used a brief fallback contract. The human requested role development after a read-only roadmap discussion; no project reviewer failure was reported or investigated. The implemented role and its isolated verification are recorded in DEC-009.
+- Status: resolved
+- Decision: [DEC-009](DECISIONS.md#dec-009)
+- Agreement: On 2026-11-13 the human accepted the complete DEC-009 package and six optional-recommendation criteria with Да, согласен after the detailed interview. The agreed behavior covers correctness, requirements, testing, maintainability and affected mathematics/algorithms; isolated reproductions; evidence-backed blockers; narrowly filtered optional recommendations; risk-based checks and justified reuse of developer evidence. The chosen codex/python-reviewer branch from experiments-series-runner retains announced scoped automatic commits. Harness-only bootstrap remains unchanged; the separate mathematics specialist is deferred.
+- Details: Deferred human proposal from the first interview block: later introduce a separate subagent for mathematical correctness of formula and algorithm implementations, using astra-6 with high reasoning as named by the human. This is a future capability request, not a currently available role or permission to configure or invoke it during reviewer development. Confirm the host model identifier when that future work is undertaken.
