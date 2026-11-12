@@ -23,7 +23,7 @@
 - AC-001: [TODO: State an observable criterion. Retain criterion IDs from the brief.]
 
 ## Verification
-[TODO: Explain checks, meaningful risks, required environment and execution/resource limits.]
+[TODO: Explain checks, meaningful risks, required environment and execution/resource limits. Assess mathematical impact and required independent formulation/implementation reviews in the task record.]
 
 ## Open questions
 [TODO: Resolve material questions before approval; otherwise explicitly state none.]

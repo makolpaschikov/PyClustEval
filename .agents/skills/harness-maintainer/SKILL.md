@@ -64,7 +64,9 @@ without solution proposals; the maintainer owns the maintenance proposal.
 You may also delegate relevant investigation or verification to an ordinary
 subagent with explicit scope, inputs, allowed side effects and expected evidence.
 For isolated role verification, a simulated analyst assignment may invoke the
-specification skills under their existing independence and model rules. Do not
+specification and mathematics-reviewer skills under their existing independence
+and model rules. Mathematical formulation and implementation verification use
+different independent instances, with the explicitly selected Astra profile. Do not
 claim an unavailable role or automation exists. This permission does not transfer
 live application orchestration to the maintainer.
 

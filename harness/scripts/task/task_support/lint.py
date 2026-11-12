@@ -5,14 +5,14 @@ import re
 from urllib.parse import unquote, urlsplit
 
 from .artifacts import contained
-from .formats import (ITEM_FIELDS, MANIFEST_FIELDS, SECTIONS, VERSION, fields,
+from .formats import (DOCUMENT_VERSION, ITEM_FIELDS, MANIFEST_FIELDS, SECTIONS, VERSION, fields,
                       identifier, nonempty, require, sha, strings)
 
 PLACEHOLDER = re.compile(r"\[TODO(?::[^\]]*)?\]|\{\{[^}]+\}\}|\bTBD\b", re.I)
 
 
 def parse_document(text, kind, item_id, *, ready=False):
-    expected = f"<!-- task-format: {VERSION}; kind: {kind}; id: {item_id} -->"
+    expected = f"<!-- task-format: {DOCUMENT_VERSION}; kind: {kind}; id: {item_id} -->"
     require(text.splitlines() and text.splitlines()[0] == expected,
             f"{item_id}: wrong document version/kind/ID header")
     headings, sections, visible_sections, current, fence = [], {}, {}, None, None
@@ -102,15 +102,17 @@ def parse_document(text, kind, item_id, *, ready=False):
     return {"sections": blocks, "ids": ids, "visible": "\n".join(visible)}
 
 
-def evidence(value, label, *, code=False, review=False):
+def evidence(value, label, *, code=False, review=False, mathematical=False):
     expected = {"artifact", "sha256", "spec_sha256"}
     if code:
         expected.add("source_sha256")
     if review:
         expected |= {"reviewer", "verdict"}
+    if mathematical:
+        expected.add("scope_sha256")
     fields(value, expected, label)
     nonempty(value["artifact"], label)
-    for key in ("sha256", "spec_sha256", "source_sha256"):
+    for key in ("sha256", "spec_sha256", "source_sha256", "scope_sha256"):
         if key in value:
             sha(value[key], f"{label}.{key}")
     if review:
@@ -125,9 +127,9 @@ def mapping(value, label):
         strings(values, label, ids=True)
 
 
-def lint(repo, directory, manifest):
+def lint(repo, directory, manifest, *, legacy=False):
     fields(manifest, MANIFEST_FIELDS, "task.json")
-    require(type(manifest["format_version"]) is int and manifest["format_version"] == VERSION,
+    require(type(manifest["format_version"]) is int and manifest["format_version"] == (1 if legacy else VERSION),
             "Unsupported task format version; explicit migration is required")
     identifier(manifest["root"], "root")
     nonempty(manifest["branch"], "branch")
@@ -145,7 +147,7 @@ def lint(repo, directory, manifest):
     require(isinstance(manifest["items"], list) and manifest["items"], "items must be a nonempty list")
     index, documents = {}, {}
     for item in manifest["items"]:
-        fields(item, ITEM_FIELDS, "item")
+        fields(item, ITEM_FIELDS - {"mathematics"} if legacy else ITEM_FIELDS, "item")
         item_id = item["id"]
         identifier(item_id, "item.id")
         require(item_id not in index, f"Duplicate item ID: {item_id}")
@@ -155,6 +157,23 @@ def lint(repo, directory, manifest):
             identifier(item["parent"], f"{item_id}.parent")
         strings(item["depends_on"], f"{item_id}.depends_on", ids=True)
         strings(item["contributors"], f"{item_id}.contributors")
+        if not legacy:
+            mathematics = item["mathematics"]
+            fields(mathematics, {"required", "rationale", "authors", "specification_review",
+                                "implementation_review"}, f"{item_id}.mathematics")
+            require(mathematics["required"] is None or type(mathematics["required"]) is bool,
+                    f"{item_id}: mathematics.required must be Boolean or null")
+            require(isinstance(mathematics["rationale"], str), f"{item_id}: mathematical rationale must be text")
+            if mathematics["required"] is not None:
+                nonempty(mathematics["rationale"], f"{item_id}: mathematical impact rationale")
+            strings(mathematics["authors"], f"{item_id}.mathematics.authors")
+            for stage in ("specification", "implementation"):
+                record = mathematics[f"{stage}_review"]
+                if record is not None:
+                    require(mathematics["required"] is True,
+                            f"{item_id}: mathematical reports require a required assessment; preserve obsolete reports on disk")
+                    evidence(record, f"{item_id}.mathematics.{stage}_review",
+                             review=True, code=stage == "implementation", mathematical=True)
         require(item["status"] in ("draft", "ready", "approved", "in_progress", "blocked", "done"), f"{item_id}: invalid status")
         require(item["scale"] in ("small", "large", "risky"), f"{item_id}: invalid scale")
         require(item["review_policy"] in ("separate", "combined"), f"{item_id}: invalid review policy")

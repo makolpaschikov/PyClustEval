@@ -31,10 +31,11 @@ the implemented role skills: [code scout](../code-scout/SKILL.md),
 [internet scout](../internet-scout/SKILL.md),
 [specification validator](../specification-validator/SKILL.md),
 [specification auditor](../specification-auditor/SKILL.md),
-[Python developer](../python-developer/SKILL.md) and
-[Python reviewer](../python-reviewer/SKILL.md). These use ordinary subagents;
+[Python developer](../python-developer/SKILL.md),
+[Python reviewer](../python-reviewer/SKILL.md), and
+[mathematics reviewer](../mathematics-reviewer/SKILL.md). These use ordinary subagents;
 explicitly pass the relevant skill and a bounded assignment under the
-[delegation contracts](references/delegation.md). Select scout/specification-role
+[delegation contracts](references/delegation.md). Select scout/specification/mathematics-role
 models and reasoning explicitly using the
 [shared profile policy](../../../harness/subagent-profiles.md), with self-contained
 context when the host requires a fresh worker for overrides. Other roles retain
@@ -93,6 +94,12 @@ when changing checkout or worktree, explicitly locate the authorized artifacts
 and revalidate them instead of inventing missing history.
 
 Link requirement IDs to acceptance criteria and criteria to planned checks.
+Classify each item's mathematical impact with a reason in its `mathematics`
+record. Every substantive formula, algorithm or metric change requires specialist
+review of formulation and implementation. Meaning-preserving edits may be exempt
+after inspecting their effect; numerical/approximation changes are not automatically
+mechanical. Unassessed impact blocks readiness. Include shared/ancestor contracts
+and integrated mathematical behavior in the declared task scope.
 Choose checks that exercise the requested behavior and material failure modes;
 do not inflate test count, mirror implementation details or use a passing syntax
 check as behavioral proof. Record why combined specification review is suitable
@@ -104,7 +111,9 @@ and alignment review using the [specification-review contract](references/delega
 Supply original request evidence to the auditor and material source/interfaces
 to both roles. Inspect actual findings and gaps; an incomplete report is not
 acceptance. Reconcile relevant request/source drift even if the spec hash is
-unchanged. Resolve findings, then present the concrete specification for human
+unchanged. Obtain applicable independent mathematical specification review under
+the [mathematics invocation contract](references/delegation.md#mathematics-reviewer-invocation).
+Resolve findings, then present the concrete specification for human
 approval before implementation.
 Record the actual source of the human decision and its scope against the reviewed
 specification digest. A journal statement or subagent assertion is not consent.
@@ -137,6 +146,11 @@ verification evidence at their recorded source versions using the reviewer
 skill and [invocation contract](references/delegation.md#python-reviewer-invocation).
 Keep incomplete review distinct from acceptance; inspect findings, optional
 recommendations and material verification gaps before updating task state.
+For substantive mathematical work obtain implementation review from a different
+independent agent than the formulation reviewer. Record adopted mathematical
+corrections as authorship and check independence across included contracts,
+dependencies and child results. Python review does not replace this assessment.
+Keep material mathematical gaps blocking acceptance.
 Integrate only under
 the task's existing authority, then verify the integrated result before
 completion; a reviewed developer commit does not establish integration safety.

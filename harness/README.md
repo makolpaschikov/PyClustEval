@@ -30,11 +30,18 @@ required for developer commits; see the [Git procedure](git-workflow.md#delegate
 
 Python review is assigned to a separate ordinary subagent using the reviewer
 skill and [invocation contract](../.agents/skills/analyst-orchestrator/references/delegation.md#python-reviewer-invocation).
-It checks implementation, affected mathematics, maintainability and evidence;
+It checks code behavior, maintainability and evidence;
 it may run authorized tests and create isolated reproductions, but cannot edit
 the reviewed code or shared state. Findings, optional recommendations and
-incomplete verification return through the analyst. A separate mathematics
-specialist remains a deferred proposal in [SIG-007](signals/SIGNALS.md#sig-007).
+incomplete verification return through the analyst. Mathematical correctness is
+assigned to the [mathematics reviewer](../.agents/skills/mathematics-reviewer/SKILL.md)
+under [DEC-011](signals/DECISIONS.md#dec-011), available after isolated verification.
+Every substantive formula, algorithm or metric change requires formulation review
+before implementation and implementation review before completion by different
+independent agents. The caller selects Astra with high/xhigh reasoning; missing
+scientific sources go through the analyst to internet-scout. The specialist may
+run authorized isolated probes and propose corrections, but cannot edit reviewed
+material. Adopted mathematical suggestions count as authorship for independence.
 
 The [code scout](../.agents/skills/code-scout/SKILL.md) and
 [internet scout](../.agents/skills/internet-scout/SKILL.md) gather evidence for the
@@ -48,7 +55,7 @@ but leave specification edits and semantic/architecture decisions to the analyst
 Use the [invocation contracts](../.agents/skills/analyst-orchestrator/references/delegation.md)
 and explicitly selected [model/effort profiles](subagent-profiles.md), with fresh
 self-contained context when the host requires it. These profiles do not change
-developer/reviewer settings or their existing assistance-routing rules.
+Python developer/reviewer settings or their existing assistance-routing rules.
 
 ## Roles
 
@@ -56,14 +63,16 @@ developer/reviewer settings or their existing assistance-routing rules.
 | --- | --- | --- |
 | Analyst-orchestrator | Understand the human's request, investigate the relevant context, and produce a self-contained specification. Delegate implementation tasks, request reviews, answer agents' questions from evidence, and coordinate corrections. | An implementation-ready specification, coordinated handoffs, and a delivery report with verification evidence and unresolved issues. Ask the human about decisions that cannot be resolved from the agreed task and available evidence. |
 | Python developer | Implement assigned specification requirements in the application's Python code and project environment. Run checks appropriate to the change and report deviations or blockers. | Code and environment changes, verification results, and a concise handoff to the analyst. Do not silently redefine requirements to fit an implementation. |
-| Python reviewer | Independently inspect changes for defects, regressions, task compliance, affected mathematical correctness and maintainability; assess verification evidence. | Evidence-backed blocking findings, narrowly filtered optional recommendations and an explicit verdict or incomplete-review report. Route corrections through the analyst; do not implement fixes or update shared state. |
+| Python reviewer | Independently inspect code changes for defects, regressions, task compliance and maintainability; assess verification evidence. | Route mathematical questions to the specialist through the analyst; return supported findings, optional recommendations and verification gaps without implementing fixes. |
+| Mathematics reviewer | Independently assess mathematical formulations and implementations against scoped claims, assumptions and sources; perform authorized bounded checks. | Distinct stage reviewers; evidence-backed findings, reasoned correction proposals and incomplete assessments through the analyst. No reviewed-file edits; source research through internet-scout. |
 | Harness maintainer | Maintain root agent instructions, role definitions, harness skills, project agent settings, harness scripts, and signal/decision records. Interview the human or investigate a signal routed by the analyst. | An agreed harness change and its verification, or a researched proposal awaiting human agreement. Application features and the application's computational environment belong to the Python developer. |
 | Code scout | Trace code paths, callers, interfaces, configuration and tests; run checks only with explicit effect/resource authority. | Referenced facts and separately labeled causal hypotheses/judgments; no solution proposals, source edits or environment changes. |
 | Internet scout | Investigate bounded programming/scientific questions using primary sources and applicable versions/conditions. | Supported evidence, contradictions, limits or a partial answer; no solution recommendations, mathematical certification or unassigned scope expansion. |
 | Specification validator | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
 | Specification auditor | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
 
-All roles in the table are implemented as project skills.
+All roles in the table are implemented as project skills. The mathematical role
+and task gates have isolated verification under DEC-011.
 Their checks include isolated helper execution, a developer fixture fix with
 executed tests, and independent behavioral scenarios. These do not establish
 live application delivery. The developer Git workflow also has isolated checks
@@ -82,9 +91,9 @@ and role-specific automation are not implemented; the task helper remains analys
 ## Target development workflow
 
 1. The analyst clarifies the request, obtains relevant evidence from scouts when needed, and prepares the specification.
-2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst resolves findings and records consequential clarifications; implementation review remains independent.
+2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst records mathematical impact and obtains required independent formulation review before approval/start. It resolves findings and records consequential clarifications; implementation review remains independent.
 3. The analyst assigns bounded implementation tasks in dedicated developer worktrees, including the specification, permitted scope, base/branch, commit authority, dependencies and acceptance checks. Developers commit their assigned changes. Parallel assignments need clear ownership and analyst-led integration; local task evidence is transferred and revalidated before completion.
-4. The reviewer checks the resulting changes against the task and reports findings to the analyst. The analyst routes necessary fixes to a developer and arranges review of the corrections.
+4. The Python reviewer checks code changes; a different mathematical stage agent reviews applicable mathematical implementation. The analyst routes fixes and obtains independent review of corrections, preserving authorship and scientific authority.
 5. The analyst reports what was delivered, what was actually verified, and any remaining limitations. Unresolved requirements are not silently treated as completed work.
 
 The analyst owns communication between these roles. It answers questions from the agreed requirements and evidence; material gaps in user intent go back to the human. Repeated failures or unresolved disagreements require a revised approach or a clear blocker report, not an endless developer/reviewer loop.
@@ -119,6 +128,8 @@ AGENTS.md                                  available: shared project instruction
       SKILL.md                             available: analyst-assigned implementation
     python-reviewer/
       SKILL.md                             available: independent implementation review
+    mathematics-reviewer/
+      SKILL.md                             available: independent mathematical review
     code-scout/
       SKILL.md                             available: code evidence gathering
     internet-scout/
@@ -134,11 +145,12 @@ harness/
   scripts/
     journal.py                             available: create, update, check, migrate
     task/
-      task.py                              available: init, lint, snapshot, check
+      task.py                              available: init, lint, snapshot, check, migrate
       task_support/                        available: formats, artifacts, lint, gates
   tests/
     test_journal.py                         available: isolated helper checks
     test_task.py                            available: isolated task lifecycle checks
+    test_mathematics.py                     available: mathematical gates and migration fixtures
   signals/
     README.md                              available: format and helper usage
     SIGNALS.md                             available: requests, evidence, and progress
@@ -152,7 +164,14 @@ completion and resumption. It checks recorded evidence and content fingerprints;
 it does not authenticate human consent, execute recorded test commands or prove
 that tests establish the intended behavior.
 
-All six worker definitions are project skills explicitly read by ordinary
+Task JSON uses version 2 while Markdown remains version 1. The mathematical record
+captures impact, scoped authors and distinct formulation/implementation reviews.
+Required mathematical reviews are checked at start, completion and resumption,
+including content bindings for relevant dependency/child mathematical contracts.
+Use the [explicit migration procedure](../.agents/skills/analyst-orchestrator/references/task-artifacts.md#explicit-legacy-migration)
+for a selected v1 task; it preserves original evidence and requires reassessment.
+
+All seven worker definitions are project skills explicitly read by ordinary
 subagents. Model selection is an explicit caller action, not automatic skill loading
 or host agent registration. Native host configuration is not part of this package.
 
@@ -169,6 +188,19 @@ recorded in [DEC-010](signals/DECISIONS.md#dec-010). The analyst and maintainer 
 use the revised invocation instructions and pass current skills/policy explicitly
 to new workers. Stock skill validation was unavailable without PyYAML; metadata,
 local links and independent behavior were checked without adding dependencies.
+
+[DEC-011](signals/DECISIONS.md#dec-011) adds the mathematics reviewer, transfers
+mathematical correctness from Python review, and extends the task helper. Its
+final suite passed 101 tests, including 50 mathematical-gate/migration cases.
+Independent package review found stale enclosing mathematical reports after child
+contract changes; separate scope bindings fixed this, and seven independent
+correction scenarios passed. Role trials exercised faulty and valid formulations,
+missing/conflicting definitions, an implementation defect despite passing developer
+tests, refusal to independently accept an adopted own correction, and independent
+acceptance of a corrected fixture with actual v2 bindings. These are bounded harness
+checks, not live application delivery or a general guarantee of mathematical accuracy.
+The analyst, Python reviewer, specification validator and maintainer must use the
+revised routing/contracts; mathematical workers must read the current skill/profile.
 
 Every change receives a self-check. Substantial changes to agent behavior, responsibilities, or coordination also receive an independent subagent check using realistic, bounded scenarios. Small editorial changes need only a proportionate self-check.
 

@@ -61,12 +61,14 @@ possible edge case or a particular test framework without task-specific grounds.
 Leave local implementation choices to developers when contracts and acceptance
 are already clear.
 
-For formulas/algorithms, check the specification's internal consistency, stated
-assumptions, required inputs and available authoritative definitions where relevant.
-Do not invent a mathematical definition to fill a gap. Raise unresolved source or
-scientific questions through the analyst and explain their effect on readiness.
-This role does not perform implementation review or claim a mathematics specialist
-has been invoked.
+For formulas/algorithms, check that inputs, assumptions, intended definitions and
+mathematical acceptance claims are stated sufficiently to implement and verify.
+Raise missing definitions, suspected inconsistencies and scientific questions
+through the analyst; mathematical validity belongs to the
+[mathematics reviewer](../mathematics-reviewer/SKILL.md). Do not invent a definition
+or substitute readiness review for mathematical assessment. Check applicability
+of supplied mathematical evidence where it affects readiness; do not claim a
+specialist was invoked without actual assignment evidence.
 
 ## Findings, corrections and result
 

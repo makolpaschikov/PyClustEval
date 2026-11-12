@@ -5,7 +5,8 @@ import hashlib
 import json
 import re
 
-VERSION = 1
+VERSION = 2
+DOCUMENT_VERSION = 1
 ID = re.compile(r"[A-Za-z][A-Za-z0-9_-]{0,63}\Z")
 SHA = re.compile(r"[0-9a-f]{64}\Z")
 SECTIONS = {
@@ -21,7 +22,7 @@ ITEM_FIELDS = {
     "id", "kind", "parent", "depends_on", "document", "specification", "status",
     "scale", "review_policy", "review_rationale", "coverage", "verification",
     "approval", "spec_reviews", "contributors", "checks", "code_review",
-    "findings", "checkpoint", "completion",
+    "findings", "checkpoint", "completion", "mathematics",
 }
 MANIFEST_FIELDS = {"format_version", "root", "branch", "scope", "coordinator",
                    "application_authorization", "handoff", "items"}
@@ -70,6 +71,11 @@ def canonical(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def new_mathematics():
+    return {"required": None, "rationale": "", "authors": [],
+            "specification_review": None, "implementation_review": None}
+
+
 def new_item(item_id, kind, parent, document):
     return {
         "id": item_id, "kind": kind, "parent": parent, "depends_on": [],
@@ -78,4 +84,5 @@ def new_item(item_id, kind, parent, document):
         "review_rationale": "", "coverage": {}, "verification": {}, "approval": None,
         "spec_reviews": [], "contributors": [], "checks": [], "code_review": None,
         "findings": [], "checkpoint": None, "completion": None,
+        "mathematics": new_mathematics(),
     }

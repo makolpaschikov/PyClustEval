@@ -16,7 +16,7 @@ HELPER = ROOT / "harness/scripts/task"
 sys.path.insert(0, str(HELPER))
 from task_support.artifacts import (contained, initialize, load, source_snapshot,
                                     spec_digest, workspace)
-from task_support.formats import TaskError, digest
+from task_support.formats import VERSION, TaskError, digest
 from task_support.gates import check_gate
 from task_support.lint import lint, parse_document
 
@@ -60,6 +60,7 @@ class TaskTests(unittest.TestCase):
             item["coverage"] = {"REQ-001": ["AC-001"]}
             item["verification"] = {"AC-001": ["CHECK-001"]}
         item["status"] = "ready"
+        item["mathematics"].update(required=False, rationale="Fixture changes no mathematical behavior.")
         return item
 
     def report(self, name, spec, source=None, **extra):
@@ -248,7 +249,7 @@ class TaskTests(unittest.TestCase):
 
     def test_format_drift_unknown_fields_types_and_versions_fail(self):
         manifest = self.init()
-        for mutate in (lambda m: m.update(format_version=2),
+        for mutate in (lambda m: m.update(format_version=VERSION + 1),
                        lambda m: m.update(format_version=True),
                        lambda m: m.update(surprise="unknown"),
                        lambda m: m["items"][0].update(depends_on="TASK-2")):
@@ -265,7 +266,8 @@ class TaskTests(unittest.TestCase):
         manifest = self.init()
         path = self.directory / "task.json"
         original = path.read_text()
-        path.write_text(original.replace('"format_version": 1', '"format_version": 1, "format_version": 1'))
+        version_field = f'"format_version": {VERSION}'
+        path.write_text(original.replace(version_field, f'{version_field}, {version_field}'))
         with self.assertRaisesRegex(TaskError, "Duplicate JSON"):
             load(self.directory)
         manifest["items"][0]["depends_on"] = ["MISSING"]

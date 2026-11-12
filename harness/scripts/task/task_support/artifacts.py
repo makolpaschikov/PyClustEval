@@ -145,6 +145,9 @@ def spec_digest(directory, manifest, item):
             key: current[key] for key in ("kind", "parent", "depends_on", "scale",
                                           "review_policy", "review_rationale", "coverage", "verification")
         }])
+        values.append([current["id"], "mathematics", {
+            key: current["mathematics"][key] for key in ("required", "rationale")
+        }])
         current = index[current["parent"]] if current["parent"] else None
     values.append(["task", manifest["scope"]])
     return digest(canonical(values))

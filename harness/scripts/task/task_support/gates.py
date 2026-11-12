@@ -4,6 +4,7 @@ from __future__ import annotations
 from .artifacts import contained, spec_digest
 from .formats import digest, require
 from .lint import lint, parse_document
+from .mathematics import exclusions, scope_digest
 
 
 def check_gate(repo, directory, manifest, item_id, gate, snapshot):
@@ -34,12 +35,36 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
         reqs, criteria = parsed["ids"]["REQ"], parsed["ids"]["AC"]
         require(set(entry["coverage"]) == reqs and all(entry["coverage"].values()), f"{entry['id']}: every requirement needs acceptance coverage")
         require(set(entry["verification"]) == criteria and all(entry["verification"].values()), f"{entry['id']}: every criterion needs a planned check")
+        require(entry["mathematics"]["required"] is not None,
+                f"{entry['id']}: mathematical impact is unassessed")
         if entry["kind"] == "subtask":
             brief = parse_document(contained(directory, entry["document"]).read_text(encoding="utf-8-sig"), "subtask", entry["id"], ready=True)
             require(brief["ids"]["AC"] <= criteria, f"{entry['id']}: detailed specification lost brief criteria")
         parent = entry["parent"]
         if parent:
             specification(index[parent])
+
+    def mathematical_review(entry, stage, source=None, *, accepted=True):
+        record = entry["mathematics"][f"{stage}_review"]
+        if accepted:
+            require(record is not None and record["verdict"] == "accepted",
+                    f"{entry['id']}: accepted mathematical {stage} review is missing")
+        if record is not None:
+            require(record["reviewer"] not in exclusions(index, entry, manifest["coordinator"], stage),
+                    f"{entry['id']}: mathematical {stage} reviewer is not independent of scoped authors or specification reviewers")
+            artifact(record, entry, source)
+            require(record["scope_sha256"] == scope_digest(directory, manifest, entry, stage),
+                    f"{entry['id']}: mathematical {stage} review refers to stale included contracts")
+
+    def mathematical_specifications(entry):
+        current = entry
+        while current:
+            if current["mathematics"]["required"] is True:
+                mathematical_review(current, "specification")
+                require(not any(finding["blocking"] and finding["disposition"] != "resolved"
+                                for finding in current["findings"]),
+                        f"{current['id']}: mathematical contract has an unresolved blocking finding")
+            current = index[current["parent"]] if current["parent"] else None
 
     def agreement(entry):
         approval = entry["approval"]
@@ -53,6 +78,7 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
             reviewers.append(review["reviewer"])
             artifact(review, entry)
         require(len(reviewers) == len(set(reviewers)), "Separate specification reviews require separate reviewers")
+        mathematical_specifications(entry)
 
     def scope_authority():
         require(manifest["scope"] != "application" or manifest["application_authorization"] is not None,
@@ -87,6 +113,8 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
         require(review is not None and review["verdict"] == "accepted", f"{entry['id']}: implementation review is missing or requests changes")
         require(review["reviewer"] not in {*entry["contributors"], manifest["coordinator"]}, "Implementation reviewer must be independent of contributors and coordinator")
         artifact(review, entry, source)
+        if entry["mathematics"]["required"] is True:
+            mathematical_review(entry, "implementation", source)
         if entry["kind"] == "epic":
             children = [child for child in index.values() if child["parent"] == entry["id"]]
             require(bool(children), "Epic has no subtasks")
@@ -126,6 +154,8 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
             artifact(check, item, snapshot["source_sha256"])
         if item["code_review"]:
             artifact(item["code_review"], item, snapshot["source_sha256"])
+        mathematical_review(item, "specification", accepted=False)
+        mathematical_review(item, "implementation", snapshot["source_sha256"], accepted=False)
         if item["status"] == "done":
             require(item["completion"] == current, "Completion receipt is stale")
             scope_authority()

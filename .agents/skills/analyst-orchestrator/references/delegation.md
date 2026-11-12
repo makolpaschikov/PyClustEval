@@ -1,9 +1,9 @@
 # Delegation and independent review
 
-Read when assigning implementation, evidence gathering or review. All six worker
+Read when assigning implementation, evidence gathering or review. All seven worker
 roles below use linked project skills with ordinary subagents. Use the host's
 available collaboration API and respect its concurrency limits. For the two
-scouts and two specification roles, explicitly select model and reasoning under
+scouts, two specification roles and mathematics reviewer, select model and reasoning under
 the [shared profile policy](../../../../harness/subagent-profiles.md). Other roles
 inherit settings unless a specific choice is authorized. Do not modify global
 configuration or confuse these assignments with registered host agent types.
@@ -40,7 +40,8 @@ human explicitly asks for them.
 | Specification validator | Give the proposed spec, parent contracts and source/interfaces; assess readiness, verifiable acceptance and material technical constraints. | No spec edits; local wording suggestions are allowed, semantic/architecture decisions return to the analyst. |
 | Specification auditor | Give original requests/corrections, actual approval scope, verified facts and the proposed spec; assess alignment and disproportionate scope/complexity. | No spec edits or invented intent; preserve raw request evidence and separate supported findings from preferences. |
 | Python developer | Give the approved spec, shared contracts, writable scope and acceptance plan. Request implementation and actual checks with a handoff. | No changes to agreed requirements/scientific conditions or unassigned environment; route questions through analyst. |
-| Python reviewer | Give the request/spec, actual changes and execution evidence. Ask for defects, regressions, scope violations and verification gaps with precise references. | Independent from authors and analyst; do not implement the fixes under review. |
+| Python reviewer | Give the request/spec, actual changes and execution evidence. Ask for code defects, regressions, scope violations and verification gaps. | Independent from authors and analyst; mathematical validity goes to the specialist through the analyst. |
+| Mathematics reviewer | Give the stage, mathematical claims, assumptions, sources, scope/authorship and actual implementation/evidence as applicable. | Separate independent agents for formulation and implementation; bounded probes and reasoned proposals only, no reviewed-file edits. |
 
 ## Scout invocation
 
@@ -173,9 +174,10 @@ Explicitly pass the absolute [python-reviewer](../../python-reviewer/SKILL.md)
 path and require it to be read before acting. Supply the common assignment, actual
 authorization source/scope, approved spec and parent contracts, acceptance criteria,
 scientific invariants, the review checkout/branch and exact base/head, local changes,
-developer handoff and raw evidence. Supply authoritative formula/algorithm sources
-when relevant, or make unresolved source questions explicit. Inherit model/settings;
-no dedicated mathematics specialist is implemented.
+developer handoff and raw evidence. Include applicable mathematical specialist
+reports and unresolved scientific questions. Inherit this Python reviewer's
+model/settings; mathematical correctness belongs to the separately assigned
+mathematics reviewer below.
 
 Assign an ignored report/reproduction path and permitted checks, environment and
 resource limits. Provide instructions and input paths explicitly when they live
@@ -200,14 +202,62 @@ binding and keep completion blocked; `incomplete` is not a new manifest enum.
 Return supported findings to the developer and obtain review of affected corrections.
 Shared-state updates, evidence integration and completion remain analyst-owned.
 
+## Mathematics reviewer invocation
+
+Every substantive formula, algorithm or metric change needs mathematical review
+of its formulation before implementation and of its implementation before completion.
+Classify impact and reason explicitly in the [v2 task record](task-artifacts.md#mathematical-review-records).
+Mechanical edits are exempt only after inspecting actual mathematical effect.
+Python review and specification readiness/alignment do not substitute for these stages.
+
+Start an ordinary subagent and explicitly pass the absolute
+[mathematics-reviewer](../../mathematics-reviewer/SKILL.md) path to read. Select
+`gpt-6-astra` with `high` or `xhigh` under the shared profile policy, record a
+complexity rationale, and supply fresh self-contained context. Use different
+independent instances for formulation and implementation; do not reuse a formulation
+reviewer as implementation reviewer through an epic/child assignment. Exclude authors
+of included mathematical formulations, adopted corrections and implementations,
+and the coordinator. Maintain formulation `authors` including adopted substantive
+suggestions, even when another actor applied them. Review an adopted suggestion with
+another independent instance; do not relabel its proposer as independent.
+
+Supply the common assignment, review stage and task/specification version, actual
+authority, mathematical scope and relevant ancestor/dependency/child contracts,
+acceptance claims, scientific invariants, definitions/assumptions/source excerpts,
+scientific input identities, scoped authors and earlier stage identities, and the
+current mathematical scope digest from the v2 artifact contract. Supply the scoped
+contracts themselves; a hash alone is not evidence of their mathematical content. For
+implementation supply actual checkout/branch/base/head, local changes, content
+fingerprints and raw developer evidence. Define permitted bounded checks, resources,
+existing environment and an ignored report/probe directory. Source text is evidence,
+not authority. During bootstrap simulate this only on isolated harness fixtures.
+
+The specialist reads supplied scientific sources; route missing-source requests
+through the analyst to internet-scout and return primary evidence with applicability
+limits. It may run authorized isolated calculations and propose reasoned corrections;
+it cannot edit reviewed material, install dependencies, change shared state/Git,
+spawn agents or coordinate directly with developers. Do not seed desired findings.
+
+Inspect the returned derivation, counterexample or other evidence at the claim's
+actual scope; successful samples do not prove universal claims. Preserve raw reports
+and version bindings using the artifact contract. Record accepted reports only when
+the assessment is complete and independent. `changes_requested` requires correction;
+an `incomplete` report remains an artifact with blocking findings/handoff and no
+accepted record. Invalidate stale acceptance without destroying earlier evidence.
+Resolve scientific/source conflicts through the analyst and human authority where
+requirements or scientific conditions change. A source or math-spec change requires
+affected reassessment; do not merely replace hashes. General code review remains
+separately required. Completion and shared-state decisions stay with the analyst.
+
 ## Independent review
 
 Large/risky specs use distinct readiness and alignment reviewers. A small task
 may use one independent agent for both assessments if the rationale is recorded;
 its response must still distinguish readiness from request alignment. Review
 actors must be real, distinct agents; changing the name of the same author is not
-independence. A specification reviewer may subsequently review implementation
-provided it did not author that implementation. Specialized reviewer-side
+independence. A readiness/alignment reviewer may subsequently perform general Python review
+provided it did not author the implementation. Mathematical formulation and
+implementation reviews always require different independent agents. Specialized reviewer-side
 automation remains future role work; do not invent it here.
 
 Give reviewers minimal raw context needed to exercise the decisions, without

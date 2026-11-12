@@ -1,8 +1,9 @@
 # Specialist model profiles
 
-Use this policy when the analyst or harness maintainer assigns one of the four
+Use this policy when the analyst or harness maintainer assigns one of the five
 specialists below. It records the human-approved choices in
-[DEC-010](signals/DECISIONS.md#dec-010); it is not a model performance ranking.
+[DEC-010](signals/DECISIONS.md#dec-010) and [DEC-011](signals/DECISIONS.md#dec-011);
+it is not a model performance ranking.
 Other roles retain their existing model/inheritance rules.
 
 ## Allowed choices
@@ -15,8 +16,9 @@ Every combination of a model and reasoning effort within a row is authorized.
 | Internet scout | `gpt-6.1-sol`, `gpt-6-astra` | `medium`, `high`, `xhigh` | Authorized caller |
 | Specification validator | `gpt-6.1-sol`, `gpt-6-astra` | `high`, `xhigh` | Analyst |
 | Specification auditor | `gpt-6.1-sol`, `gpt-6-astra` | `high`, `xhigh` | Analyst |
+| Mathematics reviewer | `gpt-6-astra` | `high`, `xhigh` | Authorized caller |
 
-The analyst may invoke all four roles. The maintainer may invoke scouts for
+The analyst may invoke all five roles. The maintainer may invoke scouts for
 authorized harness investigation and simulate analyst assignments for isolated
 harness verification. Developer/reviewer requests for assistance still go through
 the analyst; profile availability does not grant delegation authority.
@@ -26,6 +28,8 @@ consequences of an incorrect conclusion. Do not impose fixed model/effort pairin
 or automatically choose the highest effort. Record the selected pair and a brief
 task-specific reason in the existing assignment or evidence, not a separate tracker.
 An agent assigned both specification skills must satisfy both rows.
+For mathematics, the model is always Astra; only the effort varies. Its two review
+stages require different independent agent instances.
 
 Use the host's exposed model identifiers and supported effort values. If the
 selected pair is unavailable, the caller may select another permitted pair and

@@ -1,4 +1,4 @@
-# Task artifacts, format v1 and CLI
+# Task artifacts: JSON v2, Markdown v1 and CLI
 
 Read before creating or resuming a task. The helper needs Python 3.10+ and Git,
 with no third-party packages. Use an already available interpreter; do not alter
@@ -104,7 +104,8 @@ blockers open and run the completion gate only with current integrated evidence.
 
 ## Markdown contract
 
-The first line records format version, document kind and item ID. Preserve the
+The first line records Markdown format version 1, document kind and item ID.
+This is separate from JSON manifest version 2. Preserve the
 template's single title and ordered level-two headings; use level-three headings
 for detail. Prose may use the conversation's language. Each required section must
 have substantive content before readiness; explain inapplicability where relevant.
@@ -136,7 +137,7 @@ Task-level fields:
 
 | Field | Meaning |
 | --- | --- |
-| `format_version`, `root` | Version 1 and the single root item ID. |
+| `format_version`, `root` | JSON version 2 and the single root item ID. |
 | `branch`, `scope` | Selected branch and `harness` or `application`. |
 | `coordinator` | Actual analyst identity used when distinguishing reviewers. |
 | `application_authorization` | Null during bootstrap; for application execution, an object with `source` and `scope` recording explicit human expansion and task authority. Reuse valid prior authorization; verify its actual source. |
@@ -188,6 +189,91 @@ Evidence files must be nonempty and remain inside the task directory. Use
 content hashes, normalizing letters to lowercase. Actor names and command text
 are records, not authentication. Inspect the real agent output/execution trace.
 
+## Mathematical review records
+
+Every item includes `mathematics` with these fields:
+
+```json
+{"required": null, "rationale": "", "authors": [],
+ "specification_review": null, "implementation_review": null}
+```
+
+The analyst sets `required` to true for substantive formula/algorithm/metric changes
+or false for justified nonmathematical/meaning-preserving changes, with a nonempty
+`rationale`. Null means unassessed and blocks readiness. Mathematical conditions
+include numerical evaluation, approximation, weighting and stopping behavior where
+they affect meaning. The helper cannot decide semantic relevance. Keep ancestor
+contracts and actual integrated child behavior in this assessment.
+
+`authors` records identities contributing to the mathematical formulation, including
+adopted substantive correction proposals; the coordinator and applicable implementation
+`contributors` are also excluded from independent mathematical review. Authorship is
+provenance, not a new scientific requirement. Do not omit a proposer because another
+actor edited the formula. The analyst verifies identities from actual assignments.
+
+`specification_review` uses the existing review shape: `reviewer`, `verdict`
+(`accepted`/`changes_requested`), `artifact`, `sha256`, `spec_sha256`, and
+`scope_sha256`. `implementation_review` additionally has `source_sha256`.
+The mathematical scope digest binds formulation reports to this item, ancestors
+and declared transitive dependencies; implementation reports additionally cover
+an epic's descendants and their dependencies. It includes impact classifications
+and the specification digests of included mathematical items. Reapproving a changed
+dependency/child does not silently make an old enclosing mathematical report current.
+Formulation scope excludes later child elaboration so shared-contract review can
+precede it; human approval retains its existing item/ancestor scope.
+
+Compute the scope digest with the read-only module helper in the coordinator task:
+
+```python
+from task_support.mathematics import scope_digest
+# directory is the selected task Path, manifest the loaded v2 object,
+# item the assigned entry, and stage is "specification" or "implementation".
+print(scope_digest(directory, manifest, item, stage))
+```
+
+Record this digest in the original report as well as its manifest binding; obtain
+it before and after review, with the actual scoped documents supplied to the worker.
+Changing it requires affected reassessment, not relabeling the earlier report.
+The implementation reviewer must
+be a different actual agent from the formulation reviewer. Mathematical independence
+also covers included ancestors, transitive dependencies and, for an epic, integrated
+descendants and their dependencies. A child author or formulation reviewer cannot
+become its independent implementation reviewer by reviewing the enclosing epic.
+
+Reports require `required: true`. Keep incomplete or obsolete reports on disk and
+in handoff/findings, clearing obsolete current record references rather than forging
+accepted entries. Material gaps remain blocking. Only complete accepted reviews
+satisfy the relevant gates. Scientific source versions, ignored inputs and derivations
+belong in the reports/specification; the helper does not independently retrieve or
+validate scientific sources. `required` and `rationale` participate in the specification
+digest, including ancestor contracts; authors/reports are checked as provenance/evidence
+without changing the scientific digest. Changing a classification requires explicit
+reassessment, not an automatic exemption from existing findings.
+
+## Explicit legacy migration
+
+The helper rejects JSON v1 for ordinary operations. For one selected legacy task,
+inspect its current branch/state and obtain its manifest hash, then run:
+
+```powershell
+Get-FileHash -Algorithm SHA256 .agent-work/tasks/example/task.json
+py -3.14 -B harness/scripts/task/task.py migrate .agent-work/tasks/example --expect-sha256 <lowercase-current-hash>
+```
+
+Migration validates the strict v1 structure, selected branch and ignored task location,
+then preserves the original bytes as `task.v1.backup.json`. It retains Markdown v1,
+all evidence files, approvals, statuses and original hashes. New mathematical records
+start unassessed with no reviews. Prior states and evidence do not establish v2 gate
+acceptance: classify impact, inspect old evidence and explicitly revalidate applicable
+bindings. Do not fabricate a new approval or mathematical review; reuse genuine human
+approval only after verifying unchanged agreed scope under the existing policy.
+
+The writer lock, expected hash and final source checks protect cooperating writers;
+stop external writers too. A conflicting backup or stale manifest is rejected. An
+identical backup can be reused after a failed replacement; a different one is never
+overwritten. A failure may leave a preserved backup; inspect it before retrying.
+Migration is selected explicitly, never run over unrelated local tasks automatically.
+
 ## Snapshots and gates
 
 ```powershell
@@ -205,7 +291,7 @@ agents, changes branches or installs packages. It is mandatory workflow checking
 not a tool-access control or tamper-proof approval system.
 
 The specification digest covers the item brief/specification, ancestor contracts,
-scope and structural agreement/verification fields. A changed contract or check
+scope, mathematical impact/rationale and structural agreement/verification fields. A changed contract or check
 plan invalidates old bindings. Reuse a real human approval after a mechanical
 edit only after explicitly verifying unchanged meaning and recording that reason
 with its source. Material changes require renewed approval. Never refresh hashes
@@ -229,10 +315,10 @@ review must assess the coverage of such a reassessment.
 
 | Gate | Required recorded evidence |
 | --- | --- |
-| `specification` | Complete brief/spec and parent context; requirement-to-acceptance and acceptance-to-check coverage. Semantic readiness still needs independent review. |
-| `start` | Ready/approved/in-progress executable item, matching branch, current approval and independent specification reviews, no unresolved blockers, verified completed dependencies, application authority if relevant. |
-| `completion` | Current specification/approval/reviews, successful required execution records and independent implementation review bound to current source, findings disposed; for an epic, all children completed plus epic-level integration checks. |
-| `resumption` | Checkpoint matching current spec/source/branch and intact current evidence; claimed active/done states also satisfy their applicable gates. Reconcile drift before changing state. |
+| `specification` | Complete brief/spec and parent context, explicit mathematical impact/rationale, requirement-to-acceptance and acceptance-to-check coverage. Semantic readiness still needs independent review. |
+| `start` | Ready/approved/in-progress executable item, matching branch, current approval and independent specification reviews, applicable mathematical formulation reviews including ancestor contracts, no unresolved blockers, verified completed dependencies, application authority if relevant. |
+| `completion` | Current specification/approval/reviews, successful required execution records and independent Python and applicable mathematical implementation reviews bound to current source, distinct mathematical stage agents, findings disposed; for an epic, all children completed plus epic-level integration checks. |
+| `resumption` | Checkpoint matching current spec/source/branch and intact current evidence including mathematical review bindings/independence; claimed active/done states also satisfy their applicable gates. Reconcile drift before changing state. |
 
 After a successful completion gate, copy its `receipt` to `completion`, set
 `status` to `done`, and preserve a current checkpoint for handoff. Dependencies

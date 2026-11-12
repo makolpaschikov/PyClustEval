@@ -14,6 +14,7 @@
 [TODO: Record technical/scientific constraints, authority and resource bounds.]
 
 ## Shared contracts
+<!-- Include shared mathematical claims/assumptions and integration scope when applicable. -->
 [TODO: Define interfaces and invariants shared by subtasks.]
 
 ## Requirements

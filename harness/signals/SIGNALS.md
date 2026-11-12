@@ -101,3 +101,16 @@
 - Decision: [DEC-010](DECISIONS.md#dec-010)
 - Agreement: On 2026-11-13 the human approved the entire DEC-010 proposal with: Да, согласен. Реализуй весь пакет. The earlier four-role interview, branch choice and announced automatic commits remain in scope.
 - Details: DEC-010 implements and independently verifies the four requested roles, shared profile policy and caller integration. A code-scout diagnostic-label issue was corrected within scope and rechecked. The analyst and maintainer must read the revised contracts and pass current skills/policy explicitly to new workers. Stock skill validation remains unavailable without PyYAML; alternate metadata/link checks and independent behavior checks passed. The mathematics specialist remains deferred and harness-only bootstrap remains in force.
+
+<a id="sig-009"></a>
+## SIG-009: Mathematics reviewer subagent
+
+- Date: 2026-11-13
+- Origin: Human request in the mathematics-reviewer harness maintenance chat
+- Owner: harness-maintainer
+- Request: Develop the deferred mathematics specialist to check formulas, assumptions and algorithms in specifications before implementation, and their implementation, after an in-depth interview and agreement on the concrete design.
+- Evidence: At registration Python reviewer performed affected mathematical checks and no dedicated mathematics specialist existed. The human resumed the deferred proposal in SIG-007; no specific project mathematical failure was reported. DEC-011 now implements the specialist, ownership transfer and independent checks.
+- Status: resolved
+- Decision: [DEC-011](DECISIONS.md#dec-011)
+- Agreement: The human approved the complete DEC-011 package with да after the detailed interview and linked concrete proposal, including distinct stage agents, Astra high/xhigh, isolated checks, analyst/internet-scout source routing, correction proposals, mandatory helper gates and explicit migration. The chosen codex/mathematics-reviewer branch from 7b1cd23e6d4af1bdbf1beb87fcf8d32bd94db441 retains announced scoped automatic commits.
+- Details: DEC-011 is implemented and independently verified. The mathematical scope-binding defect found by package review was fixed and rechecked. Final evidence is .agent-work/tasks/harness-mathematics-reviewer/verification.md. Analysts and maintainers must load current invocation/artifact instructions; Python reviewer and validator must use revised mathematical routing. New mathematical workers read current skill/profile. Stock validation lacks PyYAML; alternative checks passed. Bootstrap remains harness-only; existing v1 tasks need explicit selected migration and reassessment.
