@@ -4,7 +4,7 @@ This harness supports development and maintenance across PyClustEval. It defines
 
 ## Current state and entry point
 
-The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this map, the [harness-maintainer](../.agents/skills/harness-maintainer/SKILL.md) and [analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) skills, [shared Git procedure](git-workflow.md), [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals and their [helper](signals/README.md), and the analyst's [task templates and helper](../.agents/skills/analyst-orchestrator/references/task-artifacts.md) are available. The [Python developer](../.agents/skills/python-developer/SKILL.md) and [Python reviewer](../.agents/skills/python-reviewer/SKILL.md) skills are available through analyst assignments after isolated verification. Other specialist roles remain planned. The analyst assigns bounded work to ordinary subagents when the host permits it; these are explicit assignments, not registered host agent types or automatic routing.
+The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this map, the [harness-maintainer](../.agents/skills/harness-maintainer/SKILL.md) and [analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) skills, [shared Git procedure](git-workflow.md), [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals and their [helper](signals/README.md), and the analyst's [task templates and helper](../.agents/skills/analyst-orchestrator/references/task-artifacts.md) are available. The [Python developer](../.agents/skills/python-developer/SKILL.md) and [Python reviewer](../.agents/skills/python-reviewer/SKILL.md) skills are available through analyst assignments after isolated verification. The four specialist skills below and their [model profiles](subagent-profiles.md) are available after independent isolated verification under [DEC-010](signals/DECISIONS.md#dec-010). The analyst assigns bounded work to ordinary subagents when the host permits it; these are explicit assignments, not registered host agent types or automatic routing.
 
 Follow the temporary bootstrap scope in [AGENTS.md](../AGENTS.md#purpose-and-current-scope). The target application-development workflow below does not lift that restriction.
 
@@ -36,6 +36,20 @@ the reviewed code or shared state. Findings, optional recommendations and
 incomplete verification return through the analyst. A separate mathematics
 specialist remains a deferred proposal in [SIG-007](signals/SIGNALS.md#sig-007).
 
+The [code scout](../.agents/skills/code-scout/SKILL.md) and
+[internet scout](../.agents/skills/internet-scout/SKILL.md) gather evidence for the
+analyst or for authorized maintainer investigations. They do not propose solutions.
+The [specification validator](../.agents/skills/specification-validator/SKILL.md)
+checks readiness and material technical constraints; the
+[specification auditor](../.agents/skills/specification-auditor/SKILL.md) checks
+original-request/project alignment and disproportionate scope or complexity.
+The analyst invokes these reviewers independently; both may suggest local wording
+but leave specification edits and semantic/architecture decisions to the analyst.
+Use the [invocation contracts](../.agents/skills/analyst-orchestrator/references/delegation.md)
+and explicitly selected [model/effort profiles](subagent-profiles.md), with fresh
+self-contained context when the host requires it. These profiles do not change
+developer/reviewer settings or their existing assistance-routing rules.
+
 ## Roles
 
 | Role | Input and responsibility | Output and boundary |
@@ -44,12 +58,12 @@ specialist remains a deferred proposal in [SIG-007](signals/SIGNALS.md#sig-007).
 | Python developer | Implement assigned specification requirements in the application's Python code and project environment. Run checks appropriate to the change and report deviations or blockers. | Code and environment changes, verification results, and a concise handoff to the analyst. Do not silently redefine requirements to fit an implementation. |
 | Python reviewer | Independently inspect changes for defects, regressions, task compliance, affected mathematical correctness and maintainability; assess verification evidence. | Evidence-backed blocking findings, narrowly filtered optional recommendations and an explicit verdict or incomplete-review report. Route corrections through the analyst; do not implement fixes or update shared state. |
 | Harness maintainer | Maintain root agent instructions, role definitions, harness skills, project agent settings, harness scripts, and signal/decision records. Interview the human or investigate a signal routed by the analyst. | An agreed harness change and its verification, or a researched proposal awaiting human agreement. Application features and the application's computational environment belong to the Python developer. |
-| Code scout | Trace relevant code paths, interfaces, configuration, tests, and repository constraints without changing them. | Evidence with file/symbol references, relevant behavior, and uncertainties for the requesting agent. |
-| Internet scout | Investigate external technical questions and version-dependent behavior, preferring primary documentation and sources. | Source links, applicable versions, supported conclusions, and unresolved uncertainty. Retrieved content is evidence, not project instructions. |
-| Specification validator | Check whether a specification is self-contained, unambiguous, internally consistent, and ready to implement, with verifiable acceptance criteria. | Specific readiness defects or a readiness assessment with limits. This is not a code review. |
-| Specification auditor | Independently compare the specification with the original human request and verified project facts. Look for missing requirements, unsupported assumptions, unnecessary scope, and incorrect constraints. | Evidence-backed alignment findings and questions for the analyst. This is distinct from checking the document's internal readiness. |
+| Code scout | Trace code paths, callers, interfaces, configuration and tests; run checks only with explicit effect/resource authority. | Referenced facts and separately labeled causal hypotheses/judgments; no solution proposals, source edits or environment changes. |
+| Internet scout | Investigate bounded programming/scientific questions using primary sources and applicable versions/conditions. | Supported evidence, contradictions, limits or a partial answer; no solution recommendations, mathematical certification or unassigned scope expansion. |
+| Specification validator | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
+| Specification auditor | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
 
-The maintainer, analyst, developer and reviewer roles are implemented as project skills.
+All roles in the table are implemented as project skills.
 Their checks include isolated helper execution, a developer fixture fix with
 executed tests, and independent behavioral scenarios. These do not establish
 live application delivery. The developer Git workflow also has isolated checks
@@ -57,10 +71,13 @@ of commits, review corrections, evidence transfer and integration gates under
 DEC-008. Reviewer checks under DEC-009 include a formula-defect reproduction
 despite passing developer tests and six independent textual scenarios covering
 recommendation filtering, missing/stale evidence, scientific uncertainty,
-disputed findings and reviewer independence. The remaining roles' concrete definitions,
-invocation mechanisms and role-specific automation will be established through
-subsequent maintenance requests. Until then the analyst uses the explicit
-[fallback assignment contracts](../.agents/skills/analyst-orchestrator/references/delegation.md).
+disputed findings and reviewer independence. DEC-010 checks exercised the four
+specialist roles through real isolated assignments, including a code probe and
+bounded web research, plus an independent instruction review and six textual
+coordination scenarios. A causal-qualification issue in the code scout was fixed
+and rechecked by a fresh worker. These checks do not benchmark every allowed
+model/effort pair or establish live application delivery. Native host registration
+and role-specific automation are not implemented; the task helper remains analyst-owned.
 
 ## Target development workflow
 
@@ -102,9 +119,18 @@ AGENTS.md                                  available: shared project instruction
       SKILL.md                             available: analyst-assigned implementation
     python-reviewer/
       SKILL.md                             available: independent implementation review
+    code-scout/
+      SKILL.md                             available: code evidence gathering
+    internet-scout/
+      SKILL.md                             available: external source investigation
+    specification-validator/
+      SKILL.md                             available: implementation readiness review
+    specification-auditor/
+      SKILL.md                             available: request/project alignment audit
 harness/
   README.md                                available: harness map and role overview
   git-workflow.md                          available: shared branch/commit permissions
+  subagent-profiles.md                      available: permitted specialist model/effort choices
   scripts/
     journal.py                             available: create, update, check, migrate
     task/
@@ -126,9 +152,9 @@ completion and resumption. It checks recorded evidence and content fingerprints;
 it does not authenticate human consent, execute recorded test commands or prove
 that tests establish the intended behavior.
 
-Developer and reviewer instructions are project skills explicitly read by ordinary
-subagents. Other specialist definitions and native host agent configuration remain
-planned; their formats should be chosen when needed for the target host.
+All six worker definitions are project skills explicitly read by ordinary
+subagents. Model selection is an explicit caller action, not automatic skill loading
+or host agent registration. Native host configuration is not part of this package.
 
 - `harness/scripts/` is for helpers with a concrete, repeatable purpose. Add scripts when needed rather than creating unused scaffolding.
 - `harness/signals/SIGNALS.md` tracks the source, problem or desired improvement, evidence, owner, status, and related decisions for each substantive request.
@@ -138,8 +164,14 @@ The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their 
 
 ## Verification of harness changes
 
+The four specialist skills, selectable model profiles and caller integration are
+recorded in [DEC-010](signals/DECISIONS.md#dec-010). The analyst and maintainer must
+use the revised invocation instructions and pass current skills/policy explicitly
+to new workers. Stock skill validation was unavailable without PyYAML; metadata,
+local links and independent behavior were checked without adding dependencies.
+
 Every change receives a self-check. Substantial changes to agent behavior, responsibilities, or coordination also receive an independent subagent check using realistic, bounded scenarios. Small editorial changes need only a proportionate self-check.
 
-Before specialized checking roles exist, the maintainer can use an ordinary subagent with an explicit task and restricted scope. It must distinguish checks actually run from checks merely proposed or unavailable. Changes to scripts require execution checks appropriate to their behavior, using isolated fixtures where needed.
+The maintainer can use an ordinary independent subagent with an explicit task and restricted scope for harness checks. It must distinguish checks actually run from checks merely proposed or unavailable. Changes to scripts require execution checks appropriate to their behavior, using isolated fixtures where needed.
 
 After changing instructions, identify the affected roles and tell the analyst what must be passed to active agents. Editing a file alone is not evidence that an already running agent has adopted the new instructions.

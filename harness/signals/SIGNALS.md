@@ -88,3 +88,16 @@
 - Decision: [DEC-009](DECISIONS.md#dec-009)
 - Agreement: On 2026-11-13 the human accepted the complete DEC-009 package and six optional-recommendation criteria with Да, согласен after the detailed interview. The agreed behavior covers correctness, requirements, testing, maintainability and affected mathematics/algorithms; isolated reproductions; evidence-backed blockers; narrowly filtered optional recommendations; risk-based checks and justified reuse of developer evidence. The chosen codex/python-reviewer branch from experiments-series-runner retains announced scoped automatic commits. Harness-only bootstrap remains unchanged; the separate mathematics specialist is deferred.
 - Details: Deferred human proposal from the first interview block: later introduce a separate subagent for mathematical correctness of formula and algorithm implementations, using astra-6 with high reasoning as named by the human. This is a future capability request, not a currently available role or permission to configure or invoke it during reviewer development. Confirm the host model identifier when that future work is undertaken.
+
+<a id="sig-008"></a>
+## SIG-008: Remaining harness specialist subagents
+
+- Date: 2026-11-13
+- Origin: Human request in the harness-subagents maintenance chat
+- Owner: harness-maintainer
+- Request: Develop the planned code scout, internet scout, specification validator and specification auditor roles, their invocation contracts and independent behavioral verification after an in-depth interview and concrete design agreement.
+- Evidence: At registration all four roles remain planned in harness/README.md and use fallback assignment contracts. The analyst, Python developer and Python reviewer skills already exist. No specific specialist-role failure was reported.
+- Status: resolved
+- Decision: [DEC-010](DECISIONS.md#dec-010)
+- Agreement: On 2026-11-13 the human approved the entire DEC-010 proposal with: Да, согласен. Реализуй весь пакет. The earlier four-role interview, branch choice and announced automatic commits remain in scope.
+- Details: DEC-010 implements and independently verifies the four requested roles, shared profile policy and caller integration. A code-scout diagnostic-label issue was corrected within scope and rechecked. The analyst and maintainer must read the revised contracts and pass current skills/policy explicitly to new workers. Stock skill validation remains unavailable without PyYAML; alternate metadata/link checks and independent behavior checks passed. The mathematics specialist remains deferred and harness-only bootstrap remains in force.

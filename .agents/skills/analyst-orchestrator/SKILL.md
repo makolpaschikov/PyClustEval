@@ -27,12 +27,18 @@ execution; preserve and reuse that agreement within its actual scope.
 
 Invoke this role in the main chat; use available collaboration tools for bounded
 subtasks. This skill explicitly authorizes the necessary delegation below. Prefer
-configured specialists when available. The [Python developer](../python-developer/SKILL.md)
-and [Python reviewer](../python-reviewer/SKILL.md) are project skills used by
-ordinary subagents: explicitly pass the relevant path and require it to be read
-with the bounded assignment. Other missing roles use the
-fallback contracts in [delegation guidance](references/delegation.md). Report the
-actual mechanism honestly. If delegation is unavailable, continue independent analysis
+the implemented role skills: [code scout](../code-scout/SKILL.md),
+[internet scout](../internet-scout/SKILL.md),
+[specification validator](../specification-validator/SKILL.md),
+[specification auditor](../specification-auditor/SKILL.md),
+[Python developer](../python-developer/SKILL.md) and
+[Python reviewer](../python-reviewer/SKILL.md). These use ordinary subagents;
+explicitly pass the relevant skill and a bounded assignment under the
+[delegation contracts](references/delegation.md). Select scout/specification-role
+models and reasoning explicitly using the
+[shared profile policy](../../../harness/subagent-profiles.md), with self-contained
+context when the host requires a fresh worker for overrides. Other roles retain
+their existing settings policy. Report the actual mechanism honestly. If delegation is unavailable, continue independent analysis
 and state which implementation/review work is blocked. Do not substitute your own
 review for a required independent check or claim a missing role was invoked.
 
@@ -93,8 +99,13 @@ check as behavioral proof. Record why combined specification review is suitable
 only for a small task; use separate readiness and alignment reviewers for large
 or risky tasks. Implementation review remains independent in both cases.
 
-Run format lint and the specification gate, resolve independent review findings,
-then present the concrete specification for human approval before implementation.
+Run format lint and the specification gate, then invoke independent readiness
+and alignment review using the [specification-review contract](references/delegation.md#specification-review-invocation).
+Supply original request evidence to the auditor and material source/interfaces
+to both roles. Inspect actual findings and gaps; an incomplete report is not
+acceptance. Reconcile relevant request/source drift even if the spec hash is
+unchanged. Resolve findings, then present the concrete specification for human
+approval before implementation.
 Record the actual source of the human decision and its scope against the reviewed
 specification digest. A journal statement or subagent assertion is not consent.
 Reuse approval for unchanged agreed behavior. Material scope/contract changes

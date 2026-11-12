@@ -52,7 +52,21 @@ Do not assume that a signal file launches work automatically. Before an analyst 
 
 ## Investigation and implementation
 
-Use code and internet scouts for bounded evidence gathering when their roles are available and their help is useful. You may also delegate relevant investigation or verification to an ordinary subagent with explicit scope, inputs, allowed side effects, and the expected evidence. Do not claim to have invoked a configured role that does not exist.
+Use the [code scout](../code-scout/SKILL.md) and
+[internet scout](../internet-scout/SKILL.md) for useful bounded harness evidence
+gathering. Explicitly pass their skill and a self-contained assignment using the
+[scout invocation contract](../analyst-orchestrator/references/delegation.md#scout-invocation)
+and select a permitted model/effort under the
+[shared profile policy](../../../harness/subagent-profiles.md). These are ordinary
+subagents reading skills, not registered host agent types. Scouts return evidence
+without solution proposals; the maintainer owns the maintenance proposal.
+
+You may also delegate relevant investigation or verification to an ordinary
+subagent with explicit scope, inputs, allowed side effects and expected evidence.
+For isolated role verification, a simulated analyst assignment may invoke the
+specification skills under their existing independence and model rules. Do not
+claim an unavailable role or automation exists. This permission does not transfer
+live application orchestration to the maintainer.
 
 When changing host-specific configuration, verify the installed format and relevant official documentation as needed. Prefer primary sources for external technical claims, record applicable versions, and distinguish documented behavior from assumptions. Do not hard-code an unrequested model or introduce new dependencies merely to complete the harness.
 
