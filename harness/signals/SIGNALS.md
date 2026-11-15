@@ -114,3 +114,16 @@
 - Decision: [DEC-011](DECISIONS.md#dec-011)
 - Agreement: The human approved the complete DEC-011 package with да after the detailed interview and linked concrete proposal, including distinct stage agents, Astra high/xhigh, isolated checks, analyst/internet-scout source routing, correction proposals, mandatory helper gates and explicit migration. The chosen codex/mathematics-reviewer branch from 7b1cd23e6d4af1bdbf1beb87fcf8d32bd94db441 retains announced scoped automatic commits.
 - Details: DEC-011 is implemented and independently verified. The mathematical scope-binding defect found by package review was fixed and rechecked. Final evidence is .agent-work/tasks/harness-mathematics-reviewer/verification.md. Analysts and maintainers must load current invocation/artifact instructions; Python reviewer and validator must use revised mathematical routing. New mathematical workers read current skill/profile. Stock validation lacks PyYAML; alternative checks passed. Bootstrap remains harness-only; existing v1 tasks need explicit selected migration and reassessment.
+
+<a id="sig-010"></a>
+## SIG-010: Repair mechanical task gate gaps
+
+- Date: 2026-11-15
+- Origin: Human request and approved workflow in the harness state audit chat
+- Owner: harness-maintainer
+- Request: Fix parent-blocker propagation, epic Python-review independence and malformed item-kind diagnostics using one separate Terra/Sol high-reasoning worker per problem.
+- Evidence: Read-only audit at 20843e5 traced the three defects in gates.py and lint.py; bounded in-memory probes reproduced accepted child gates with a nonmathematical parent blocker, epic acceptance of a child-only contributor as reviewer, and TypeError for kind=[]. These were not full filesystem-fixture reproductions.
+- Status: resolved
+- Decision: [DEC-012](DECISIONS.md#dec-012)
+- Agreement: On 2026-11-15 the human explicitly confirmed the described three-fix workflow and new codex/harness-gate-fixes branch from experiments-series-runner, delegated concrete fixes without further approval, and waived commit-title approval. Harness-only scope and independent verification remain in force.
+- Details: DEC-012 fixes all three reported defects and is independently accepted. The integrated suite passed 114 tests and independent CLI verification passed 58 probes. Plan, assignments, original and copied logs, integrity records and final verification are under .agent-work/tasks/harness-gate-fixes/.

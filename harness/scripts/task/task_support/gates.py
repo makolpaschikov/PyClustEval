@@ -61,9 +61,17 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
         while current:
             if current["mathematics"]["required"] is True:
                 mathematical_review(current, "specification")
+            current = index[current["parent"]] if current["parent"] else None
+
+    def contract_blockers(entry):
+        current = entry
+        while current:
+            # Own nonmathematical findings retain their existing lifecycle checks.
+            if current is not entry or current["mathematics"]["required"] is True:
+                contract = "mathematical contract" if current["mathematics"]["required"] is True else "shared contract"
                 require(not any(finding["blocking"] and finding["disposition"] != "resolved"
                                 for finding in current["findings"]),
-                        f"{current['id']}: mathematical contract has an unresolved blocking finding")
+                        f"{current['id']}: {contract} has an unresolved blocking finding")
             current = index[current["parent"]] if current["parent"] else None
 
     def agreement(entry):
@@ -79,6 +87,7 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
             artifact(review, entry)
         require(len(reviewers) == len(set(reviewers)), "Separate specification reviews require separate reviewers")
         mathematical_specifications(entry)
+        contract_blockers(entry)
 
     def scope_authority():
         require(manifest["scope"] != "application" or manifest["application_authorization"] is not None,
@@ -111,7 +120,12 @@ def check_gate(repo, directory, manifest, item_id, gate, snapshot):
         require(bool(entry["contributors"]), f"{entry['id']}: record implementation contributors")
         review = entry["code_review"]
         require(review is not None and review["verdict"] == "accepted", f"{entry['id']}: implementation review is missing or requests changes")
-        require(review["reviewer"] not in {*entry["contributors"], manifest["coordinator"]}, "Implementation reviewer must be independent of contributors and coordinator")
+        contributors = set(entry["contributors"])
+        if entry["kind"] == "epic":
+            for child in index.values():
+                if child["parent"] == entry["id"]:
+                    contributors.update(child["contributors"])
+        require(review["reviewer"] not in contributors | {manifest["coordinator"]}, "Implementation reviewer must be independent of contributors and coordinator")
         artifact(review, entry, source)
         if entry["mathematics"]["required"] is True:
             mathematical_review(entry, "implementation", source)

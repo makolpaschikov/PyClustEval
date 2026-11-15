@@ -152,7 +152,8 @@ def lint(repo, directory, manifest, *, legacy=False):
         identifier(item_id, "item.id")
         require(item_id not in index, f"Duplicate item ID: {item_id}")
         index[item_id] = item
-        require(item["kind"] in SECTIONS, f"{item_id}: invalid kind")
+        require(isinstance(item["kind"], str) and item["kind"] in SECTIONS,
+                f"{item_id}: invalid kind")
         if item["parent"] is not None:
             identifier(item["parent"], f"{item_id}.parent")
         strings(item["depends_on"], f"{item_id}.depends_on", ids=True)

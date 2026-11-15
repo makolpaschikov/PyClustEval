@@ -171,7 +171,9 @@ Evidence structures (SHA fields hold actual 64-character lowercase SHA-256):
 - `spec_reviews`: records with `kind` (`readiness`, `alignment` or `combined`),
   `reviewer`, `verdict` (`accepted`/`changes_requested`), `artifact` (task-relative
   report path), `sha256` (report content), and `spec_sha256`.
-- `contributors`: actual implementation author/agent identities.
+- `contributors`: actual implementation author/agent identities for this item.
+  Epic Python-review independence also excludes contributors recorded on its
+  included children; do not duplicate child authors merely to make that check work.
 - `checks`: records with `id`, `command` (argument strings), `exit_code`
   (integer/null), `outcome` (`passed`, `failed`, `not_run`), `artifact`, `sha256`,
   `spec_sha256`, `source_sha256`. Record actual execution output and limitations.
@@ -316,8 +318,8 @@ review must assess the coverage of such a reassessment.
 | Gate | Required recorded evidence |
 | --- | --- |
 | `specification` | Complete brief/spec and parent context, explicit mathematical impact/rationale, requirement-to-acceptance and acceptance-to-check coverage. Semantic readiness still needs independent review. |
-| `start` | Ready/approved/in-progress executable item, matching branch, current approval and independent specification reviews, applicable mathematical formulation reviews including ancestor contracts, no unresolved blockers, verified completed dependencies, application authority if relevant. |
-| `completion` | Current specification/approval/reviews, successful required execution records and independent Python and applicable mathematical implementation reviews bound to current source, distinct mathematical stage agents, findings disposed; for an epic, all children completed plus epic-level integration checks. |
+| `start` | Ready/approved/in-progress executable item, matching branch, current approval and independent specification reviews, applicable mathematical formulation reviews including ancestor contracts, no unresolved blockers on the item or its ancestor contracts regardless of mathematical classification, verified completed dependencies, application authority if relevant. |
+| `completion` | Current specification/approval/reviews, successful required execution records and independent Python and applicable mathematical implementation reviews bound to current source, distinct mathematical stage agents, findings disposed and ancestor blockers resolved; for an epic, all children completed plus epic-level integration checks and Python-review independence from all included child contributors. |
 | `resumption` | Checkpoint matching current spec/source/branch and intact current evidence including mathematical review bindings/independence; claimed active/done states also satisfy their applicable gates. Reconcile drift before changing state. |
 
 After a successful completion gate, copy its `receipt` to `completion`, set
