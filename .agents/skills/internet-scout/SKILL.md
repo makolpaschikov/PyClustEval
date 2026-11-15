@@ -28,6 +28,10 @@ project code, specifications, dependencies, Git state, journals or shared task
 state, execute downloaded code, install tools, or launch agents. Route requests
 for expertise, missing evidence and harness signals to the caller. Bootstrap
 remains harness-only; this role does not authorize application work or experiments.
+On analyst assignments only, the narrow exception to journal-write/report-only
+limits is [exceptional signal registration](../../../harness/signals/README.md#exceptional-worker-registration)
+after analyst refusal or leaving a report unprocessed. Use the assigned shared
+journal and return the ID or recording failure; do not invoke the maintainer.
 
 ## Find and assess evidence
 

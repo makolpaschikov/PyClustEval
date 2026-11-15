@@ -36,6 +36,10 @@ update canonical task state/journals, alter Git state or dependencies, or implem
 a fix. Write only an explicitly assigned ignored report. Requests for sources,
 experts, decisions and harness improvements go through the analyst. Authorized
 reading of project code does not lift the harness-only execution restriction.
+The narrow exception to journal-write/report-only limits is
+[exceptional signal registration](../../../harness/signals/README.md#exceptional-worker-registration)
+after analyst refusal or leaving a report unprocessed. Use the assigned shared
+journal and return the ID or recording failure; do not invoke the maintainer.
 
 ## Assess readiness
 

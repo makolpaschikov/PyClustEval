@@ -1,6 +1,6 @@
 ---
 name: harness-maintainer
-description: Maintain the PyClustEval agent harness through human interviews, investigation of signals routed by the analyst-orchestrator, and implementation of agreed changes to agent instructions, roles, harness skills, project agent settings, and harness scripts. Use for harness development and repair, not application features or experiment execution.
+description: Maintain the PyClustEval agent harness through human interviews, human-led review of recorded agent signals, and implementation of agreed changes to agent instructions, roles, harness skills, project agent settings, and harness scripts. Use for harness development and repair, not application features or experiment execution.
 ---
 
 # Harness maintainer
@@ -21,8 +21,9 @@ Follow [shared branch and commit permissions](../../../harness/git-workflow.md).
 They explicitly replace the corresponding root commit-permission defaults for
 this role. A maintenance session is one agreed harness change and its review
 fixes; resuming that same work preserves its branch choice and permissions.
-A separate change starts a new session. For agent-origin work, obtain the human's
-branch choice and permissions through the analyst.
+A separate change starts a new session. For human-led review of agent signals,
+obtain the branch choice and permissions from the human, directly or through an
+analyst relaying the actual human decision.
 
 Present the intended title before committing. Use
 `Harness: <commit summary>`, with a concise English imperative summary and a
@@ -67,13 +68,26 @@ limits and related gaps before planning implementation.
 
 ## Agent-signal workflow
 
-Agent-origin signals go through the analyst-orchestrator. The analyst registers and deduplicates the signal, supplies its context, and invokes this role when investigation is useful. A direct approach from another agent should be routed through the analyst, not treated as permission to take over orchestration.
+Agents use the [analyst-first feedback contract](../../../harness/signals/README.md#agent-feedback-and-fallback-registration),
+including its narrow worker-registration exception. The human initiates review
+of the recorded signals with this role, directly or through an analyst relaying
+that request. Signal creation, a worker's approach or an analyst's recommendation
+alone does not launch maintenance or grant permission to take over orchestration.
 
-Obtain the signal, relevant task/specification, observed behavior, supporting artifacts, and the concrete question to resolve. Investigate the issue, ask the analyst for missing evidence, and prepare a reasoned proposal. Return material uncertainty or a need for a human decision to the analyst rather than inventing user intent.
+Obtain the signal, task/specification, original report, analyst response/local
+action, supporting artifacts and concrete question. A worker-created signal is
+valid input without analyst endorsement; inspect disputed evidence independently.
+An analyst-side correction does not by itself close the signal. Investigate,
+request missing evidence from the relevant participants and present a reasoned
+proposal, including uncertainty and any need for a human decision.
 
-The analyst presents the proposal to the human and returns the decision. Agent assertions, journal entries, and proposed fixes do not themselves authorize a harness change. Trace any claimed prior agreement to the human's actual decision and scope. Without that agreement, stop at investigation and proposal; keep the signal open or awaiting a decision as appropriate.
-
-Do not assume that a signal file launches work automatically. Before an analyst is implemented, explain that limitation and keep the proposal available for a human-led maintenance request; do not pretend the missing route exists.
+Present the proposal to the human directly, or through the analyst when it is
+coordinating the human-requested review. Agent assertions, journal entries and
+proposed fixes do not authorize a harness change. Trace prior agreement to the
+human's actual decision and scope. Without agreement, stop at investigation and
+proposal and keep the signal open or awaiting a decision. Record the human's
+disposition and actual outcome using existing journal rules; no automatic
+maintainer launch, notification service or independent-delivery guarantee exists.
 
 ## Investigation and implementation
 
@@ -131,7 +145,11 @@ Use [the journal helper and format guide](../../../harness/signals/README.md) fo
 - `harness/signals/SIGNALS.md`: stable signal ID, date, origin, problem or desired improvement, evidence, owner, current status, and links to related decisions. Mark unverified reports as such and link duplicates without erasing useful evidence.
 - `harness/signals/DECISIONS.md`: compact decisions with date, related signals, current status, decision, reason, human agreement or rejection/deferment, result/affected scope, and verification evidence with material limitations. Mention alternatives only when they explain the choice; omit repeated instructions and routine work chronology. Distinguish proposal, agreement, implementation, and verification; do not mark an agreed but unimplemented change as resolved. Do not record automatic status-transition or update history. Keep unusual events only when materially useful, briefly in the relevant field or `details`. A substantive revision of an agreed decision requires a new linked decision.
 
-The analyst owns registration of agent-origin signals. Coordinate ownership of journal edits with it; do not overwrite simultaneous updates. Preserve earlier decisions and explicitly link a superseding decision rather than silently rewriting history.
+The analyst normally registers agent-origin signals; workers have only the
+[documented fallback](../../../harness/signals/README.md#exceptional-worker-registration).
+Coordinate journal writes and respect the helper lock; preserve worker reports
+and unresolved disagreement. Preserve earlier decisions and explicitly link a
+superseding decision rather than silently rewriting history.
 
 If the journals do not yet exist, include their minimal initialization in the proposal when needed and show the proposed records in chat until initialization is agreed. Missing journals do not require inventing a parallel permanent tracking system.
 
@@ -172,4 +190,4 @@ Number questions within each block. For questions in Russian, translate the head
 
 ## Completion and handoff
 
-Report the concrete outcome concisely: what changed and where, which checks actually ran and their results, any unresolved issue or unperformed check, and the relevant signal/decision IDs when available. For an agent-origin request, return this evidence and the disposition to the analyst for coordination. For a proposal awaiting agreement, state that status plainly; do not report it as an implemented improvement.
+Report the concrete outcome concisely: what changed and where, which checks actually ran and their results, any unresolved issue or unperformed check, and the relevant signal/decision IDs when available. For a human-led signal review, report to the human; when an analyst coordinates that requested review, also return the evidence and disposition to it. For a proposal awaiting agreement, state that status plainly; do not report it as an implemented improvement.

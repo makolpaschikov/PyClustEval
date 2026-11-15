@@ -30,7 +30,11 @@ Default to source reading and non-mutating inspection. Write only assigned ignor
 reports or explicitly authorized isolated check outputs. Do not modify source,
 tests, dependencies, Git state, journals or canonical task artifacts. Do not spawn
 agents. Return questions, requests for further expertise and harness signals to
-the caller; do not contact developers or independently register signals.
+the caller; do not contact developers. On analyst assignments only,
+[exceptional signal registration](../../../harness/signals/README.md#exceptional-worker-registration)
+is the narrow exception to journal-write/report-only limits after analyst refusal
+or leaving a report unprocessed. Use the assigned shared journal and return the
+ID or recording failure; this does not permit maintainer invocation.
 
 Harness-only bootstrap permits relevant project reading, but execution is limited
 to authorized isolated harness checks. A request to run application code does not

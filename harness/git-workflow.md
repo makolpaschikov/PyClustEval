@@ -13,7 +13,9 @@ current branch, another existing branch or a new branch. This includes ignored
 task files, journal records and temporary inputs. Read-only investigation may
 precede the choice; keep pending records in chat until writing is allowed.
 Reuse the choice for subsequent edits and resumption of the same unit and fixes.
-For agent-origin work, obtain the choice and permission through the analyst.
+For human-led review of agent-origin signals, obtain the choice and permission
+directly from the human or through an analyst relaying the actual human decision.
+For other agent-origin work, obtain the choice and permission through the analyst.
 
 For a new branch, agree on its base and name, using the project's `codex/` prefix
 by default. Before creation, explicitly tell the human that commits for the agreed

@@ -38,6 +38,10 @@ environment, update journals/canonical task state, or launch agents. Write only
 an explicitly assigned ignored report. Route missing evidence, expertise requests,
 questions and harness signals through the analyst. Project reading does not lift
 the harness-only execution restriction.
+The narrow exception to journal-write/report-only limits is
+[exceptional signal registration](../../../harness/signals/README.md#exceptional-worker-registration)
+after analyst refusal or leaving a report unprocessed. Use the assigned shared
+journal and return the ID or recording failure; do not invoke the maintainer.
 
 ## Compare request, specification and facts
 

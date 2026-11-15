@@ -201,15 +201,27 @@ artifact path and next eligible subtask for a multi-session epic.
 
 ## Harness feedback
 
-Own registration/deduplication of agent-origin harness signals through the
-[journal helper](../../../harness/signals/README.md). Register substantive
-human-origin harness requests when coordinating them; direct human maintenance
-requests can still go straight to the maintainer. Coordinate a single journal
-writer. Supply task context, evidence, uncertainty and a concrete investigation
-question to [harness-maintainer](../harness-maintainer/SKILL.md).
+Follow the [agent feedback contract](../../../harness/signals/README.md#agent-feedback-and-fallback-registration).
+Register/deduplicate reports, including issues in your own coordination, and return
+signal IDs to reporters. Correct analyst-side problems within existing authority;
+for harness issues provide a permitted continuation without changing the harness
+or waiving checks. Preserve uncertain attribution. A blocking signal pauses the
+task and goes to the human immediately; this takes precedence over continued
+correction attempts. Record local actions/results without closing the signal.
 
-Present a proposed harness change to the human and transmit the actual decision
-and permissions to the maintainer. Signal creation does not launch work or grant
-implementation permission. Return the maintainer's outcome to the task, and pass
-revised instructions explicitly to affected active agents; an edited file does
-not prove that an already running agent adopted it.
+Provide the shared journal destination and narrow fallback-write access in worker
+assignments. Workers may register after your explicit refusal or leaving a report
+unprocessed under the contract; do not require your permission again. Serialize
+normal journal writes and respect the helper lock for exceptional writes.
+
+At session end or handoff, inspect the shared journal and worker reports and tell
+the human every newly registered signal ID/link, problem, local action/result and
+question remaining for maintainer review, plus any failed/pending registrations.
+Preserve pending references on resumption.
+The human initiates later review with [harness-maintainer](../harness-maintainer/SKILL.md);
+do not automatically invoke it for these signals. Register substantive human
+maintenance requests you coordinate; direct requests still go to the maintainer.
+On a human-requested review, supply evidence and the investigation question,
+transmit actual decisions/permissions, and return outcomes to the task. Pass
+revised instructions explicitly to affected active agents; a file edit does not
+prove that a running agent adopted it. Recording a signal grants no repair authority.

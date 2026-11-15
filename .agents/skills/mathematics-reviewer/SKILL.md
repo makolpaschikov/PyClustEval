@@ -41,7 +41,11 @@ during bootstrap. This grants no application execution or environment changes;
 reading code is not execution authority. Write only assigned ignored reports and
 probes. Do not edit reviewed source/specifications/tests, dependencies, Git state,
 journals or canonical task state. Do not spawn agents or contact developers directly.
-Route questions, findings, scientific-source requests and harness signals through
+The only exception to journal-write/report-only boundaries is
+[exceptional signal registration](../../../harness/signals/README.md#exceptional-worker-registration)
+after analyst refusal or leaving a report unprocessed. Use the assigned shared
+journal and return its ID or recording failure; do not launch the maintainer.
+Route questions, findings, scientific-source requests and harness signals first through
 the analyst. Missing sources are researched by internet-scout through that route;
 inspect supplied primary evidence and its applicability.
 

@@ -121,13 +121,30 @@ minor mechanical/integration edits directly. This does not add a registered role
 change specialist review profiles, or transfer application development to the
 maintainer. The existing independent verification and Git rules remain applicable.
 
-An agent reports a harness problem or improvement opportunity to the analyst. The analyst registers the signal, checks for duplicates, supplies the task context, and decides whether to invoke the maintainer for investigation. A signal can describe a need or a proposed improvement; it does not have to be a confirmed defect.
+Agents follow the [feedback contract](signals/README.md#agent-feedback-and-fallback-registration):
+report to the analyst first, then receive a registered signal ID and an authorized
+local correction or workaround. Uncertain causes remain explicit. A blocking
+signal pauses the task and goes to the human immediately. At session end the
+analyst lists new signal IDs, actions/results and questions for maintainer review.
+After an explicit refusal or an unprocessed report, workers may register through
+the helper in the assigned shared journal and notify the analyst. This is a narrow
+exception to journal-write limits, not permission to repair the harness or launch
+the maintainer. Separate worktrees do not get separate signal destinations.
 
-The maintainer may investigate, ask the analyst for more evidence, and prepare a proposal without further human involvement. The analyst presents the proposal to the human. Agent-origin signals do not authorize the maintainer to change the harness without human agreement. Writing a signal in a file does not automatically launch an agent.
+The human initiates later review with the maintainer. A local correction leaves
+the signal open for that review. The maintainer investigates original evidence,
+including worker-created records without analyst endorsement, and proposes a
+disposition or change for human agreement. Neither journal entries nor session
+summaries guarantee independent notification or automatically launch an agent.
 
 All substantive requests to improve the harness, whether human- or agent-originated, belong in the signal and decision records. Ordinary questions without a proposed change do not need entries. Keep current status, decisions, and material evidence concise; omit automatic update history. Distinguish a reported issue, an agreed decision, an implemented change, and a verified outcome.
 
-The analyst owns agent-origin signal registration and coordination. The maintainer records its investigation, the human's decision, and implementation/verification outcomes, coordinating journal edits with the analyst. Agents use the [journal helper](signals/README.md) for every create/update and validate human edits before continuing. Avoid concurrent writes to the same journal; the helper does not grant approval or launch agents.
+The analyst normally owns agent-origin registration and coordination, subject to
+the worker exception above. The maintainer records human-led review, decisions
+and implementation/verification outcomes. Agents use the
+[journal helper](signals/README.md) for every create/update, validate human edits
+and respect the writer lock. Failed registration remains explicitly pending in
+task evidence; it is not replaced by a hand-edited or separate journal.
 
 ## Repository layout
 
@@ -200,7 +217,7 @@ or host agent registration. Native host configuration is not part of this packag
 - `harness/signals/SIGNALS.md` tracks the source, problem or desired improvement, evidence, owner, status, and related decisions for each substantive request.
 - `harness/signals/DECISIONS.md` explains the selected resolution, its rationale, human agreement where applicable, affected scope, and actual implementation and verification results. Rejected or deferred proposals remain traceable.
 
-The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). The analyst skill, local task format and helper were introduced in [DEC-006](signals/DECISIONS.md#dec-006). The developer skill and its analyst invocation were introduced in [DEC-007](signals/DECISIONS.md#dec-007); [DEC-008](signals/DECISIONS.md#dec-008) retains that behavior while replacing Git ownership with delegated worktree commits. The reviewer skill, recommendation criteria and analyst invocation are defined by [DEC-009](signals/DECISIONS.md#dec-009). Human maintenance requests still go directly to the maintainer; agent-origin signals go through the analyst. Journal entries do not launch work automatically.
+The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). The analyst skill, local task format and helper were introduced in [DEC-006](signals/DECISIONS.md#dec-006). The developer skill and its analyst invocation were introduced in [DEC-007](signals/DECISIONS.md#dec-007); [DEC-008](signals/DECISIONS.md#dec-008) retains that behavior while replacing Git ownership with delegated worktree commits. The reviewer skill, recommendation criteria and analyst invocation are defined by [DEC-009](signals/DECISIONS.md#dec-009). [DEC-016](signals/DECISIONS.md#dec-016) defines analyst-first signal registration with the worker fallback and human-led maintainer review. Journal entries do not launch work automatically.
 
 ## Verification of harness changes
 

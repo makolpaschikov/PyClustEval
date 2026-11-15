@@ -41,8 +41,13 @@ Do not edit reviewed source, tracked tests, dependencies, Git state, journals or
 `task.json`, or implement a proposed fix. Write only assigned ignored reports and
 isolated reproductions. Do not allocate worktrees, commit, integrate, spawn other
 agents or contact developers directly. Send questions, specialist requests,
-findings, disagreements and harness signals through the analyst. Existing task
-authority governs execution; do not install tools or packages to unblock review.
+findings, disagreements and harness signals through the analyst first. The only
+exception to journal-write/report-only boundaries is
+[exceptional signal registration](../../../harness/signals/README.md#exceptional-worker-registration)
+after analyst refusal or leaving a report unprocessed, using the assigned shared
+journal. Return its ID or recording failure in the handoff; do not launch the
+maintainer. Existing task authority governs execution; do not install tools or
+packages to unblock review.
 
 ## Review the behavior
 

@@ -76,7 +76,9 @@ relevant evidence. Do not spawn agents yourself, contact a reviewer directly, or
 start work on a sibling task. The analyst owns branch/worktree allocation,
 integration, journals and shared task state; staging and scoped commits in
 the assigned worktree belong to the developer. Do not edit `task.json`,
-register signals, or mark the task complete; report needed updates to the analyst.
+register signals except under the
+[feedback exception](../../../harness/signals/README.md#exceptional-worker-registration),
+or mark the task complete; report needed updates to the analyst.
 
 ## Assigned worktree and commits
 
@@ -187,5 +189,10 @@ The analyst binds inspected evidence to the integrated source/specification,
 updates shared state and decides completion. At interruption, report current
 changes, running work and the next action so it can resume without guessing.
 
-Send observed harness problems to the analyst with task context, evidence and a
-concrete question. Do not repair the harness under an application assignment.
+Send observed coordination or harness problems to the analyst first, with task
+context, evidence, blocking impact and a concrete question. Follow the
+[feedback contract](../../../harness/signals/README.md#agent-feedback-and-fallback-registration)
+if registration is refused or the report is left unprocessed; the exception also
+permits only the specified journal/input writes beyond ordinary task reports.
+Return the signal ID or recording failure in the handoff. Do not repair the harness
+or launch the maintainer under an application assignment.

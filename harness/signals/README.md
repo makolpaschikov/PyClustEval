@@ -9,8 +9,85 @@ second database. Humans may edit the journals directly. Agents must run
 Register a signal once a concrete harness problem or improvement can be
 identified, before deciding whether to implement it. Add clarifications to
 the existing signal and link duplicates. Informational questions do not need
-records. The analyst owns agent-origin registration; until implemented,
-follow the human-led route in the [harness map](../README.md).
+records. Agent feedback follows the contract below; human maintenance requests
+go directly to the maintainer.
+
+## Agent feedback and fallback registration
+
+Workers first report a concrete problem or improvement to the analyst, with task
+context, observed versus expected behavior, evidence, uncertainty and whether it
+blocks progress. Scouts assigned by the maintainer report to that caller instead;
+the maintainer already owns the human-led recording route. Ordinary code-review
+findings and clarification questions remain in the task unless they identify a
+coordination or harness issue needing later review.
+
+The analyst checks the report, registers it through the helper (or links an
+existing signal), and returns its ID to the reporter. Registration does not require
+a confirmed cause. Record the analyst's causal assessment as provisional:
+
+- For an analyst-side problem, correct the assignment or coordination within
+  existing task authority, then record the action and observed result.
+- For a harness problem, record it and give workers concrete instructions for
+  continuing within existing requirements, checks, scientific conditions and
+  permissions. Do not change the harness or waive a gate as a workaround.
+- If the cause remains uncertain, preserve that uncertainty and choose only a
+  supported, authorized continuation. If none exists, treat the issue as blocking.
+
+A blocking signal pauses the task: preserve resumable context and promptly tell
+the human the signal ID, blocked work, evidence and decision or assistance needed.
+Do not wait for the session-end summary. If recording failed, report the failure
+and original problem immediately without inventing an ID.
+
+At session end or a deliberate handoff, the analyst reports every signal newly
+registered during the session, including worker-created signals: ID and link,
+short problem, local action/result or workaround, and what remains for review
+with the maintainer. Include failed/pending registrations separately, with evidence
+and no invented ID. Check the shared journal as well as worker handoffs. Persist
+pending signal references in the existing task handoff/checkpoint for resumption.
+Local repair does not close a signal: keep it open with the action/result and
+maintainer review pending. The human initiates that later review; neither the
+analyst nor a worker automatically launches the maintainer for these signals.
+Use the existing decision/agreement rules for disposition after review.
+
+### Exceptional worker registration
+
+After first reporting to the analyst, a worker may register the signal itself if
+the analyst explicitly refuses to record it or observably leaves it unprocessed
+(for example, moves past the reported issue without a disposition or closes the
+task without handling it). A pending response or ongoing investigation alone is
+not a trigger. This narrow exception needs no additional analyst approval.
+
+Check for an existing signal first. If one exists, return its ID and any additional
+evidence to the analyst. Otherwise use the helper to create an open signal with
+the original observation, task/evidence pointers, prior report and analyst
+response or omission, and the concrete question for later review. Notify the
+analyst of the returned ID and include it in the worker's handoff. Do not edit
+other records, create decisions, close signals, spawn the maintainer, or gain
+commit/task-state authority through this exception.
+
+### Shared journal destination and write limits
+
+At assignment time, the analyst supplies the absolute shared journal directory,
+its coordinator checkout and human-selected task branch, the helper path, and
+permitted temporary-input/report paths. Include narrowly scoped access to this
+destination for exceptional registration; it may be outside the worker checkout.
+Use the existing `--journal-dir` option explicitly for cross-worktree writes.
+Do not silently write to the worker's own copy or assume Git will transfer it.
+
+Verify the destination checkout/branch before writing and run `check`. This is a
+limited exception to workers' journal-write and report-only boundaries, not to
+human scope, sandbox access, branch choice or commit permissions. The existing
+task branch choice covers this recording; no new maintenance branch is required
+for each reported incident. The analyst remains responsible for journal integration
+and preservation. Workers do not stage or commit the shared journal.
+
+Use the helper's writer lock; do not bypass it or overwrite concurrent changes.
+If the destination/authority is missing or changed, a lock remains, or the helper
+fails, retain the report and evidence in the authorized task artifacts and report
+registration as pending/failed. Do not hand-edit a journal or claim registration
+succeeded. Registration is established only by a successful helper result with
+an ID. Journal recording and session summaries are not a guaranteed independent
+notification channel to the human.
 
 ## Runtime and commands
 

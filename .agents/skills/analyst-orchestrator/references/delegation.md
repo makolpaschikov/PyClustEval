@@ -18,10 +18,20 @@ Give each assignee:
 - Permitted read/write paths, allowed side effects, forbidden scope changes and
   scientific invariants. Pass permissions as bounded instructions, not inferred
   authority from a plan or journal.
-- Dependencies, file ownership and integration owner. No branch switches, commits,
-  journal updates or task-state writes unless explicitly assigned by the coordinator.
+- Dependencies, file ownership and integration owner. No branch switches, commits
+  or task-state writes unless explicitly assigned by the coordinator. Journal
+  writes follow the limited feedback contract below.
 - Acceptance checks, expected evidence and where to return artifacts. Ask for
   actual commands/results, remaining uncertainty and a clear completion/blocker status.
+
+Supply the absolute shared journal directory, its coordinator checkout and selected
+task branch, helper path and permitted input/report paths under the
+[feedback contract](../../../../harness/signals/README.md#agent-feedback-and-fallback-registration).
+For analyst assignments, include narrow access for exceptional worker registration
+after refusal or an unprocessed report, without a second analyst approval. This
+exception qualifies the journal-write/report-only restrictions below; it grants
+no other edits, commits or maintainer invocation. Use the same destination across
+worktrees and report failures rather than creating a separate local journal.
 
 Keep the coordinator as the sole owner of shared task state and integration.
 Pass authorized canonical-task/source paths and output locations for the
@@ -71,7 +81,8 @@ references, actual check results, versions, causal hypotheses and missing eviden
 before incorporating conclusions. Scouts do not recommend fixes. Inconclusive
 internet research returns a partial answer; broaden its question only through an
 explicit assignment. Requests and harness signals return to the caller, which
-retains state ownership and the existing signal-registration route.
+retains state ownership. Analyst-assigned scouts follow the shared feedback
+exception when necessary; maintainer-assigned scouts return signals to the maintainer.
 
 ## Specification-review invocation
 
@@ -97,7 +108,8 @@ authorized parts may continue.
 
 Reviewers inspect authorized documents/source and write only their assigned
 ignored reports. They do not execute application code, change source/specs,
-dependencies, Git state, journals or canonical task state, or spawn workers.
+dependencies, Git state or canonical task state, or spawn workers. Journal writes
+are limited to the common feedback exception.
 Requests for execution, source research or expertise go through the analyst.
 Both may suggest local wording that preserves meaning. Changes in requirement
 meaning, scientific conditions or architecture return as questions to the analyst.
@@ -163,7 +175,8 @@ Keep coordination with the analyst: the developer sends dependency proposals,
 requests for other agents, blockers, harness signals and review disagreements
 back to it. The analyst arranges assistance and independent review. The developer
 does not spawn agents, allocate/switch worktrees or branches, integrate other
-branches, update journals or shared task state, or decide task completion. It
+branches, update shared task state, or decide task completion. Journal writes are
+limited to the common feedback exception. It
 does stage and commit its assigned work under the
 [delegated Git procedure](../../../../harness/git-workflow.md#delegated-developer-worktrees),
 including review-fix commits without advance title messages. This scoped
@@ -194,8 +207,9 @@ Assign an ignored report/reproduction path and permitted checks, environment and
 resource limits. Provide instructions and input paths explicitly when they live
 outside the review checkout. During bootstrap use only explicitly isolated harness
 fixtures. The reviewer may run authorized tests and write isolated reproductions;
-it cannot edit reviewed source, tracked tests, Git state, dependencies, journals or
-the canonical manifest. Route questions, requests for expertise and corrections
+it cannot edit reviewed source, tracked tests, Git state, dependencies or
+the canonical manifest. Journal writes are limited to the common feedback exception.
+Route questions, requests for expertise and corrections
 through the analyst. Do not provide desired conclusions or conceal missing checks.
 
 Freeze the assigned review content while the review runs, or coordinate changes

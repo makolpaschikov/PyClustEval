@@ -166,3 +166,16 @@
 - Decision: [DEC-015](DECISIONS.md#dec-015)
 - Agreement: After discussing all four groups, the human approved the complete five-file package and new codex/harness-maintainer-workflow from experiments-series-runner at d39609f with да on 2026-11-16. Caller-selected Terra/Sol medium/high/xhigh applies only to harness implementation workers; existing specialist profiles and Git rules remain.
 - Details: DEC-015 implements the four approved groups and separate implementation-worker effort criteria. Common validation and nine independent textual scenarios plus two fresh correction scenarios passed; stock skill validation lacks PyYAML. Evidence and source mapping: .agent-work/tasks/harness-maintainer-workflow/verification.md and plan.md. Historical Git permissions and urgency were not generalized.
+
+<a id="sig-014"></a>
+## SIG-014: Register agent feedback with an analyst fallback
+
+- Date: 2026-11-16
+- Origin: Human request in the harness signal-routing chat
+- Owner: harness-maintainer
+- Request: Use the existing journal for analyst-first agent feedback, analyst triage and permitted local corrections/workarounds, immediate human escalation for blockers, session-end signal summaries, and exceptional worker registration after analyst refusal or leaving a report unprocessed. Review signals with the human and maintainer later.
+- Evidence: Current worker instructions prohibit journal writes and all agent-origin registration depends on the analyst. The journal helper already supports an explicit directory and a writer lock. This is a preventive instruction change; no live suppressed signal was reproduced.
+- Status: resolved
+- Decision: [DEC-016](DECISIONS.md#dec-016)
+- Agreement: The human proposed the journal-only workflow, answered 'Да, как исключение' to exceptional worker registration, then selected option 'А' for the presented implementation branch: codex/harness-signal-routing from experiments-series-runner with announced scoped automatic commits. No scheduled delivery, new service or automatic maintainer launch is included.
+- Details: DEC-016 implements the agreed journal-only workflow and independent worker-registration exception. Common validation, independent nine-scenario trial, consistency review and isolated shared-directory/lock probe passed. Evidence: .agent-work/tasks/harness-signal-routing/verification.md. Stock skill validation remains unavailable without PyYAML; no environment changes or independent delivery guarantee.
