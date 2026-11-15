@@ -1,10 +1,13 @@
-# Specialist model profiles
+# Subagent model profiles
 
 Use this policy when the analyst or harness maintainer assigns one of the five
 specialists below. It records the human-approved choices in
 [DEC-010](signals/DECISIONS.md#dec-010) and [DEC-011](signals/DECISIONS.md#dec-011);
 it is not a model performance ranking.
-Other roles retain their existing model/inheritance rules.
+The separate [harness implementation worker profile](#harness-implementation-workers)
+is defined by [DEC-015](signals/DECISIONS.md#dec-015). Other roles retain their
+existing model/inheritance rules. The following specialist sections do not turn
+implementation workers into specialists or extend their authority.
 
 ## Allowed choices
 
@@ -70,6 +73,44 @@ incompatible settings to the caller; they do not change settings or launch agent
 The caller owns selection and any necessary replacement, preserving independence
 and avoiding duplicate work. Full behavior and handoff requirements live in the
 role skills and [delegation contract](../.agents/skills/analyst-orchestrator/references/delegation.md).
+
+## Harness implementation workers
+
+This profile applies only when the maintainer delegates harness-script fixes or
+mechanized checks under the
+[maintainer workflow](../.agents/skills/harness-maintainer/SKILL.md#investigation-and-implementation).
+It does not change scout, application developer or independent reviewer profiles.
+These are ordinary bounded workers, not a new skill or registered agent type.
+
+The maintainer selects `gpt-6.1-terra` or `gpt-6.1-sol`, with `medium`, `high` or
+`xhigh` reasoning. All six combinations are permitted; choose model and effort
+separately according to task complexity and how concrete the plan is, without a
+fixed model/effort pairing. Judge effort by requirement/solution clarity,
+interacting rules and components, failure/recovery complexity and verifiability:
+
+| Effort | Assignment characteristics |
+| --- | --- |
+| `medium` | Local, clearly specified behavior; an applicable solution pattern; direct verification scenarios and no material unknowns. |
+| `high` | Independent solution choice, interactions across components or substantive edge cases; several meaningful verification scenarios are needed. |
+| `xhigh` | Several interacting sources of difficulty, such as shared invariants, concurrent changes, partial failures, uncertain contracts or hard-to-reproduce violations; local reasoning alone is insufficient. |
+
+Choose the least sufficient effort for the hardest substantial part of the task,
+not by file/line count. Serious consequences demand stronger verification but do
+not alone imply `xhigh`. Higher effort does not replace clarification of human
+intent or investigation of missing facts. If complexity changes, reconsider task
+decomposition and the worker profile; a single failed test or tool failure does
+not automatically justify escalation. Briefly record the selection reason in the
+existing assignment, without a separate tracker.
+
+Launch a fresh worker with explicit model and effort (currently `fork_turns:
+"none"`) and a self-contained assignment, including this profile, relevant
+instruction paths and the actual approved scope. A bounded worker follows its
+assignment; it does not assume the maintainer's whole workflow or authorities.
+Record requested settings and launch success; claim effective settings only from
+authoritative host metadata. If the selected pair is unavailable, choose another
+permitted pair and report the change; if none is available, report the limitation
+for a decision. Do not silently inherit an unapproved profile. The caller owns any
+replacement; a follow-up message does not itself change a worker's model/effort.
 
 ## Documentation and limits
 

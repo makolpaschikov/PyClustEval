@@ -153,3 +153,16 @@
 - Decision: [DEC-014](DECISIONS.md#dec-014)
 - Agreement: Human responses in this chat: 1. Да; 2. Работай в текущей ветке, можешь именовать и делать коммиты без моего подтверждения. Scope is the five-part plan and review fixes; actual hook activation in the working checkout remains a separate decision.
 - Details: DEC-014 implements all five approved mechanisms and is independently accepted. Final affected suite and actual staged hook/assignment/handoff lifecycle passed after supported corrections; working-checkout hook activation remains excluded. Evidence: .agent-work/tasks/harness-quality-checks/verification.md.
+
+<a id="sig-013"></a>
+## SIG-013: Clarify maintainer planning and script delegation
+
+- Date: 2026-11-16
+- Origin: Human request in chat 01a1e0fe-4d6d-7cc0-94e1-116e730f62fc
+- Owner: harness-maintainer
+- Request: Incorporate agreed overview, planning, harness-script delegation and scoped technical-autonomy rules derived from two preceding maintenance chats.
+- Evidence: Read all eleven human messages and approval context from chats 01a1de98-56ab-7e60-9292-6d3ba71f11fa and 01a1e0c6-f8b9-70c3-947d-6da77c14a6de. The current skill explicitly delegates investigation and verification but does not define the requested implementation-worker workflow. Human excluded historical Git permissions and urgency.
+- Status: resolved
+- Decision: [DEC-015](DECISIONS.md#dec-015)
+- Agreement: After discussing all four groups, the human approved the complete five-file package and new codex/harness-maintainer-workflow from experiments-series-runner at d39609f with да on 2026-11-16. Caller-selected Terra/Sol medium/high/xhigh applies only to harness implementation workers; existing specialist profiles and Git rules remain.
+- Details: DEC-015 implements the four approved groups and separate implementation-worker effort criteria. Common validation and nine independent textual scenarios plus two fresh correction scenarios passed; stock skill validation lacks PyYAML. Evidence and source mapping: .agent-work/tasks/harness-maintainer-workflow/verification.md and plan.md. Historical Git permissions and urgency were not generalized.

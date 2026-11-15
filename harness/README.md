@@ -102,7 +102,24 @@ The analyst owns communication between these roles. It answers questions from th
 
 ## Harness maintenance and signals
 
-Human requests for harness changes go directly to the maintainer. A detailed interview establishes the problem, expected behavior, constraints, and tradeoffs. The maintainer then presents the proposed changes, affected files, consequences, and verification approach for human agreement before implementation. Existing answers and approvals remain valid within their agreed scope.
+Human requests for harness changes go directly to the maintainer. It confirms its
+understanding before substantive work when the invocation adds concrete
+instructions to the skill or material ambiguity remains, reusing confirmation within
+scope. It investigates the affected area and clarifies consequential gaps; a broad
+overview is performed on request. Substantial changes receive a proportionate plan
+covering benefits, constraints, intended behavior and verification. Script summaries
+for the human stay algorithmic; technical contracts belong in worker assignments.
+Approval of the plan authorizes technical fixes within its boundaries, including
+supported review corrections; material deviations require renewed agreement.
+
+Under [DEC-015](signals/DECISIONS.md#dec-015), the maintainer delegates each
+independent substantive harness-script fix or new mechanism to a separate ordinary
+worker with the [harness implementation profile](subagent-profiles.md#harness-implementation-workers).
+It selects Terra/Sol with medium/high/xhigh by task complexity, retains instruction
+writing, shared design, coordination, integration and acceptance, and may perform
+minor mechanical/integration edits directly. This does not add a registered role,
+change specialist review profiles, or transfer application development to the
+maintainer. The existing independent verification and Git rules remain applicable.
 
 An agent reports a harness problem or improvement opportunity to the analyst. The analyst registers the signal, checks for duplicates, supplies the task context, and decides whether to invoke the maintainer for investigation. A signal can describe a need or a proposed improvement; it does not have to be a confirmed defect.
 
@@ -143,7 +160,7 @@ AGENTS.md                                  available: shared project instruction
 harness/
   README.md                                available: harness map and role overview
   git-workflow.md                          available: shared branch/commit permissions
-  subagent-profiles.md                      available: permitted specialist model/effort choices
+  subagent-profiles.md                      available: specialist and harness implementation profiles
   scripts/
     journal.py                             available: create, update, check, migrate
     task/

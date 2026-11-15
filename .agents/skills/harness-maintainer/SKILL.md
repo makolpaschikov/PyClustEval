@@ -32,13 +32,38 @@ These message rules override the corresponding defaults; all other
 
 ## Human-request workflow
 
-1. Inspect enough context to ask informed questions. Conduct a detailed interview covering the actual problem or desired capability, observed and expected behavior, affected roles, available evidence, constraints, and meaningful tradeoffs. Use small question blocks and adapt follow-ups to the answers. Do not repeat questions already answered or collect details that cannot affect the solution.
-2. Separate verified facts, human requirements, hypotheses, and unresolved questions. Reproduce or trace a reported failure when feasible; a proposed cause is not established merely because a signal asserts it.
-3. Summarize the agreement and propose a concrete change: intended behavior, affected files and roles, scope boundaries, relevant consequences, and how the outcome will be checked. Offer alternatives when there is a real tradeoff.
-4. Obtain the human's agreement before implementing the proposed harness change. If the human has already agreed to that concrete change, continue without asking again. A material expansion or change of the agreed behavior needs renewed agreement for that part; routine implementation details within the agreement do not.
+1. If the invocation contains concrete instructions supplementing this skill, or a material ambiguity remains, briefly explain your understanding and intended next steps and obtain confirmation before substantive investigation or planning. Naming the desired result or requesting the standard overview below does not by itself constitute a supplementary instruction. Read only enough context to make that clarification useful. Reuse confirmation already given for the same scope; resumption and ordinary follow-up instructions do not automatically restart this step.
+2. Inspect relevant context and interview the human about consequential gaps: the problem or capability, observed and expected behavior, affected roles, evidence, constraints and tradeoffs. Use small adaptive question blocks; do not repeat answered questions. Separate facts, requirements, hypotheses and open questions. Trace or reproduce a reported failure when proportionate; a signal's proposed cause is not proof.
+3. Present a proportionate plan for substantial changes. For each item, explain the idea and expected result, benefit, limitations and conditions, and a short algorithm or the intended agent behavior. Include the package's scope, dependencies, shared responsibilities and verification approach where they affect approval or implementation. Keep human-facing script descriptions algorithmic, without code examples or implementation detail; place technical contracts in worker assignments. Small edits need only a brief description and relevant verification. Offer alternatives for meaningful tradeoffs.
+4. Obtain approval before implementation; a package of new mechanisms needs approval of the whole plan. Permission to prepare a plan is not permission to implement it. Once approved, choose technical fixes autonomously within the agreed behavior, scope and constraints, including supported review corrections, without a separate grant for each fix. Reuse existing approval. Material changes to behavior, scope, authority or constraints need renewed agreement for the affected part; independent authorized work may continue. Assess review findings before adopting them, and do not automatically add optional suggestions to the task.
 5. Implement and verify the agreed change, then record and report its actual outcome.
 
 For any additional skill being created, explicitly ask whether the human wants an in-depth interview about that skill and discuss its content before writing it. An answer already given in the current discussion satisfies this requirement; do not start the same interview again.
+
+## Overviews and improvement proposals
+
+Perform a broad harness overview when requested. Check unfinished agreements,
+obvious instruction/gate defects, manual operations worth mechanizing and useful
+additional quality checks. For a concrete task, investigate the affected area;
+report significant incidental findings separately without expanding the task.
+Read related prior discussions when needed to recover requirements or decisions.
+Use relevant instructions, code and existing evidence, with small targeted probes
+when useful. If confirmation needs a deep investigation, label the uncertainty and
+propose that investigation separately instead of silently turning the overview
+into a full audit. An overview does not authorize implementation.
+
+Evaluate improvements by concrete benefit, suitability for mechanization,
+proportional implementation/maintenance/execution cost, and overlap with existing
+mechanisms. A reasoned preventive risk can justify an improvement without an
+observed failure. Mechanization needs sufficiently defined inputs, rules and
+outputs; substantive judgment and human authority stay with their owners.
+Consider reusing or extending existing mechanisms. Do not require a proposal quota,
+measured time savings before implementation, or scripts for their own sake.
+
+For each material finding or proposal, briefly give its evidence and confidence,
+benefit, significant limits and recommended next action. Detailed algorithms belong
+in the later plan. A specific proposal review assesses usefulness, compatibility,
+limits and related gaps before planning implementation.
 
 ## Agent-signal workflow
 
@@ -69,6 +94,25 @@ and model rules. Mathematical formulation and implementation verification use
 different independent instances, with the explicitly selected Astra profile. Do not
 claim an unavailable role or automation exists. This permission does not transfer
 live application orchestration to the maintainer.
+
+Delegate each independent substantive harness-script fix or new mechanism to a
+separate ordinary implementation worker using the
+[harness implementation profile](../../../harness/subagent-profiles.md#harness-implementation-workers).
+This is a maintainer assignment, not invocation of the application Python developer
+or a new registered role. The maintainer owns instruction writing, shared design,
+assignments, coordination, integration and acceptance. Give each worker the
+approved outcome, boundaries, dependencies, permitted files and side effects,
+verification expectations and relevant instructions. Technical detail belongs in
+these assignments. Arrange isolation or sequencing to avoid conflicting edits;
+separate workers do not imply simultaneous execution.
+
+The maintainer may make minor mechanical or integration edits directly; return
+substantive behavior changes and supported review fixes to the responsible worker.
+Inspect the delivered artifacts and evidence, integrate them and arrange the
+verification required below. Workers do not inherit the maintainer's journal,
+approval or Git authority merely by being delegated work. If implementation
+delegation is unavailable, report the limitation and agree a changed workflow
+instead of silently taking over substantive script implementation.
 
 When changing host-specific configuration, verify the installed format and relevant official documentation as needed. Prefer primary sources for external technical claims, record applicable versions, and distinguish documented behavior from assumptions. Do not hard-code an unrequested model or introduce new dependencies merely to complete the harness.
 
