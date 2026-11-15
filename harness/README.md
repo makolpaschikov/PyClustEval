@@ -86,7 +86,9 @@ bounded web research, plus an independent instruction review and six textual
 coordination scenarios. A causal-qualification issue in the code scout was fixed
 and rechecked by a fresh worker. These checks do not benchmark every allowed
 model/effort pair or establish live application delivery. Native host registration
-and role-specific automation are not implemented; the task helper remains analyst-owned.
+is not implemented. The task helper provides explicit worker snapshots, check
+execution and report packaging; canonical evidence adoption and state changes
+remain analyst-owned under the [automation contract](../.agents/skills/analyst-orchestrator/references/task-automation.md).
 
 ## Target development workflow
 
@@ -145,7 +147,7 @@ harness/
   scripts/
     journal.py                             available: create, update, check, migrate
     task/
-      task.py                              available: init, lint, snapshot, check, migrate
+      task.py                              available: artifacts, gates and explicit automation commands
       task_support/                        available: formats, artifacts, lint, gates
   tests/
     test_journal.py                         available: isolated helper checks
@@ -160,9 +162,11 @@ harness/
 `.agent-work/tasks/` holds local task instances, manifests and verification
 artifacts and is excluded from Git. Templates and helper code remain tracked.
 The analyst helper checks format, specification readiness, implementation start,
-completion and resumption. It checks recorded evidence and content fingerprints;
-it does not authenticate human consent, execute recorded test commands or prove
-that tests establish the intended behavior.
+completion and resumption. Its read-only gates check recorded evidence and content
+fingerprints. Explicit automation commands capture worker context, execute supplied
+check argv, package/import evidence and safely save checkpoints/completion. They
+do not authenticate human consent or prove that passing tests establish the intended
+behavior. See [task automation](../.agents/skills/analyst-orchestrator/references/task-automation.md).
 
 Task JSON uses version 2 while Markdown remains version 1. The mathematical record
 captures impact, scoped authors and distinct formulation/implementation reviews.

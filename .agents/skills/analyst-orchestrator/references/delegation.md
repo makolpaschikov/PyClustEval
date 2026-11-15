@@ -24,6 +24,11 @@ Give each assignee:
   actual commands/results, remaining uncertainty and a clear completion/blocker status.
 
 Keep the coordinator as the sole owner of shared task state and integration.
+Pass authorized canonical-task/source paths and output locations for the
+[automation commands](task-automation.md). Workers can capture context, execute
+explicitly assigned checks and package reports; only the coordinator imports
+current evidence or invokes checkpoint/complete. Supply original before-review
+contexts and require actual after-review capture, never a refreshed substitute.
 Before parallel edits, determine disjoint file ownership or separate authorized
 workspaces. Subagents may share the same filesystem: a prompt saying read-only
 does not create an isolated sandbox. Do not duplicate implementation between
@@ -258,7 +263,8 @@ actors must be real, distinct agents; changing the name of the same author is no
 independence. A readiness/alignment reviewer may subsequently perform general Python review
 provided it did not author the implementation. Mathematical formulation and
 implementation reviews always require different independent agents. Specialized reviewer-side
-automation remains future role work; do not invent it here.
+automation is limited to the explicit context/check/report helpers. Those helpers
+do not perform the substantive review or select its verdict.
 
 Give reviewers minimal raw context needed to exercise the decisions, without
 desired answers, suspected defects or your conclusions. Questions from a reviewer

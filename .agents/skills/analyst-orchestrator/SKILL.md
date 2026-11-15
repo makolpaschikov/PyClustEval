@@ -172,7 +172,8 @@ unaffected work when possible; do not label an incomplete requirement completed.
 
 At a meaningful handoff or pause, save current decisions, permissions, active
 assignments, outstanding questions, verification evidence and the next action.
-Save a checkpoint using the actual current source/specification fingerprints.
+Use the artifact helper's `checkpoint` operation with the current manifest hash
+to save actual source/specification fingerprints and preserve prior state.
 On resumption, read the task and relevant parent contracts, inspect the real
 branch/diff and active processes or agents if any, then run the resumption gate.
 Investigate drift before refreshing a checkpoint. Do not automatically relaunch
@@ -185,8 +186,9 @@ name or a saved log cannot authenticate its own claims. The helper checks stored
 evidence and version consistency, and is not an execution sandbox or an approval
 service. Record limitations and unsupported checks candidly.
 
-Only after those checks mark the selected unit done and save its completion
-receipt. Epic completion additionally needs completed children and verification
+Use `complete` after those assessments to rerun the gate and atomically save the
+selected unit's done status, completion receipt and checkpoint. Epic completion
+additionally needs completed children and verification
 of the integrated result against the epic's acceptance criteria. Commit only
 intended changes under the existing permission. Report the delivered behavior,
 actual verification, remaining issues, branch/commit if applicable, and the local

@@ -42,9 +42,12 @@ initializers from colliding. A crash may leave a lock or partial directory;
 inspect and reconcile it instead of retrying with forced deletion. Creating a
 document and updating its manifest are not crash-atomic as a pair.
 
-The analyst is the sole writer of task state. Fill Markdown and edit `task.json`
-directly, preserving existing fields and evidence; run lint after edits. This is
-different from the harness journals, whose edits must always use `journal.py`.
+The analyst is the sole writer of task state. Use the
+[automation commands](task-automation.md) to register packaged evidence, save
+checkpoints and complete tasks. Direct Markdown/JSON edits remain available for
+requirements, permissions, review planning, contributors and finding dispositions;
+preserve existing fields/evidence and run lint after such edits. Harness journal
+edits must always use `journal.py`.
 Do not edit a manifest concurrently with the helper or another agent. Keep old
 evidence on disk when it becomes obsolete; current record fields point to the
 evidence currently being claimed, not a fabricated history of success.
@@ -66,30 +69,25 @@ needed specification/contract copies or authorized read paths and an ignored tas
 directory for the developer's reports. These copies are inputs, not independent
 approval or state records. Reconcile specification changes before resuming work.
 
-The `task.py snapshot` CLI requires a task manifest and a task directory inside
-its selected checkout; it is not a manifest-free worker command. When recording
-worker source content, use the existing read-only module entry point instead.
-With an available Python interpreter, substitute the actual authorized paths in
-this snippet; no copied manifest or changed helper is needed:
+The existing `snapshot` command requires a manifest. Use `source-snapshot` for a
+worker checkout without copying canonical state:
 
-```python
-import json
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path("<harness-checkout>") / "harness/scripts/task"))
-from task_support.artifacts import repository, stable_snapshot
-
-print(json.dumps(stable_snapshot(repository("<developer-worktree>"))))
+```powershell
+py -3.14 -B harness/scripts/task/task.py --repo <developer-worktree> source-snapshot
 ```
+
+Use `context` with the canonical task repository/directory and explicit
+`--source-repo <developer-worktree>` when a check or review also needs task and
+specification bindings. See the [automation contract](task-automation.md).
 
 This records the worker branch and the same source-content digest used by analyst
 gates. It does not grant authority, record test execution or run a worker gate.
 
 Before integration or completion, inspect the developer's committed changes,
-remaining staged/uncommitted work and actual check reports. Copy needed raw
-evidence into the canonical task directory and verify hashes against the original
-reports; retain the originals and their source/specification identity. Record
+remaining staged/uncommitted work and actual check reports. Import evidence packages
+through `import-evidence`; use its explicit adoption operation only after assessing
+their applicability. It verifies copied bytes and preserves original bindings.
+Keep original raw reports and their source/specification identity. Record
 branch/base/head and the tested working-tree content, not just a final commit ID.
 Uncommitted or ignored inputs and runtime differences must remain visible.
 
@@ -186,10 +184,11 @@ Evidence structures (SHA fields hold actual 64-character lowercase SHA-256):
   dispositions for all findings and resolution of every blocking finding.
 - `checkpoint`, `completion`: null or `{ "spec_sha256": "...", "source_sha256": "..." }`.
 
-Evidence files must be nonempty and remain inside the task directory. Use
-`Get-FileHash -Algorithm SHA256` or another available SHA-256 tool to obtain
-content hashes, normalizing letters to lowercase. Actor names and command text
-are records, not authentication. Inspect the real agent output/execution trace.
+Evidence files must be nonempty and remain inside the task directory. The automation
+helper computes file hashes and v2 records for packaged results. Imported ZIP
+artifacts contain metadata and raw payloads; their v2 SHA covers the whole archive.
+Existing plain-file reports remain supported. Actor names and command text are
+records, not authentication. Inspect the real agent output/execution trace.
 
 ## Mathematical review records
 
@@ -224,14 +223,15 @@ dependency/child does not silently make an old enclosing mathematical report cur
 Formulation scope excludes later child elaboration so shared-contract review can
 precede it; human approval retains its existing item/ancestor scope.
 
-Compute the scope digest with the read-only module helper in the coordinator task:
+Compute and inspect the scope with `math-scope` in the coordinator task:
 
-```python
-from task_support.mathematics import scope_digest
-# directory is the selected task Path, manifest the loaded v2 object,
-# item the assigned entry, and stage is "specification" or "implementation".
-print(scope_digest(directory, manifest, item, stage))
+```powershell
+py -3.14 -B harness/scripts/task/task.py math-scope .agent-work/tasks/example --id TASK-001 --stage specification
 ```
+
+Use `context` with the same stage for the exact context-v1 input to review packaging;
+capture it before review and compare a fresh context afterwards. `math-scope` also
+lists included contracts for inspection; fingerprints do not replace reading them.
 
 Record this digest in the original report as well as its manifest binding; obtain
 it before and after review, with the actual scoped documents supplied to the worker.
@@ -288,9 +288,10 @@ py -3.14 -B harness/scripts/task/task.py check .agent-work/tasks/example --id TA
 
 `lint`, `snapshot` and `check` are read-only. They print JSON on success and return
 0; diagnosed invalid inputs/gate failures return 1 with a concrete error; invalid
-CLI syntax returns 2. The helper never executes a recorded check command, launches
-agents, changes branches or installs packages. It is mandatory workflow checking,
-not a tool-access control or tamper-proof approval system.
+CLI syntax returns 2. These inspection commands never execute a recorded command.
+Only explicit `run-check` executes caller-supplied argv under existing authority;
+the helper never launches agents, changes branches or installs packages. It is
+workflow checking, not a tool-access control or tamper-proof approval system.
 
 The specification digest covers the item brief/specification, ancestor contracts,
 scope, mathematical impact/rationale and structural agreement/verification fields. A changed contract or check
@@ -322,8 +323,12 @@ review must assess the coverage of such a reassessment.
 | `completion` | Current specification/approval/reviews, successful required execution records and independent Python and applicable mathematical implementation reviews bound to current source, distinct mathematical stage agents, findings disposed and ancestor blockers resolved; for an epic, all children completed plus epic-level integration checks and Python-review independence from all included child contributors. |
 | `resumption` | Checkpoint matching current spec/source/branch and intact current evidence including mathematical review bindings/independence; claimed active/done states also satisfy their applicable gates. Reconcile drift before changing state. |
 
-After a successful completion gate, copy its `receipt` to `completion`, set
-`status` to `done`, and preserve a current checkpoint for handoff. Dependencies
+Use `complete` to run the completion gate and atomically save its receipt, `done`
+status and current checkpoint. Use `checkpoint` for a handoff without changing
+status; replacing a differing checkpoint requires an explicit reconciliation reason
+and intact current evidence. Both commands require the expected manifest hash and
+preserve previous state. See [state operations](task-automation.md#state-operations).
+Dependencies
 are checked against their accepted completion source revision, since successor
 implementation necessarily changes current source. Their specification and report
 integrity still must hold. The analyst must inspect whether later changes broke

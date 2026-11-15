@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create and check local analyst task artifacts. Requires Python 3.10+ and Git."""
+"""Manage task artifacts, explicit checks and evidence. Requires Python 3.10+ and Git."""
 from __future__ import annotations
 
 import argparse
@@ -13,6 +13,9 @@ from task_support.formats import SECTIONS, TaskError, require
 from task_support.gates import check_gate
 from task_support.lint import lint
 from task_support.migration import migrate
+from task_support import snapshots, state, execution, evidence
+
+AUTOMATION = (snapshots, state, execution, evidence)
 
 
 def main(argv=None):
@@ -37,9 +40,35 @@ def main(argv=None):
             command.add_argument("--id", required=True)
         if name == "check":
             command.add_argument("--gate", choices=("specification", "start", "completion", "resumption"), required=True)
-    args = parser.parse_args(argv)
+    for module in AUTOMATION:
+        module.add_commands(commands)
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    command_argv = None
+    # Only the top-level command token controls argv splitting; option values
+    # (including a repository named "run-check") must not affect legacy parsing.
+    position = 0
+    while position < len(arguments):
+        token = arguments[position]
+        option = token.split("=", 1)[0]
+        if option.startswith("--") and "--repo".startswith(option) and len(option) > 2:
+            position += 1 if "=" in token else 2
+        else:
+            break
+    is_run_check = position < len(arguments) and arguments[position] == "run-check"
+    if is_run_check and "--" in arguments[position + 1:]:
+        separator = arguments.index("--", position + 1)
+        command_argv = arguments[separator + 1:]
+        arguments = arguments[:separator]
+    args = parser.parse_args(arguments)
+    if args.command == "run-check":
+        args.argv = command_argv or []
     try:
         repo = repository(args.repo)
+        for module in AUTOMATION:
+            if args.command in module.COMMANDS:
+                report, exit_code = module.run_command(args, repo)
+                print(json.dumps(report, indent=2, ensure_ascii=False))
+                return exit_code
         directory = workspace(repo, args.directory)
         if args.command == "init":
             initialize(repo, directory, args.id, args.kind, args.branch, args.scope, args.parent, args.expect_sha256)

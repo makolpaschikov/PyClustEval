@@ -127,3 +127,16 @@
 - Decision: [DEC-012](DECISIONS.md#dec-012)
 - Agreement: On 2026-11-15 the human explicitly confirmed the described three-fix workflow and new codex/harness-gate-fixes branch from experiments-series-runner, delegated concrete fixes without further approval, and waived commit-title approval. Harness-only scope and independent verification remain in force.
 - Details: DEC-012 fixes all three reported defects and is independently accepted. The integrated suite passed 114 tests and independent CLI verification passed 58 probes. Plan, assignments, original and copied logs, integrity records and final verification are under .agent-work/tasks/harness-gate-fixes/.
+
+<a id="sig-011"></a>
+## SIG-011: Mechanize task snapshots, evidence and state operations
+
+- Date: 2026-11-15
+- Origin: Human request and approved four-mechanism plan in the harness maintenance chat
+- Owner: harness-maintainer
+- Request: Implement CLI snapshots/context, bounded check execution, immutable evidence packaging/import, and guarded checkpoint/completion with one separate Terra/Sol high worker per mechanism.
+- Evidence: Existing task helper computes fingerprints and gates but agents manually invoke module snippets, collect check metadata, copy and bind reports, and save receipts/state. The human reviewed the four mechanisms, benefits, algorithms and limits and explicitly approved the entire plan and codex/harness-task-automation from experiments-series-runner.
+- Status: resolved
+- Decision: [DEC-013](DECISIONS.md#dec-013)
+- Agreement: Human approval in this chat on 2026-11-15: Да, утверждаю весь план и новую ветку codex/harness-task-automation от experiments-series-runner. Приступай к реализации. Scoped commits/review fixes on the announced new branch need no repeated approval; bootstrap remains harness-only.
+- Details: DEC-013 implements all four approved mechanisms and is independently accepted. Final full harness suite passed 160 tests; original failure/review evidence and corrected results are retained under .agent-work/tasks/harness-task-automation/.
