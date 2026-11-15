@@ -154,6 +154,11 @@ check/resource limits, and dedicated ignored evidence paths in that worktree. Du
 bootstrap only explicitly isolated harness verification is permitted; an
 application specification alone does not expand that scope.
 
+Supply the analyst-owned [Git assignment](../../../../harness/quality-checks.md#assigned-developer-git-checks)
+and SHA-256 as executable scope inputs, retaining the actual authority source.
+Require the developer's `staged` check before each commit and full diff inspection;
+unavailable checks, stale pins and unrelated staged work return to the analyst.
+
 Keep coordination with the analyst: the developer sends dependency proposals,
 requests for other agents, blockers, harness signals and review disagreements
 back to it. The analyst arranges assistance and independent review. The developer
@@ -169,8 +174,9 @@ criterion outcomes, actual commands/results and raw evidence. Transfer reports
 and verify their applicability using the existing
 [artifact contract](task-artifacts.md#delegated-worktrees-and-evidence); do not copy a ready-for-review
 claim into a completed task state. Preserve unrelated failures and blocked checks
-when routing the result to review. No additional developer manifest or gate is
-required by this role.
+when routing the result to review. Run the shared `handoff` Git check for every
+commit in the delivered range, including intermediate changes later reverted.
+The assignment is a scoped input, not a second task manifest or approval service.
 
 ## Python reviewer invocation
 

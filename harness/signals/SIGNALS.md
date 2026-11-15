@@ -140,3 +140,16 @@
 - Decision: [DEC-013](DECISIONS.md#dec-013)
 - Agreement: Human approval in this chat on 2026-11-15: Да, утверждаю весь план и новую ветку codex/harness-task-automation от experiments-series-runner. Приступай к реализации. Scoped commits/review fixes on the announced new branch need no repeated approval; bootstrap remains harness-only.
 - Details: DEC-013 implements all four approved mechanisms and is independently accepted. Final full harness suite passed 160 tests; original failure/review evidence and corrected results are retained under .agent-work/tasks/harness-task-automation/.
+
+<a id="sig-012"></a>
+## SIG-012: Unify harness validation and Git delivery checks
+
+- Date: 2026-11-15
+- Origin: Human request in the harness quality checks chat
+- Owner: harness-maintainer
+- Request: Implement a common harness validator, assigned developer staged checks, an optional pre-commit hook, analyst commit-series checks and readiness diagnostics using five separate Terra/Sol high workers.
+- Evidence: The current helper lacks these commands. Prior validation omitted heading fragments; Git assignment and full-index checks are prose obligations. Prior full suite took 167.749 seconds. The human approved the five-part plan and selected the existing branch with scoped commit authority.
+- Status: resolved
+- Decision: [DEC-014](DECISIONS.md#dec-014)
+- Agreement: Human responses in this chat: 1. Да; 2. Работай в текущей ветке, можешь именовать и делать коммиты без моего подтверждения. Scope is the five-part plan and review fixes; actual hook activation in the working checkout remains a separate decision.
+- Details: DEC-014 implements all five approved mechanisms and is independently accepted. Final affected suite and actual staged hook/assignment/handoff lifecycle passed after supported corrections; working-checkout hook activation remains excluded. Evidence: .agent-work/tasks/harness-quality-checks/verification.md.

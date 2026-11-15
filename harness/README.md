@@ -187,6 +187,13 @@ The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their 
 
 ## Verification of harness changes
 
+The [quality-check CLI](quality-checks.md) provides maintained-file validation,
+assigned staged Git checks, per-commit analyst handoff checks, optional staged
+pre-commit execution and readiness diagnostics under DEC-014. Assignment records
+are separately versioned local inputs; task JSON v2 and Markdown v1 are unchanged.
+The hook is installed explicitly and does not replace independent behavioral
+verification. Use the command reference for actual activation and runtime limits.
+
 The four specialist skills, selectable model profiles and caller integration are
 recorded in [DEC-010](signals/DECISIONS.md#dec-010). The analyst and maintainer must
 use the revised invocation instructions and pass current skills/policy explicitly

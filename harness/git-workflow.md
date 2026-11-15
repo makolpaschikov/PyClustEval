@@ -73,6 +73,14 @@ staged, hold the commit and ask the analyst instead of including or unstaging it
 Never force-add ignored task/evidence files. Report any remaining uncommitted
 changes and do not treat a clean worktree or a commit as proof of acceptance.
 
+For delegated developer work, the analyst supplies the canonical
+[assignment and SHA-256](quality-checks.md#assigned-developer-git-checks).
+Before each commit the developer runs the `staged` check for that assignment and
+inspects the complete staged diff. Resolve a failed or unavailable check through
+the analyst; do not substitute a fresh assignment hash or remove unrelated staged
+work. Repeat after changes to checked inputs. The optional hook can invoke this
+check, but its absence does not remove the developer's explicit obligation.
+
 The analyst retains worktree/branch allocation and lifecycle, integration and
 shared task state. The developer does not switch/create branches or worktrees,
 integrate other branches, push, amend, rebase, reset or otherwise rewrite history
@@ -85,3 +93,6 @@ discarding uncommitted work or deleting evidence.
 Return the assigned branch/worktree, base and final commit IDs, created commits,
 check evidence and remaining changes in the developer handoff. The analyst
 handles the [artifact transfer and integration checks](../.agents/skills/analyst-orchestrator/references/task-artifacts.md#delegated-worktrees-and-evidence).
+It runs the [commit-series handoff check](quality-checks.md#analyst-handoff-checks)
+against the exact delivered HEAD before accepting the series. This checks all
+intermediate commits and does not grant integration or completion authority.

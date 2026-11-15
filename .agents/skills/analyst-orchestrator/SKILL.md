@@ -130,7 +130,9 @@ bounded assignment: the approved specification, relevant parent contracts,
 allowed files and effects, dependencies, acceptance checks and required handoff.
 For Python implementation, allocate the developer's dedicated worktree and use
 the skill and [invocation contract](references/delegation.md#python-developer-invocation).
-Record assignment ownership and permissions in existing handoff fields. Keep
+Create the canonical [Git assignment](../../../harness/quality-checks.md#assigned-developer-git-checks)
+and pass its exact path/hash; reference it from existing handoff fields and retain
+the real permission source. Keep
 the canonical manifest and gates on the selected task branch; follow
 [worktree evidence transfer](references/task-artifacts.md#delegated-worktrees-and-evidence).
 Transmit only relevant context. Supply original request evidence to the alignment
@@ -141,7 +143,10 @@ Serialize shared-file and journal writes. Resolve routine questions from agreed
 requirements and evidence; ask the human about consequential intent or authority
 gaps. Track agent output as reported until you inspect its artifacts and checks.
 
-Request review of the actual committed changes, any remaining local diff and
+Run the [commit-series handoff check](../../../harness/quality-checks.md#analyst-handoff-checks)
+against the exact delivered HEAD and resolve violations before accepting the series.
+This does not replace content review or permit integration. Request review of the
+actual committed changes, any remaining local diff and
 verification evidence at their recorded source versions using the reviewer
 skill and [invocation contract](references/delegation.md#python-reviewer-invocation).
 Keep incomplete review distinct from acceptance; inspect findings, optional

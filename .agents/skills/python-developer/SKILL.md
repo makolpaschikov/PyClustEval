@@ -88,6 +88,12 @@ checkout with the analyst before acting. Commit only the assigned changes
 after checking the complete staged diff. Leave unrelated staged changes
 intact and hold the commit until the analyst resolves their ownership.
 
+Use the analyst-supplied [canonical assignment and pinned hash](../../../harness/quality-checks.md#assigned-developer-git-checks)
+for the `staged` check before each commit. A failed or unavailable check returns to
+the analyst; do not edit the assignment, refresh its expected hash or bypass a hook
+to claim success. Recheck when inputs change. A passing path check still requires
+inspection of the complete diff and does not establish semantic task compliance.
+
 Use a concise English imperative title and an explanatory body when useful.
 Make review fixes as new commits. Return commit IDs and actual verification
 results in the handoff; a commit records work, not task completion.

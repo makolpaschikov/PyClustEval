@@ -61,9 +61,11 @@ task-state owner. Do not rewrite the manifest branch to bypass a branch mismatch
 or create independently editable manifest copies for parallel developers.
 
 Use existing `handoff.permissions` for the actual delegated commit authority and
-its human source, and `handoff.notes` for each assignment's agent/task ID, worktree
-path, branch, base commit, owned files, evidence location, current head and next
-action. No new manifest fields are introduced. Keep paths and ownership explicit:
+its human source. Store structured Git ownership in the analyst-owned
+[assignment](../../../../harness/quality-checks.md#assigned-developer-git-checks);
+`handoff.notes` refers to its path/hash plus evidence location, current head and
+next action, rather than duplicating its ownership fields. No new manifest fields
+are introduced. Keep paths and ownership explicit:
 Git-ignored task files do not appear in a newly created worktree. Provide the
 needed specification/contract copies or authorized read paths and an ignored task
 directory for the developer's reports. These copies are inputs, not independent
@@ -84,7 +86,10 @@ This records the worker branch and the same source-content digest used by analys
 gates. It does not grant authority, record test execution or run a worker gate.
 
 Before integration or completion, inspect the developer's committed changes,
-remaining staged/uncommitted work and actual check reports. Import evidence packages
+remaining staged/uncommitted work and actual check reports. Run the
+[commit-series check](../../../../harness/quality-checks.md#analyst-handoff-checks)
+against the exact delivered range; its result does not establish review or
+integration acceptance. Import packages
 through `import-evidence`; use its explicit adoption operation only after assessing
 their applicability. It verifies copied bytes and preserves original bindings.
 Keep original raw reports and their source/specification identity. Record
