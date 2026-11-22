@@ -151,7 +151,7 @@ class HistoryQueryService:
             algorithm=str(item.get("algorithm", "unknown")),
             backend=str(item.get("backend", "unknown")),
             runtime_sec=float(item.get("runtime_sec", 0.0)),
-            communication_bytes=int(item.get("communication_bytes", 0)),
+            communication_bytes=(None if item.get("communication_bytes") is None else int(item["communication_bytes"])),
             rounds=item.get("rounds", "—"),
             ari=_optional_float(item.get("ari")),
             nmi=_optional_float(item.get("nmi")),

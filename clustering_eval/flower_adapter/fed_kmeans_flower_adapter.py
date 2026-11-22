@@ -10,7 +10,9 @@ from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate
 from sklearn.metrics import pairwise_distances_argmin
 
 from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
-from ..federated.environment import participation_entry_for_round
+from ..federated.environment import (
+    early_stopping_allowed, historical_stopping, participation_entry_for_round, stopping_report,
+)
 from ..federated.initialization import federated_priority_sample_centers
 
 
@@ -47,7 +49,6 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
             from flwr.client import ClientApp
             from flwr.common import (
                 FitIns,
-                Parameters,
                 ndarrays_to_parameters,
                 parameters_to_ndarrays,
             )
@@ -69,7 +70,8 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
 
         X = np.asarray(X, dtype=np.float64)
         num_clients = len(partition)
-        k = int(params.get("k", 3))
+        default_k = params.get("n_clusters", 3) if params.get("_historical_compute") else 3
+        k = int(params.get("k", default_k))
         rounds = int(params.get("rounds", 20))
         tol = float(params.get("tol", 1e-4))
         client_cpus = float(params.get("client_cpus", 1.0))
@@ -79,6 +81,9 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
             raise ValueError(f"k must be in [1, {len(X)}], got {k}")
         if rounds <= 0:
             raise ValueError("rounds must be greater than zero")
+        historical = historical_stopping(params)
+        archive = bool(params.get("_historical_compute"))
+        can_stop = early_stopping_allowed(params, rounds, num_clients, current=False)
 
         init_participation = participation_entry_for_round(params, 0, num_clients)
         dp = params.get('dp_aggregate')
@@ -125,7 +130,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 inertia = float(
                     np.square(self.local_X - centers[labels]).sum()
                 )
-                return [sums, counts], len(self.local_X), {"inertia": (None if dp is not None else inertia), "active": 1}
+                metrics = {"active": 1}
+                if dp is None or not archive:
+                    metrics["inertia"] = inertia if dp is None else None
+                return [sums, counts], len(self.local_X), metrics
 
             def evaluate(self, parameters, config):
                 return 0.0, len(self.local_X), {}
@@ -141,6 +149,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 return ndarrays_to_parameters([self.centers])
 
             def configure_fit(self, server_round, parameters, client_manager):
+                # Flower may tick through the remaining budget, but no more
+                # client updates or benchmark traffic occur after convergence.
+                if historical and self.converged:
+                    return []
                 # Flower proxies do not expose the dataset partition-id to the
                 # strategy layer.  We therefore keep all simulator clients alive
                 # and enforce the shared benchmark schedule inside each client,
@@ -203,7 +215,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 shift = float(np.linalg.norm(new_centers - self.centers))
                 self.centers = (project_centers(new_centers, dp['clip_norm'])
                                 if dp is not None else new_centers)
-                self.converged = shift < tol
+                self.converged = (can_stop or not historical) and shift < tol
                 participation = participation_entry_for_round(
                     params, max(int(server_round) - 1, 0), num_clients
                 )
@@ -217,10 +229,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                         "dropped_clients": participation["dropped_clients"],
                     }
                 )
-                return ndarrays_to_parameters([self.centers]), {
-                    "shift": shift,
-                    "inertia": (None if dp is not None else inertia),
-                }
+                metrics = {"shift": shift}
+                if dp is None or not archive:
+                    metrics["inertia"] = inertia if dp is None else None
+                return ndarrays_to_parameters([self.centers]), metrics
 
             def configure_evaluate(self, server_round, parameters, client_manager):
                 return []
@@ -268,6 +280,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 "centers": strategy.centers.tolist(),
                 "rounds": len(strategy.history),
                 "converged": strategy.converged,
+                **stopping_report(params, can_stop, historical and strategy.converged, "center_displacement"),
                 "backend": "flower-simulation",
                 "num_clients": num_clients,
                 "participation_schedule": params.get("participation_schedule", []),

@@ -233,7 +233,11 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
             first_participation = participation_entry_for_round(
                 params, 0, len(clients)
             )
-            for client_id in first_participation["successful_clients"]:
+            first_active = first_participation["successful_clients"]
+            surviving = sum(len(local_clusters[c]) for c in first_active)
+            if surviving < k:
+                raise ValueError(f"Adapted FKM: initial active clients retained {surviving} centers for K={k}")
+            for client_id in first_active:
                 communication += (
                     local_clusters[client_id].nbytes
                     + cluster_sizes[client_id].nbytes
@@ -245,6 +249,8 @@ class AdaptedAuthorFKM(ClusteringAlgorithm):
                     params, round_idx, len(clients)
                 )
                 active = participation["successful_clients"]
+                if not drop and any(len(part[c]) < k for c in active):
+                    raise ValueError(f"Adapted FKM: an active client has fewer than K={k} points with dropping disabled")
                 local_clusters_arr = np.concatenate(
                     [local_clusters[client_id] for client_id in active]
                 )
@@ -549,10 +555,14 @@ class AdaptedAuthorFDBSCAN(ClusteringAlgorithm):
             communication += outbound_size * len(clients)
 
             labels = np.full(len(X), -1, dtype=int)
-            for indices, client in zip(part, clients):
-                client.assign_points_to_cluster(cells, cell_labels)
-                local_labels, _unused_true, _points = client.get_labels()
-                labels[indices] = np.asarray(local_labels, dtype=int)
+            # With no server cells every membership/neighbor lookup necessarily
+            # fails. Avoid building O(d^2) neighbor tuples for every point just
+            # to search an empty list (especially costly for 784-pixel MNIST).
+            if cells or not params.get("_historical_compute"):
+                for indices, client in zip(part, clients):
+                    client.assign_points_to_cluster(cells, cell_labels)
+                    local_labels, _unused_true, _points = client.get_labels()
+                    labels[indices] = np.asarray(local_labels, dtype=int)
 
         runtime = perf_counter() - start
         state = _source_state(

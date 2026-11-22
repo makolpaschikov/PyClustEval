@@ -26,7 +26,9 @@ _DRY_BEAN_IQRS = np.array([
 ])
 
 
-def public_scaled_features(X_raw: np.ndarray, dataset_name: str) -> tuple[np.ndarray, dict[str, Any]]:
+def public_scaled_features(
+    X_raw: np.ndarray, dataset_name: str, *, public_reference: dict[str, Any] | None = None,
+) -> tuple[np.ndarray, dict[str, Any]]:
     """Deterministic transform using external PUBLIC reference moments only.
 
     Do NOT replace the reference with statistics fitted on private X without
@@ -39,6 +41,24 @@ def public_scaled_features(X_raw: np.ndarray, dataset_name: str) -> tuple[np.nda
         center = _DRY_BEAN_MEDIANS
         scale = _DRY_BEAN_IQRS / 1.349
         reference = 'published Dry Bean median/IQR, Krishnan et al. 2023, Table 2'
+    elif public_reference is not None and dataset_name in ('mnist_10k', 'mnist_full'):
+        if X.shape[1] != 784:
+            raise ValueError('MNIST public pixel reference requires 784 features')
+        # The loader already applies the public uint8 / 255 transform. Keep
+        # that fixed coordinate system; fit no moments on private images.
+        if np.any((X < 0) | (X > 1)):
+            raise ValueError("MNIST historical input must contain normalized pixels in [0, 1]")
+        center = np.zeros(784)
+        scale = np.ones(784)
+        reference = 'MNIST public pixel range [0,1], uint8 / 255; no fitted moments'
+    elif dataset_name == 'synthetic_anisotropic' and public_reference is not None:
+        # The archive supplies these moments of its public generator, before sampling.
+        center = np.asarray(public_reference.get("public_center"), dtype=np.float64)
+        scale = np.asarray(public_reference.get("public_scale"), dtype=np.float64)
+        if (center.shape != (X.shape[1],) or scale.shape != center.shape
+                or not np.isfinite(center).all() or not np.isfinite(scale).all() or np.any(scale <= 0)):
+            raise ValueError("Invalid archived synthetic public center or scale")
+        reference = public_reference["public_reference_note"]
     elif dataset_name in ('iris', 'wine', 'digits'):
         public_ds = {'iris': load_iris, 'wine': load_wine, 'digits': load_digits}[dataset_name]()
         public_x = np.asarray(public_ds.data, dtype=np.float64)
@@ -61,10 +81,12 @@ def public_scaled_features(X_raw: np.ndarray, dataset_name: str) -> tuple[np.nda
                     'private_data_fitted_scaler': False}
 
 
-def clipped_public_features(X_raw: np.ndarray, dataset_name: str, clip_norm: float):
+def clipped_public_features(
+    X_raw: np.ndarray, dataset_name: str, clip_norm: float, *, public_reference: dict[str, Any] | None = None,
+) -> tuple[np.ndarray, dict[str, Any]]:
     if not np.isfinite(clip_norm) or clip_norm <= 0:
         raise ValueError('Aggregate clip norm must be finite and positive')
-    X, ref = public_scaled_features(X_raw, dataset_name)
+    X, ref = public_scaled_features(X_raw, dataset_name, public_reference=public_reference)
     norms = np.linalg.norm(X, axis=1)
     mult = np.minimum(1.0, float(clip_norm) / np.maximum(norms, 1e-12))
     clipped = X * mult[:, None]

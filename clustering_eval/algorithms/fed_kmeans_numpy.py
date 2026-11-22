@@ -5,7 +5,10 @@ import numpy as np
 from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
 from sklearn.metrics import pairwise_distances_argmin
 from .base import ClusteringAlgorithm, AlgorithmResult
-from ..federated.environment import participation_entry_for_round
+from ..federated.environment import (
+    downlink_recipients, early_stopping_allowed,
+    participation_entry_for_round, stopping_report,
+)
 from ..federated.initialization import federated_priority_sample_centers
 
 class FedKMeansNumpy(ClusteringAlgorithm):
@@ -18,10 +21,15 @@ class FedKMeansNumpy(ClusteringAlgorithm):
     name = "fed_kmeans_numpy"
 
     def run(self, X: np.ndarray, partition: list[np.ndarray] | None, params: dict[str, Any], seed: int) -> AlgorithmResult:
+        if params.get("_historical_compute"):
+            X = np.asarray(X, dtype=np.float64)
         if partition is None:
             partition = [np.arange(len(X))]
-        k = int(params.get("k", 3))
+        default_k = params.get("n_clusters", 3) if params.get("_historical_compute") else 3
+        k = int(params.get("k", default_k))
         rounds = int(params.get("rounds", 20))
+        can_stop = early_stopping_allowed(params, rounds, len(partition))
+        converged = False
         init_participation = participation_entry_for_round(params, 0, len(partition))
         dp = params.get('dp_aggregate')
         if dp is None:
@@ -43,6 +51,7 @@ class FedKMeansNumpy(ClusteringAlgorithm):
             participation = participation_entry_for_round(
                 params, rnd, len(partition)
             )
+            communication_bytes += centers.nbytes * downlink_recipients(params, participation, partition)
             for client_id in participation["successful_clients"]:
                 idx = partition[client_id]
                 if len(idx) == 0:
@@ -55,7 +64,7 @@ class FedKMeansNumpy(ClusteringAlgorithm):
                         sums[cluster_id] += Xc[mask].sum(axis=0)
                         counts[cluster_id] += int(mask.sum())
                 inertia += float(((Xc - centers[local_labels]) ** 2).sum())
-                communication_bytes += sums.nbytes + counts.nbytes + centers.nbytes
+                communication_bytes += sums.nbytes + counts.nbytes
 
             if dp is not None:
                 sums, counts = noisy_joint_aggregate(dp, sums, counts)
@@ -73,7 +82,8 @@ class FedKMeansNumpy(ClusteringAlgorithm):
                 "successful_clients": participation["successful_clients"],
                 "dropped_clients": participation["dropped_clients"],
             })
-            if shift < float(params.get("tol", 1e-4)):
+            converged = can_stop and shift < float(params.get("tol", 1e-4))
+            if converged:
                 break
 
         labels = pairwise_distances_argmin(X, centers)
@@ -82,6 +92,7 @@ class FedKMeansNumpy(ClusteringAlgorithm):
             model_state={
                 "centers": centers.tolist(),
                 "rounds": len(history),
+                **stopping_report(params, can_stop, converged, "center_displacement"),
                 "initialization": init_report,
                 "backend": "numpy-federated",
             },
