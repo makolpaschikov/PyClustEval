@@ -10,7 +10,7 @@ import time
 from uuid import UUID
 
 from .runner_campaign import saved_plan
-from .runner_state import IntegrityError, STATUSES, checked_path, header, journal, unseal
+from .runner_state import IntegrityError, STATUSES, checked_path, header, journal, raise_operational_read_error, unseal
 
 
 def attempt_directory(root: Path, attempt_id: str) -> Path:
@@ -37,7 +37,8 @@ def log_evidence(directory: Path) -> dict:
     return records
 
 
-def read_snapshot(db: sqlite3.Connection, root: Path, meta: dict, plan: dict) -> dict:
+def read_snapshot(db: sqlite3.Connection, root: Path, meta: dict, plan: dict, *,
+                  propagate_io_errors: bool = False) -> dict:
     from .runner_process import is_campaign_active
     from .runner_records import read_candidate
 
@@ -87,6 +88,8 @@ def read_snapshot(db: sqlite3.Connection, root: Path, meta: dict, plan: dict) ->
                 entry["accepted"] = {"attempt_id": row["id"], "directory": relative,
                                      "candidate": candidate, "logs": logs}
             except (OSError, ValueError) as exc:
+                if propagate_io_errors:
+                    raise_operational_read_error(exc, path, "Reading accepted attempt artifacts")
                 reason = f"Accepted attempt {row['id']} failed verification: {exc}"
                 entry["integrity_error"] = reason
                 problems.append(reason)
@@ -134,11 +137,13 @@ def read_snapshot(db: sqlite3.Connection, root: Path, meta: dict, plan: dict) ->
                         "report_path": None}}
 
 
-def read_campaign(root: Path) -> dict:
+def read_campaign(root: Path, *, propagate_io_errors: bool = False) -> dict:
     """Read saved files only. Each accepted pointer contains fully verified candidate evidence.
 
     A damaged accepted job is returned as error with no accepted pointer. Other
     valid results remain usable. Structural journal corruption raises IntegrityError.
+    Export can request propagation of access/locking errors while reading accepted
+    members so a transient I/O failure is distinguishable from damaged evidence.
     """
     root = Path(root).resolve()
     # Finish the live read transaction before verifying potentially large result files.
@@ -147,4 +152,10 @@ def read_campaign(root: Path) -> dict:
         with journal(root, readonly=True) as db:
             db.backup(snapshot)
         meta = header(snapshot)
-        return read_snapshot(snapshot, root, meta, saved_plan(root, meta))
+        try:
+            plan = saved_plan(root, meta)
+        except (OSError, ValueError) as exc:
+            if propagate_io_errors:
+                raise_operational_read_error(exc, root / "raw", "Reading saved plans and captured source")
+            raise
+        return read_snapshot(snapshot, root, meta, plan, propagate_io_errors=propagate_io_errors)

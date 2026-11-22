@@ -14,6 +14,11 @@ def _series_parser(commands: argparse._SubParsersAction) -> None:
     sub = series.add_subparsers(dest="operation", required=True)
     for name in COMMANDS:
         configure(sub.add_parser(name), name)
+    for name, help_text in (("export", "Publish a verified portable campaign archive"),
+                            ("verify", "Verify a portable archive in place")):
+        command = sub.add_parser(name, help=help_text)
+        command.add_argument("input", type=Path, help="Campaign directory" if name == "export" else "Archive directory")
+        command.add_argument("--json", action="store_true", help="Report outcome and checks as JSON")
     for name in ("validate", "plan", "import-archive", "migrate"):
         command = sub.add_parser(name)
         command.add_argument("input", type=Path, help="Archive directory" if name == "import-archive" else "Plan file")
@@ -105,6 +110,9 @@ def main() -> None:
     if args.command == "series":
         from .experiments.series_runner import COMMANDS, cli
 
+        if args.operation in ("export", "verify"):
+            from .results.archive_cli import cli as archive_cli
+            raise SystemExit(archive_cli(args))
         if args.operation in COMMANDS:
             raise SystemExit(cli(args))
         try:
