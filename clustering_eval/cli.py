@@ -8,8 +8,12 @@ from .experiments.runner import ExperimentRunner
 
 
 def _series_parser(commands: argparse._SubParsersAction) -> None:
-    series = commands.add_parser("series", help="Validate and expand a campaign without training")
+    from .experiments.series_runner import COMMANDS, configure
+
+    series = commands.add_parser("series", help="Plan and manage local experiment campaigns")
     sub = series.add_subparsers(dest="operation", required=True)
+    for name in COMMANDS:
+        configure(sub.add_parser(name), name)
     for name in ("validate", "plan", "import-archive", "migrate"):
         command = sub.add_parser(name)
         command.add_argument("input", type=Path, help="Archive directory" if name == "import-archive" else "Plan file")
@@ -99,6 +103,10 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "series":
+        from .experiments.series_runner import COMMANDS, cli
+
+        if args.operation in COMMANDS:
+            raise SystemExit(cli(args))
         try:
             _series(args)
         except (OSError, ValueError) as error:
