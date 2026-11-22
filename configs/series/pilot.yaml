@@ -1,0 +1,37 @@
+format: pyclusteval.plan.v1
+campaign:
+  name: iris-pilot
+  description: Fixed Iris data across two benchmark seeds.
+  output_dir: ../../results/iris-pilot
+datasets:
+  iris:
+    provider: registry
+    name: iris
+scenarios:
+  local:
+    mode: local
+    algorithms: [kmeans, agglomerative]
+  iid:
+    mode: federated
+    stopping_profile: current_gui
+    algorithms: [fed_kmeans_numpy, fed_fuzzy_cmeans_numpy]
+    num_clients: 5
+    partition_mode: iid
+  dirichlet:
+    mode: federated
+    stopping_profile: current_gui
+    algorithms: [fed_kmeans_numpy, fed_fuzzy_cmeans_numpy]
+    num_clients: 5
+    partition_mode: dirichlet
+    dirichlet_alpha: 0.5
+    participation_rate: 0.8
+    dropout_rate: 0.2
+series:
+  - name: iris-17
+    dataset: iris
+    seed: 17
+    scenarios: [local, iid, dirichlet]
+  - name: iris-43
+    dataset: iris
+    seed: 43
+    scenarios: [local, iid, dirichlet]
