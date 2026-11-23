@@ -5,13 +5,14 @@ from __future__ import annotations
 import ctypes as ct
 from ctypes import wintypes as wt
 from contextlib import ExitStack, contextmanager, nullcontext
+from dataclasses import asdict, dataclass
 import msvcrt
 import os
 from pathlib import Path
 import subprocess
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 import _winapi
 
 _kernel = ct.WinDLL("kernel32", use_last_error=True)
@@ -57,6 +58,18 @@ class _Accounting(ct.Structure):
     ]
 
 
+class _ProcessMemory(ct.Structure):
+    _fields_ = [("size", wt.DWORD), ("page_faults", wt.DWORD),
+                ("peak_working_set", ct.c_size_t), ("working_set", ct.c_size_t),
+                ("pool_and_pagefile_counters", ct.c_size_t * 6)]
+
+
+class _MemoryStatus(ct.Structure):
+    _fields_ = [("size", wt.DWORD), ("load", wt.DWORD),
+                ("total_physical", ct.c_uint64), ("available_physical", ct.c_uint64),
+                ("pagefile_and_virtual", ct.c_uint64 * 5)]
+
+
 class _StartupInfo(ct.Structure):
     _fields_ = [
         ("cb", wt.DWORD), ("reserved", wt.LPWSTR), ("desktop", wt.LPWSTR),
@@ -88,6 +101,8 @@ _limit_job = _api("SetInformationJobObject", wt.BOOL, wt.HANDLE, ct.c_int, _poin
 _query_job = _api("QueryInformationJobObject", wt.BOOL, wt.HANDLE, ct.c_int, _pointer, wt.DWORD, _pointer)
 _terminate_job = _api("TerminateJobObject", wt.BOOL, wt.HANDLE, wt.UINT)
 _is_member = _api("IsProcessInJob", wt.BOOL, wt.HANDLE, wt.HANDLE, ct.POINTER(wt.BOOL))
+_memory_info = _api("K32GetProcessMemoryInfo", wt.BOOL, wt.HANDLE, ct.POINTER(_ProcessMemory), wt.DWORD)
+_memory_status = _api("GlobalMemoryStatusEx", wt.BOOL, ct.POINTER(_MemoryStatus))
 _init_attrs = _api("InitializeProcThreadAttributeList", wt.BOOL, _pointer, wt.DWORD, wt.DWORD,
                    ct.POINTER(ct.c_size_t))
 _set_attr = _api("UpdateProcThreadAttribute", wt.BOOL, _pointer, wt.DWORD, ct.c_size_t, _pointer,
@@ -121,10 +136,27 @@ def owner_exists(name: str) -> bool:
     return True
 
 
-def _active(job: int) -> int:
+def _accounting(job: int) -> _Accounting:
     info = _Accounting()
     _check(_query_job(job, 1, ct.byref(info), ct.sizeof(info), None))
-    return info.active_processes
+    return info
+
+
+def available_physical_memory() -> int | None:
+    status = _MemoryStatus()
+    status.size = ct.sizeof(status)
+    return status.available_physical if _memory_status(ct.byref(status)) else None
+
+
+def _process_memory(handle: int) -> _ProcessMemory:
+    memory = _ProcessMemory()
+    memory.size = ct.sizeof(memory)
+    _check(_memory_info(handle, ct.byref(memory), memory.size))
+    return memory
+
+
+def worker_peak_working_set() -> int:
+    return _process_memory(_winapi.GetCurrentProcess()).peak_working_set
 
 
 def _member_pids(job: int, capacity: int) -> list[int]:
@@ -141,9 +173,68 @@ def _member_pids(job: int, capacity: int) -> list[int]:
     return list(members.pids[:members.returned])
 
 
+@dataclass
+class TreeResources:
+    """Kernel commit high-water and sampled sums of current member working sets.
+
+    A working-set sample enumerates members once and reads each by stable handle.
+    Shared pages can count in more than one process. An unreadable or disappearing
+    member invalidates the sample. Short-lived peaks can fall between samples.
+    """
+
+    working_set_sample_interval_sec: float = 0.25
+    working_set_samples: int = 0
+    working_set_incomplete_samples: int = 0
+    max_sampled_working_set_bytes: int | None = None
+    peak_commit_bytes: int | None = None
+    memory_limit_bytes: int | None = None
+    total_processes: int | None = None
+    active_processes_after_cleanup: int | None = None
+
+    def sample(self, job: int) -> None:
+        total = 0
+        try:
+            pids = _member_pids(job, 16)
+            for pid in pids:
+                proc = _winapi.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED_INFORMATION
+                try:
+                    member = wt.BOOL()
+                    _check(_is_member(proc, job, ct.byref(member)))
+                    if not member.value:
+                        self.working_set_incomplete_samples += 1
+                        return
+                    total += _process_memory(proc).working_set
+                finally:
+                    _winapi.CloseHandle(proc)
+        except OSError:
+            self.working_set_incomplete_samples += 1
+            return
+        if pids:
+            self.working_set_samples += 1
+            self.max_sampled_working_set_bytes = max(self.max_sampled_working_set_bytes or 0, total)
+
+    def after_drain(self, job: int) -> None:
+        limits = _ExtendedLimits()
+        _check(_query_job(job, 9, ct.byref(limits), ct.sizeof(limits), None))
+        accounting = _accounting(job)
+        self.peak_commit_bytes = limits.peak_job_memory
+        if limits.basic.flags & 0x00000200:
+            self.memory_limit_bytes = limits.job_memory
+        self.total_processes = accounting.total_processes
+        self.active_processes_after_cleanup = accounting.active_processes
+
+    def record(self) -> dict:
+        record = {**asdict(self), "scope": "Windows job object and member processes",
+                  "commit_source": "QueryInformationJobObject / PeakJobMemoryUsed",
+                  "working_set_source": "sum of GetProcessMemoryInfo / WorkingSetSize; shared pages can repeat"}
+        if self.max_sampled_working_set_bytes is None:
+            record["working_set_unavailable_reason"] = "No complete sample of live job members"
+        return record
+
+
 def stop_and_drain(job: int) -> None:
     """Drain all members, including children left behind by a successful worker."""
-    if not _active(job):
+    if not _accounting(job).active_processes:
         return
     # Stop admitting descendants before taking stable process handles. The job's
     # active count can reach zero before the terminated process objects signal.
@@ -154,7 +245,7 @@ def stop_and_drain(job: int) -> None:
     _check(_limit_job(job, 9, ct.byref(limits), ct.sizeof(limits)))
     with ExitStack() as cleanup:
         handles = []
-        for pid in _member_pids(job, max(_active(job), 1)):
+        for pid in _member_pids(job, max(_accounting(job).active_processes, 1)):
             try:
                 proc = _winapi.OpenProcess(0x00101000, False, pid)  # SYNCHRONIZE | QUERY_LIMITED
             except OSError as error:
@@ -169,7 +260,7 @@ def stop_and_drain(job: int) -> None:
         _check(_terminate_job(job, 1))
         for proc in handles:
             _winapi.WaitForSingleObject(proc, _winapi.INFINITE)
-        while _active(job):
+        while _accounting(job).active_processes:
             time.sleep(0.01)
 
 
@@ -242,7 +333,8 @@ def _observe(job: int, lease: int, supervisor: int, ready: int, done: int) -> No
 
 
 @contextmanager
-def job_object(ownership: tuple[str, int] | None, memory_limit_mb: int | None) -> Iterator[int]:
+def job_object(ownership: tuple[str, int] | None, memory_limit_mb: int | None,
+               *, after_drain: Callable[[int], None] | None = None) -> Iterator[int]:
     name = ownership[0] if ownership else None
     ct.set_last_error(0)
     handle = _check(_create_job(None, name))
@@ -263,6 +355,8 @@ def job_object(ownership: tuple[str, int] | None, memory_limit_mb: int | None) -
             # Ordinarily the observer drains first. The fallback also covers a
             # failed observer while the original supervisor still owns the job.
             stop_and_drain(handle)
+            if after_drain is not None:
+                after_drain(handle)
     finally:
         _winapi.CloseHandle(handle)
 

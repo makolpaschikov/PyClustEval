@@ -1,10 +1,10 @@
 """Create a campaign from PLAN and authenticate its scientific inputs on resume."""
 from __future__ import annotations
 
-from importlib.metadata import distributions
 from pathlib import Path
 import json
-import platform
+import os
+import shutil
 import sqlite3
 import sys
 from tempfile import TemporaryDirectory
@@ -15,7 +15,7 @@ from .plan_io import read_document
 from .prepared import prepare
 from .prepared_store import DESCRIPTOR, read as read_prepared
 from .runner_state import (FORMAT, IntegrityError, checked_path, checksum, create_file, encode,
-                           initialize, sealed, unseal)
+                           initialize, sealed, supervisor_runtime, unseal)
 from .series_plan import checkout_source_id, resolve_document
 from .source_archive import RECORD_NAME, verify_source_snapshot
 from .source_capture import capture_source_snapshot
@@ -60,6 +60,16 @@ def create_campaign(root: Path, source: Path, raw: bytes, plan: dict) -> None:
             raise ValueError(f"Campaign destination must be empty: {root}")
     else:
         root.mkdir(parents=True)
+    physical_bytes = None
+    if sys.platform == "win32":
+        from .runner_windows import available_physical_memory
+        physical_bytes = available_physical_memory()
+    host = {"utc_epoch": time.time(), "logical_cpu_count": os.cpu_count(),
+            "available_physical_memory_bytes": physical_bytes,
+            "free_disk_bytes": shutil.disk_usage(root).free,
+            "source": "os.cpu_count, GlobalMemoryStatusEx, shutil.disk_usage(campaign volume)"}
+    if physical_bytes is None:
+        host["physical_memory_unavailable_reason"] = "GlobalMemoryStatusEx unavailable"
     marker = root / CREATION_MARKER
     create_file(marker, b"campaign creation in progress\n")
     (root / "state").mkdir()
@@ -79,14 +89,12 @@ def create_campaign(root: Path, source: Path, raw: bytes, plan: dict) -> None:
     resolved_bytes = encode(plan).encode("utf-8")
     create_file(root / "raw" / ("plan" + suffix), raw)
     create_file(root / "raw" / "resolved_plan.json", resolved_bytes)
-    packages = sorted((d.metadata["Name"], d.version) for d in distributions() if d.metadata.get("Name"))
     metadata = {
         "format": FORMAT, "created": started, "source_id": snapshot.source_id,
         "source_record_sha256": checksum(snapshot.verification.read_bytes()),
         "original": str(source), "base_dir": str(source.parent), "plan_file": "plan" + suffix,
         "plan_sha256": checksum(raw), "resolved_sha256": checksum(resolved_bytes),
-        "runtime": {"python": sys.version, "executable": sys.executable,
-                    "platform": platform.platform(), "packages": packages},
+        "runtime": {**supervisor_runtime(), "host_at_creation": host},
     }
     initialize(root, metadata, plan["jobs"])
     marker.unlink()

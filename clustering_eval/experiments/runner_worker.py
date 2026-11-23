@@ -5,8 +5,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import errno
 from hashlib import sha256
+from importlib.metadata import PackageNotFoundError, version
+import json
 import os
 from pathlib import Path
+import platform
 import sys
 import time
 import traceback
@@ -17,26 +20,31 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _worker_runtime() -> dict:
+    from .runner_environment import interpreter_fields
+    packages = {}
+    for name in ("flwr", "ray"):
+        try:
+            installed = version(name)
+        except PackageNotFoundError:
+            installed = None
+        module = sys.modules.get(name)
+        packages[name] = {"installed": installed, "imported": module is not None,
+                          "imported_version": getattr(module, "__version__", None)}
+    return {"python": sys.version, "executable": sys.executable,
+            "platform": platform.platform(), "packages": packages, **interpreter_fields()}
+
+
 def _peak_memory() -> dict:
     """Read this Windows process's peak working set when the OS provides it."""
     if sys.platform == "win32":
-        import ctypes
-        from ctypes import wintypes
-
-        class ProcessMemoryCounters(ctypes.Structure):
-            _fields_ = [("size", wintypes.DWORD), ("page_fault_count", wintypes.DWORD),
-                        ("peak_working_set", ctypes.c_size_t), ("working_set", ctypes.c_size_t),
-                        ("peak_paged_pool", ctypes.c_size_t), ("paged_pool", ctypes.c_size_t),
-                        ("peak_nonpaged_pool", ctypes.c_size_t), ("nonpaged_pool", ctypes.c_size_t),
-                        ("pagefile", ctypes.c_size_t), ("peak_pagefile", ctypes.c_size_t)]
-
-        counters = ProcessMemoryCounters()
-        counters.size = ctypes.sizeof(counters)
-        query = ctypes.windll.psapi.GetProcessMemoryInfo
-        query.argtypes = (wintypes.HANDLE, ctypes.POINTER(ProcessMemoryCounters), wintypes.DWORD)
-        query.restype = wintypes.BOOL
-        if query(wintypes.HANDLE(-1), ctypes.byref(counters), counters.size):
-            return {"peak_working_set_bytes": counters.peak_working_set, "source": "GetProcessMemoryInfo"}
+        from .runner_windows import worker_peak_working_set
+        try:
+            peak = worker_peak_working_set()
+        except OSError:
+            pass
+        else:
+            return {"peak_working_set_bytes": peak, "source": "GetProcessMemoryInfo"}
     return {"peak_working_set_bytes": None, "source": "unavailable"}
 
 
@@ -45,6 +53,7 @@ def _worker_info(started: str, start: float) -> dict:
 
     threads = {key: os.environ.get(key) for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")}
     return {"pid": os.getpid(), "started_at_utc": started, "finished_compute_at_utc": _now(),
+            "runtime": _worker_runtime(),
             "elapsed_to_observation_sec": time.perf_counter() - start,
             "cpu_time_sec": time.process_time(), "logical_cpu_count": os.cpu_count(),
             "cpu_source": "time.process_time and os.cpu_count", "memory": _peak_memory(),
@@ -80,6 +89,8 @@ def run_attempt(directory: Path, descriptor: Path) -> int:
     """Consume an existing request once. Return 4 for unusable state/storage, 1 for a failed job."""
     started, start = _now(), time.perf_counter()
     print(f"Worker {os.getpid()} started at {started}", flush=True)
+    print(json.dumps({"event": "worker_start", "attempt_id": directory.name, "runtime": _worker_runtime()}),
+          flush=True)
     from .runner_records import publish_failure, publish_success, read_request
     from .prepared import reopen
     from ..application.compute import JobExecutionError, execute_one

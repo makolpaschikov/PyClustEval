@@ -54,7 +54,21 @@ def read_snapshot(db: sqlite3.Connection, root: Path, meta: dict, plan: dict, *,
     for row in db.execute("SELECT * FROM sessions ORDER BY rowid"):
         sessions.append({"session_id": row["id"], "command": row["command"], "started": row["started"],
                          "ended": row["ended"], "stop_reason": row["stop_reason"],
-                         "limits": unseal(row["limits"], row["limits_sha"])})
+                         "limits": unseal(row["limits"], row["limits_sha"]), "runtime": None,
+                         "unavailable_jobs": []})
+    by_session = {s["session_id"]: s for s in sessions}
+    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if "session_runtime" in tables:
+        for sid, data, digest in db.execute("SELECT session_id,record,sha FROM session_runtime"):
+            if sid not in by_session:
+                raise IntegrityError("Runtime record refers to an unknown session")
+            by_session[sid]["runtime"] = unseal(data, digest)
+    if "unavailable_jobs" in tables:
+        for sid, jid, data, digest in db.execute("SELECT session_id,job_id,record,sha FROM unavailable_jobs ORDER BY rowid"):
+            issue = unseal(data, digest)
+            if sid not in by_session or jid not in jobs or issue.get("job_id") != jid:
+                raise IntegrityError("Unavailable job record differs from campaign or session")
+            by_session[sid]["unavailable_jobs"].append(issue)
     problems = []
     last_error = None
     for row in db.execute("SELECT * FROM attempts ORDER BY rowid"):
@@ -134,6 +148,7 @@ def read_snapshot(db: sqlite3.Connection, root: Path, meta: dict, plan: dict, *,
                         "supervisor_active": active, "created_utc_epoch": meta["created"],
                         "elapsed_sec": max(0., now - meta["created"]), "last_error": last_error,
                         "stop_reason": sessions[-1]["stop_reason"] if sessions else None,
+                        "unavailable_jobs": sessions[-1]["unavailable_jobs"] if sessions else [],
                         "report_path": None}}
 
 

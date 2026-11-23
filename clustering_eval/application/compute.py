@@ -18,6 +18,7 @@ from .comparison_service import _adapter_identity, _get_registry_item, _invoke_a
 from .compute_params import AGGREGATE_MODES, run_parameters, stopping_outcome
 from .compute_report import assemble_report, benchmark_metadata, privacy_summary, run_diagnostics
 from .dto import AlgorithmRunReport
+from .flower_profile import runtime_rejection
 
 if TYPE_CHECKING:
     from ..experiments.prepared import PreparedComparison
@@ -44,15 +45,6 @@ class JobExecutionError(RuntimeError):
     def __init__(self, cause: Exception, provenance: dict) -> None:
         super().__init__(str(cause))
         self.provenance = provenance
-
-
-def _check_runtime(job: dict, gui: bool) -> None:
-    if gui:
-        return
-    profile = job["execution_profile"]
-    lifecycle = profile.get("lifecycle") if isinstance(profile, dict) else profile
-    if lifecycle != "cold" or job["algorithm"].endswith("_flower") or "flower" in job["backend"].lower():
-        raise ValueError(f"Unverified backend/lifecycle: {job['backend']}/{lifecycle}")
 
 
 def _materialize_input(prepared: PreparedComparison, job: dict, algorithm: Any) -> tuple[np.ndarray, str]:
@@ -129,7 +121,10 @@ def _execute_one(prepared: PreparedComparison, job_id: str, registry: Any | None
         "aggregate_release_status": "not_started" if protocol["privacy_mode"] == "gaussian_dp_aggregate" else "not_applicable",
     }
     try:
-        _check_runtime(job, gui)
+        if not gui:
+            rejected = runtime_rejection(job, protocol)
+            if rejected:
+                raise ValueError(rejected)
         algorithm = _get_registry_item(registry if registry is not None else default_registry(), name)
         if gui and _adapter_identity(algorithm) != job["backend"]:
             raise ValueError(f"Prepared GUI adapter implementation changed for {name!r}")
@@ -144,6 +139,8 @@ def _execute_one(prepared: PreparedComparison, job_id: str, registry: Any | None
             params, tuning = run_parameters(prepared, job, X)
             input_hash = array_fingerprint(X, length=64)
             adapter_params = deepcopy(params)
+            if not gui and job["backend"] == "flower-simulation":
+                adapter_params["_campaign_cold_flower"] = True
             before_call = perf_counter()
             if protocol["privacy_mode"] == "gaussian_dp_aggregate":
                 # An exception, including a postprocessing failure, can follow a private draw.

@@ -27,6 +27,7 @@ class ProcessOutcome:
     returncode: int | None
     reason: str
     wall_sec: float
+    tree_resources: dict
 
 
 _ownership: ContextVar[tuple[str, int] | None] = ContextVar("campaign_ownership", default=None)
@@ -125,14 +126,21 @@ def run_owned(argv: list[str], *, cwd: Path, env: dict[str, str], stdout_path: P
     deadline, expiry = min(limits, default=(math.inf, "timeout"))
     reason = "exited"
     code = None
+    resources = win.TreeResources()
     with ExitStack() as cleanup:
         try:
-            job = cleanup.enter_context(win.job_object(_ownership.get(), memory_limit_mb))
+            job = cleanup.enter_context(win.job_object(_ownership.get(), memory_limit_mb,
+                                                      after_drain=resources.after_drain))
             if time.monotonic() >= deadline:
                 reason = expiry
             else:
                 with win.start_process(job, argv, cwd, env, stdout_path, stderr_path) as process:
+                    next_sample = 0.0
                     while code is None:
+                        now = time.monotonic()
+                        if next_sample <= now < deadline:
+                            resources.sample(job)
+                            next_sample = time.monotonic() + resources.working_set_sample_interval_sec
                         remaining = deadline - time.monotonic()
                         if remaining <= 0:
                             reason = expiry
@@ -143,4 +151,4 @@ def run_owned(argv: list[str], *, cwd: Path, env: dict[str, str], stdout_path: P
             reason = "cancelled"
         if reason != "exited" and on_stop is not None:
             on_stop(reason)
-    return ProcessOutcome(code, reason, time.monotonic() - start)
+    return ProcessOutcome(code, reason, time.monotonic() - start, resources.record())

@@ -114,11 +114,12 @@ def test_paper_flower_stopping_uses_bound_scenario_tolerance(tmp_path, algorithm
     from clustering_eval.application.compute_params import run_parameters
 
     prepared = _plan(tmp_path, {"mode": "federated", "algorithms": [algorithm],
-                                "stopping_profile": "historical_paper", "tol": 0.3})
+                                "stopping_profile": "historical_paper", "tol": 0.3,
+                                "algorithm_params_by_name": {algorithm: {"client_gpus": 1}}})
     params, _ = run_parameters(prepared, prepared.jobs[0], prepared.X_eval)
     assert params["tol"] == 0.3
     assert params["_stopping_profile"] == "historical_paper"
-    with pytest.raises(JobExecutionError, match="Unverified backend/lifecycle"):
+    with pytest.raises(JobExecutionError, match="Unverified backend"):
         execute_one(prepared, prepared.jobs[0]["job_id"])
 
 def test_object_label_identity_tracks_values_across_loads(tmp_path):

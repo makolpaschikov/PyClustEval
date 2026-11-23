@@ -7,6 +7,7 @@ import numpy as np
 from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
 
 from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
+from .simulation import backend_config, received_fit, validate_transport
 from ..federated.environment import (
     early_stopping_allowed, historical_stopping, participation_entry_for_round, stopping_report,
 )
@@ -71,6 +72,7 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
         m = float(params.get("fuzziness", 2.0))
         if params.get("_historical_compute") and m <= 1:
             raise ValueError("fuzziness must be greater than 1")
+        campaign = bool(params.get("_campaign_cold_flower"))
         archive = bool(params.get("_historical_compute"))
         can_stop = early_stopping_allowed(params, rounds, n_clients, current=False)
         init_participation = participation_entry_for_round(params, 0, n_clients)
@@ -124,11 +126,14 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                 self.history = []
                 self.communication_bytes = int(init_report["communication_bytes"])
                 self.converged = False
+                self.transport = []
 
             def initialize_parameters(self, client_manager):
                 return ndarrays_to_parameters([self.centers])
 
             def configure_fit(self, server_round, parameters, client_manager):
+                if campaign:
+                    self.transport.append({"round": server_round, "dispatched_clients": 0})
                 if self.converged:
                     return []
                 clients = client_manager.sample(n_clients, min_num_clients=n_clients)
@@ -139,9 +144,13 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                     self.centers.nbytes * len(participation["selected_clients"])
                 )
                 instruction = FitIns(parameters, {"round": server_round})
+                if campaign:
+                    self.transport[-1]["dispatched_clients"] = len(clients)
                 return [(client, instruction) for client in clients]
 
             def aggregate_fit(self, server_round, results, failures):
+                if campaign:
+                    self.transport[-1].update(received_fit(server_round, results))
                 if failures:
                     raise RuntimeError(f"{len(failures)} Flower clients failed")
                 total_sums = np.zeros_like(self.centers)
@@ -213,13 +222,11 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
             ),
             client_app=ClientApp(client_fn=client_fn),
             num_supernodes=n_clients,
-            backend_config={
-                "client_resources": {
-                    "num_cpus": float(params.get("client_cpus", 1.0)),
-                    "num_gpus": float(params.get("client_gpus", 0.0)),
-                }
-            },
+            backend_config=backend_config(params),
         )
+        if campaign:
+            validate_transport(strategy.transport, strategy.history, budget=rounds, clients=n_clients,
+                               stopped=can_stop and strategy.converged)
         labels = np.argmin(_dist2(X, strategy.centers), axis=1)
         return AlgorithmResult(
             labels=labels,
@@ -229,6 +236,7 @@ class FedFuzzyCMeansFlowerAdapter(ClusteringAlgorithm):
                 **stopping_report(params, can_stop, strategy.converged, "center_displacement"),
                 "fuzziness": m,
                 "backend": "flower-simulation",
+                **({"flower_transport": strategy.transport} if campaign else {}),
                 "num_clients": n_clients,
                 "participation_schedule": params.get("participation_schedule", []),
                 "participation_backend": "logical-noop-client-simulation",
@@ -263,6 +271,7 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
         tol = float(params.get("tol", 1e-4))
         reg = float(params.get("reg_covar", 1e-6))
         historical = historical_stopping(params)
+        campaign = bool(params.get("_campaign_cold_flower"))
         archive = bool(params.get("_historical_compute"))
         can_stop = early_stopping_allowed(params, rounds, n_clients, current=False)
         init_participation = participation_entry_for_round(params, 0, n_clients)
@@ -340,6 +349,7 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 self.weights = weights0.copy()
                 self.history = []
                 self.converged = False
+                self.transport = []
                 self.communication_bytes = int(means_init_report["communication_bytes"]) + int(variance_init_report["communication_bytes"])
 
             def _parameters(self):
@@ -351,6 +361,8 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 return self._parameters()
 
             def configure_fit(self, server_round, parameters, client_manager):
+                if campaign:
+                    self.transport.append({"round": server_round, "dispatched_clients": 0})
                 if self.converged:
                     return []
                 clients = client_manager.sample(n_clients, min_num_clients=n_clients)
@@ -360,9 +372,13 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 payload = self.means.nbytes + self.variances.nbytes + self.weights.nbytes
                 self.communication_bytes += payload * len(participation["selected_clients"])
                 instruction = FitIns(parameters, {"round": server_round})
+                if campaign:
+                    self.transport[-1]["dispatched_clients"] = len(clients)
                 return [(client, instruction) for client in clients]
 
             def aggregate_fit(self, server_round, results, failures):
+                if campaign:
+                    self.transport[-1].update(received_fit(server_round, results))
                 if failures:
                     raise RuntimeError(f"{len(failures)} Flower clients failed")
                 nk = np.zeros(k)
@@ -453,14 +469,12 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
             ),
             client_app=ClientApp(client_fn=client_fn),
             num_supernodes=n_clients,
-            backend_config={
-                "client_resources": {
-                    "num_cpus": float(params.get("client_cpus", 1.0)),
-                    "num_gpus": float(params.get("client_gpus", 0.0)),
-                }
-            },
+            backend_config=backend_config(params),
         )
 
+        if campaign:
+            validate_transport(strategy.transport, strategy.history, budget=rounds, clients=n_clients,
+                               stopped=can_stop and strategy.converged)
         scores = []
         for cluster in range(k):
             diff = X - strategy.means[cluster]
@@ -482,6 +496,7 @@ class FedDiagonalGMMFlowerAdapter(ClusteringAlgorithm):
                 **stopping_report(params, can_stop, strategy.converged,
                                   "max_means_variances_weights_displacement"),
                 "backend": "flower-simulation",
+                **({"flower_transport": strategy.transport} if campaign else {}),
                 "num_clients": n_clients,
                 "participation_schedule": params.get("participation_schedule", []),
                 "participation_backend": "logical-noop-client-simulation",

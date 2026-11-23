@@ -1,5 +1,7 @@
 # Windows x64: локальные и NumPy-федеративные запуски
 
+После подготовки окружения для проверки кампаний используй [пилоты на Iris и измерение Dry Bean](docs/CAMPAIGN_PROFILE.md).
+
 Открой PowerShell в корне PyClustEval рядом с `pyproject.toml`. Проверенный профиль использует 64-разрядный CPython 3.12.10 с Tcl/Tk, базовые зависимости проекта и pytest. Для точного повтора используй ту же версию интерпретатора.
 
 ## Окружение
@@ -51,6 +53,27 @@ if ($LASTEXITCODE -ne 0) { throw 'Обнаружен конфликт завис
 ```
 
 Повторная установка использует тот же файл версий. `& $python -m pip list --format=freeze` выводит фактический состав среды.
+
+### Изолированная среда Flower
+
+Для профиля Windows cold используй отдельную среду CPython 3.12.10 x64. У Flower 1.41.0 ограничение `packaging<26`, поэтому для этой среды выделен `constraints/windows-flower-py312.txt`. Следующий пример создаёт новую проектную среду, устанавливает полный зафиксированный набор и привязывает исполняемый CLI к текущему checkout.
+
+```powershell
+$flowerEnv = '.\.agent-work\tasks\flower-runtime\.venv'
+if (Test-Path -LiteralPath $flowerEnv) { throw 'Выбери новый путь для чистой среды или проверь существующую.' }
+& $python -m venv $flowerEnv
+if ($LASTEXITCODE -ne 0) { throw 'Ошибка создания отдельной среды Flower.' }
+$flowerPython = Join-Path $flowerEnv 'Scripts\python.exe'
+$flowerPins = '.\constraints\windows-flower-py312.txt'
+& $flowerPython -m pip install --only-binary=:all: -r $flowerPins
+if ($LASTEXITCODE -ne 0) { throw 'Ошибка установки зафиксированных версий Flower/Ray.' }
+& $flowerPython -m pip install --no-build-isolation -c $flowerPins -e '.[flower,dev]'
+if ($LASTEXITCODE -ne 0) { throw 'Ошибка установки PyClustEval в среде Flower.' }
+& $flowerPython -m pip check
+if ($LASTEXITCODE -ne 0) { throw 'Конфликт зависимостей в среде Flower.' }
+```
+
+Проверяй фактический допуск по завершившимся заданиям, полям backend и истории [реального пилота](docs/CAMPAIGN_PROFILE.md).
 
 ## Проверка и запуск
 

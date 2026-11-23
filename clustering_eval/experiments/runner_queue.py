@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import errno
+from collections.abc import Callable
 from pathlib import Path
 import sqlite3
 import sys
@@ -11,7 +12,7 @@ from uuid import uuid4
 from .runner_campaign import CHECKOUT, descriptor_path, ensure_prepared
 from .runner_reader import attempt_directory, log_evidence
 from .runner_state import (IntegrityError, begin_attempt, create_file, encode, finish_attempt,
-                           sealed, skip_job, unseal)
+                           record_unavailable, sealed, unseal)
 
 
 def release_evidence(expected: dict) -> dict:
@@ -82,7 +83,7 @@ def execute(db: sqlite3.Connection, root: Path, plan: dict, job: dict, binding: 
     cid = job["comparison_id"]
     request = dict(binding)
     request.update(attempt_id=outer, job_id=job["job_id"], comparison_id=cid,
-                   source_id=plan["source_id"], job=job)
+                   source_id=plan["source_id"], job=job, launch_executable=sys.executable)
     begin_attempt(db, request, session, kind)
     path = attempt_directory(root, outer)
     path.mkdir()
@@ -94,8 +95,12 @@ def execute(db: sqlite3.Connection, root: Path, plan: dict, job: dict, binding: 
     def stopped(reason: str) -> None:
         finish_attempt(db, outer, exit_status[reason], reason, details=release_evidence(request))
 
+    environment = worker_env(policy["blas_threads"])
+    if job["backend"] == "flower-simulation":
+        environment.pop("RAY_ADDRESS", None)
+        environment.update(FLWR_TELEMETRY_ENABLED="0", RAY_USAGE_STATS_ENABLED="0")
     try:
-        proc = run_owned(argv, cwd=CHECKOUT, env=worker_env(policy["blas_threads"]),
+        proc = run_owned(argv, cwd=CHECKOUT, env=environment,
                          stdout_path=path / "stdout.log", stderr_path=path / "stderr.log",
                          timeout_sec=policy["timeout_sec"], deadline_utc=deadline,
                          memory_limit_mb=policy["memory_limit_mb"], on_stop=stopped)
@@ -105,7 +110,8 @@ def execute(db: sqlite3.Connection, root: Path, plan: dict, job: dict, binding: 
             if row["status"] == "running":
                 finish_attempt(db, outer, "error", str(exc), details=release_evidence(request))
         raise
-    timing = {"worker_wall_sec": proc.wall_sec, "returncode": proc.returncode}
+    timing = {"worker_wall_sec": proc.wall_sec, "returncode": proc.returncode,
+              "tree_resources": proc.tree_resources}
     if proc.reason in exit_status:
         # The durable terminal decision already exists even if this observation cannot be saved.
         with db:
@@ -132,13 +138,18 @@ def _elapsed(deadline: float | None) -> bool:
 
 
 def schedule(db: sqlite3.Connection, root: Path, meta: dict, plan: dict, session: str,
-             policy: dict, command: str, selected: str | None, only_job: str | None) -> tuple[str, int]:
+             policy: dict, command: str, selected: str | None, only_job: str | None,
+             *, before_work: Callable[[], None] | None = None) -> tuple[str, int]:
+    from ..application.flower_profile import runtime_rejection
+
     total_time = policy["total_time_sec"]
     deadline = None if total_time is None else meta["created"] + total_time
     jobs = {j["job_id"]: j for j in plan["jobs"]}
+    protocols = {c["comparison_id"]: c["protocol"] for c in plan["comparisons"]}
     if only_job is not None and only_job not in jobs:
         raise ValueError(f"Unknown --job-id: {only_job}")
     processed = 0
+    rejected = []
     for row in db.execute("SELECT job_id,status FROM jobs ORDER BY rowid").fetchall():
         status, job_id = row["status"], row["job_id"]
         job = jobs[job_id]
@@ -154,13 +165,16 @@ def schedule(db: sqlite3.Connection, root: Path, meta: dict, plan: dict, session
             continue
         if _elapsed(deadline):
             return "total_time", processed
-        if "flower" in job["backend"].lower() or job["algorithm"].endswith("_flower"):
-            reason = f"Unverified backend: {job['backend']}"
-            skip_job(db, job_id, reason)
+        if before_work is not None:
+            before_work()
+        cid = job["comparison_id"]
+        reason = runtime_rejection(job, protocols[cid])
+        if reason is not None:
+            record_unavailable(db, session, job_id, status, reason)
             if policy["failure_policy"] == "stop":
                 return reason, processed
+            rejected.append(reason)
             continue
-        cid = job["comparison_id"]
         binding = ensure_prepared(db, root, plan, cid, Path(meta["base_dir"]))
         while True:
             if _elapsed(deadline):
@@ -178,4 +192,6 @@ def schedule(db: sqlite3.Connection, root: Path, meta: dict, plan: dict, session
             if policy["failure_policy"] == "stop":
                 return reason, processed
             break
+    if rejected:
+        return f"Queue exhausted with {len(rejected)} unavailable jobs; first reason: {rejected[0]}", processed
     return "queue exhausted", processed

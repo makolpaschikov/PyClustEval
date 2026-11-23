@@ -26,7 +26,7 @@ PyClustEval — desktop-приложение и Python framework для срав
 & '.\.venv\Scripts\python.exe' '.\pyclusteval_ui.py'
 ```
 
-Для симуляций Flower в выделенном для них окружении используется `python -m pip install -e ".[flower,dev]"`. Совместимость Flower/Ray проверяется отдельно для выбранной платформы.
+Для симуляций Flower используется отдельное окружение с проверенными для выбранного backend версиями. Команды запуска, переноса архива, проверки результатов и измерения памяти приведены в [руководстве по пилотам кампаний](docs/CAMPAIGN_PROFILE.md).
 
 ## Fair benchmark profile and compatibility tests
 

@@ -3,10 +3,13 @@ from __future__ import annotations
 
 from contextlib import closing, contextmanager
 from hashlib import sha256
+from importlib.metadata import distributions
 import json
 import os
 from pathlib import Path
+import platform
 import sqlite3
+import sys
 import time
 from typing import Iterator
 from uuid import uuid4
@@ -160,13 +163,30 @@ def latest_session(db: sqlite3.Connection) -> sqlite3.Row | None:
     return db.execute("SELECT * FROM sessions ORDER BY rowid DESC LIMIT 1").fetchone()
 
 
-def start_session(db: sqlite3.Connection, command: str, limits: dict) -> str:
+def supervisor_runtime() -> dict:
+    """Describe distributions visible to the interpreter managing this session."""
+    from .runner_environment import interpreter_fields
+    packages = sorted((d.metadata["Name"], d.version) for d in distributions() if d.metadata.get("Name"))
+    return {"python": sys.version, "executable": sys.executable,
+            "platform": platform.platform(), "packages": packages, **interpreter_fields()}
+
+
+def start_session(db: sqlite3.Connection, command: str, limits: dict, *, runtime: dict | None = None) -> str:
     session = uuid4().hex
     now = time.time()
+    if runtime is None:
+        runtime = supervisor_runtime()
     with db:
         db.execute("UPDATE sessions SET ended=?,stop_reason='supervisor interrupted' WHERE ended IS NULL", (now,))
         db.execute("INSERT INTO sessions VALUES (?, ?, ?, NULL, NULL, ?, ?)",
                    (session, command, now, *sealed(limits)))
+        # Additive tables keep earlier sessions readable and their unobserved environments unknown.
+        db.execute("CREATE TABLE IF NOT EXISTS session_runtime (session_id TEXT PRIMARY KEY REFERENCES sessions, "
+                   "record TEXT NOT NULL, sha TEXT NOT NULL)")
+        db.execute("CREATE TABLE IF NOT EXISTS unavailable_jobs (session_id TEXT NOT NULL REFERENCES sessions, "
+                   "job_id TEXT NOT NULL REFERENCES jobs, record TEXT NOT NULL, sha TEXT NOT NULL, "
+                   "PRIMARY KEY(session_id, job_id))")
+        db.execute("INSERT INTO session_runtime VALUES (?, ?, ?)", (session, *sealed(runtime)))
     return session
 
 
@@ -204,7 +224,10 @@ def finish_attempt(db: sqlite3.Connection, attempt: str, status: str, reason: st
                    (status, reason, attempt))
 
 
-def skip_job(db: sqlite3.Connection, job_id: str, reason: str) -> None:
+def record_unavailable(db: sqlite3.Connection, session: str, job_id: str, status: str, reason: str) -> None:
+    """Record a rejected action even when the job retains a prior attempt and outcome."""
     with db:
+        observation = {"job_id": job_id, "prior_status": status, "reason": reason}
+        db.execute("INSERT INTO unavailable_jobs VALUES (?, ?, ?, ?)", (session, job_id, *sealed(observation)))
         db.execute("UPDATE jobs SET status='skipped',reason=? WHERE job_id=? AND status='pending'",
                    (reason, job_id))

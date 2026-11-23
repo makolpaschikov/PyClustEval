@@ -2,17 +2,19 @@
 from __future__ import annotations
 
 from argparse import SUPPRESS, ArgumentParser, Namespace
+from functools import cache
 from pathlib import Path
 import json
 import math
 import sqlite3
 import sys
 
-from .runner_campaign import (create_campaign, ensure_prepared, input_plan, protect_root, saved_plan,
+from .runner_campaign import (create_campaign, descriptor_path, ensure_prepared, input_plan, protect_root, saved_plan,
                               verify_live_inputs)
+from .runner_environment import IncompatibleEnvironment, check_environment
 from .runner_queue import recover_running, release_evidence, schedule
 from .runner_reader import read_campaign, read_snapshot
-from .runner_state import (IntegrityError, finish_attempt, header, journal, latest_session, start_session,
+from .runner_state import (IntegrityError, finish_attempt, header, journal, latest_session, start_session, supervisor_runtime,
                            stop_session, unseal)
 from .series_plan import execution_settings
 
@@ -72,16 +74,33 @@ def _manage(root: Path, cmd: str, overrides: dict, selected: str | None,
         check_resources(policy["memory_limit_mb"])
         if only_job is not None and only_job not in {j["job_id"] for j in plan["jobs"]}:
             raise ValueError(f"Unknown --job-id: {only_job}")
-        session = start_session(db, cmd, policy)
+        runtime = supervisor_runtime()
+        session = start_session(db, cmd, policy, runtime=runtime)
         processed = 0
         reason = "supervisor interrupted"
+        differences = []
         try:
-            _check_snapshot(db, root, meta, plan)
+            snapshot = _check_snapshot(db, root, meta, plan)
             verify_live_inputs(root, meta, plan)
-            for row in db.execute("SELECT comparison_id FROM preparations").fetchall():
+
+            @cache
+            def before_work() -> None:
+                if cmd != "run":
+                    check_environment(snapshot, runtime)
+
+            for row in db.execute("SELECT comparison_id,record FROM preparations").fetchall():
+                if row["record"] is None and not descriptor_path(root, row["comparison_id"]).exists():
+                    before_work()
                 ensure_prepared(db, root, plan, row["comparison_id"], Path(meta["base_dir"]))
             recover_running(db, root)
-            reason, processed = schedule(db, root, meta, plan, session, policy, cmd, selected, only_job)
+            if snapshot["summary"]["current"]:
+                snapshot = _check_snapshot(db, root, meta, plan)
+                before_work.cache_clear()
+            reason, processed = schedule(db, root, meta, plan, session, policy, cmd, selected, only_job,
+                                         before_work=before_work)
+        except IncompatibleEnvironment as exc:
+            reason = str(exc)
+            differences = exc.differences
         except KeyboardInterrupt:
             reason = "cancelled"
             active = db.execute("SELECT id,request,request_sha FROM attempts WHERE status='running' "
@@ -96,6 +115,8 @@ def _manage(root: Path, cmd: str, overrides: dict, selected: str | None,
             stop_session(db, session, reason)
         summary = _check_snapshot(db, root, meta, plan)["summary"]
         summary.update(command=cmd, attempts_started=processed)
+        if differences:
+            return 3, {**summary, "environment_differences": differences}
         return (0 if summary["totals"]["ok"] == summary["planned"] else 3), summary
 
 

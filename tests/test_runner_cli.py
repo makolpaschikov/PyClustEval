@@ -100,7 +100,8 @@ def test_unsupported_backend_in_mixed_campaign(tmp_path, policy, expected):
     root = tmp_path / "mixed"
     plan = plan_document(root)
     plan["scenarios"]["flower"] = {"mode": "federated", "stopping_profile": "current_gui",
-                                   "algorithms": ["fed_kmeans_flower"], "num_clients": 3}
+                                   "algorithms": ["fed_kmeans_flower"], "num_clients": 3,
+                                   "algorithm_params_by_name": {"fed_kmeans_flower": {"client_gpus": 1}}}
     plan["series"][0]["scenarios"].insert(0, "flower")
     plan["execution"] = {"failure_policy": policy}
     source = write_plan(tmp_path, plan)

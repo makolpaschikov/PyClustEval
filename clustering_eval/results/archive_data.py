@@ -101,7 +101,7 @@ def copy_reproduction(campaign: Path, output: Path, snapshot: dict) -> dict:
         (output / name).write_bytes(data)
     with required_input(output, "Verifying copied source snapshot"):
         verify_source_snapshot(output, expected_source_id=snapshot["source_id"])
-    write_json(output / "environment.json", meta["runtime"])
+    write_json(output / "environment.json", {**meta["runtime"], "scope": "campaign_creation"})
     return meta
 
 
@@ -167,7 +167,13 @@ def write_replay(root: Path, meta: dict, datasets: list[dict]) -> None:
         definition.update(x_sha256=dataset["x_sha256"], y_sha256=dataset["y_sha256"])
     instruction = [
         "# Reproducing this campaign", "",
-        "Use the Python version and package versions in environment.json. For inspecting an archive "
+        "environment.json describes the supervisor at campaign creation. To reproduce a particular attempt, "
+        "look up its session_id in manifest.json sessions and use that session's runtime. The request's "
+        "launch_executable names the intended interpreter. The worker_start event in its stdout records "
+        "the worker's startup observation when available. Accepted results and published failures carry "
+        "worker.runtime, including installed and imported Flower/Ray versions at the end of the attempt. "
+        "Interrupted or older attempts may have no worker observation; absent session or worker runtime "
+        "means unknown. For inspecting an archive "
         "run `python -m clustering_eval.cli series verify <archive-directory>` with an EXPORT-capable installation.",
         "", "For a new run, create a clean separate Git working copy at the source_head in "
         "source_code_verification.json. From its root, if source_changes.patch is nonempty, "
