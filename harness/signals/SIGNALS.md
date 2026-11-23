@@ -179,3 +179,14 @@
 - Decision: [DEC-016](DECISIONS.md#dec-016)
 - Agreement: The human proposed the journal-only workflow, answered 'Да, как исключение' to exceptional worker registration, then selected option 'А' for the presented implementation branch: codex/harness-signal-routing from experiments-series-runner with announced scoped automatic commits. No scheduled delivery, new service or automatic maintainer launch is included.
 - Details: DEC-016 implements the agreed journal-only workflow and independent worker-registration exception. Common validation, independent nine-scenario trial, consistency review and isolated shared-directory/lock probe passed. Evidence: .agent-work/tasks/harness-signal-routing/verification.md. Stock skill validation remains unavailable without PyYAML; no environment changes or independent delivery guarantee.
+
+<a id="sig-015"></a>
+## SIG-015: Operate local experiment campaigns from outlined scenarios
+
+- Date: 2026-11-24
+- Origin: Human request and interview following delivery of the local experiment runner
+- Owner: harness-maintainer
+- Request: Create a project skill to refine an outlined comparison, obtain launch decisions, monitor the existing runner and deliver row-level results.
+- Evidence: The series CLI supports planning, durable jobs, retries and verified archives. The human identified ambiguous DBSCAN settings and independent-job failures as concrete cases the operator should handle.
+- Status: resolved
+- Decision: [DEC-017](DECISIONS.md#dec-017)

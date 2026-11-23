@@ -18,6 +18,12 @@ limited to harness investigation and isolated verification; application executio
 still needs explicit human scope expansion. The analyst skill is an entry point
 for the main chat, not a background service.
 
+Invoke [experiment-campaign](../.agents/skills/experiment-campaign/SKILL.md)
+with an outlined comparison, a scenario table, a series plan or a saved campaign
+directory. It helps refine and validate the plan, operate an authorized run
+through the existing series CLI, and report verified coverage by source scenario.
+For a live campaign, apply the project scope and launch decisions in the skill.
+
 Python development is assigned by the analyst, which explicitly passes the
 developer skill and a self-contained assignment to an ordinary subagent using
 the [invocation contract](../.agents/skills/analyst-orchestrator/references/delegation.md#python-developer-invocation).
@@ -156,6 +162,8 @@ AGENTS.md                                  available: shared project instruction
   skills/
     harness-maintainer/
       SKILL.md                             available: maintainer workflow
+    experiment-campaign/
+      SKILL.md                             available: plan and operate outlined series
     analyst-orchestrator/
       SKILL.md                             available: analyst workflow
       references/                          available: artifacts and delegation

@@ -207,3 +207,15 @@
 - Result: Aligned nine role skills, delegation, feedback documentation, harness map and Git rules for analyst-first reporting, exceptional worker registration in the assigned shared journal, blocker escalation and session-end summaries, followed by human-led maintainer review. Existing journal format and scripts are unchanged.
 - Check: Common harness validation passed on final instructions. Independent nine-scenario behavioral trial and separate requirements/consistency review accepted the change after correcting shared Git mediation and rechecking handoff clarifications. A five-command isolated CLI probe verified explicit shared-directory creation, unchanged worker/real journals and locked-write refusal. Stock quick_validate lacked PyYAML; no dependency installed. No live application workflow, real cross-worktree/sandbox enforcement or notification guarantee is claimed.
 - Details: Evidence and raw independent reports: .agent-work/tasks/harness-signal-routing/verification.md. Analysts and all assigned worker roles need the updated feedback contract and shared journal destination; maintainers need human-led review/Git rules. Existing active agents must receive these instructions explicitly.
+
+<a id="dec-017"></a>
+## DEC-017: Add the experiment campaign operator skill
+
+- Date: 2026-11-24
+- Signal: [SIG-015](SIGNALS.md#sig-015)
+- Status: verified
+- Decision: Add a project skill to refine outlined scenarios, plan and operate authorized series, choose progress milestones with the human, recover within budget and report verified coverage by source scenario.
+- Why: The CLI already implements execution and recovery. The operator needs to preserve scientific intent, make effective settings visible and keep independent jobs running when a single job fails.
+- Agreement: In the design interview the human approved pilot and main-run authority, budgets, retry limits, selectable updates, immediate failure notices and row-level delivery. The final replies confirmed the boundary excluding research design from scratch and the new task branch.
+- Result: Added .agents/skills/experiment-campaign/SKILL.md and the harness map entry. The skill uses the existing series CLI and saved campaign reader.
+- Check: Harness validation and YAML metadata passed. Three independent agents exercised planning, pilot authority, startup, cadence, partial delivery, selective retry and DP recovery in simulated conversations. Rechecked the read-only-plan/output mismatch after clarification, and verified CLI argument help. No live campaign was run as a skill test.
