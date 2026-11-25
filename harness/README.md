@@ -18,6 +18,10 @@ limited to harness investigation and isolated verification; application executio
 still needs explicit human scope expansion. The analyst skill is an entry point
 for the main chat, not a background service.
 
+Use [experiment-design](../.agents/skills/experiment-design/SKILL.md) when a
+researcher has a topic and needs to choose or justify the comparisons. It
+produces an agreed Markdown design with one row per comparison for the operator.
+
 Invoke [experiment-campaign](../.agents/skills/experiment-campaign/SKILL.md)
 with an outlined comparison, a scenario table, a series plan or a saved campaign
 directory. It helps refine and validate the plan, operate an authorized run
@@ -162,6 +166,8 @@ AGENTS.md                                  available: shared project instruction
   skills/
     harness-maintainer/
       SKILL.md                             available: maintainer workflow
+    experiment-design/
+      SKILL.md                             available: design comparisons from a research topic
     experiment-campaign/
       SKILL.md                             available: plan and operate outlined series
     analyst-orchestrator/

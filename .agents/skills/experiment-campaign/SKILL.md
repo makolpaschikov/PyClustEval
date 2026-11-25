@@ -7,7 +7,7 @@ description: Refine outlined PyClustEval experiment scenarios into a series plan
 
 ## Establish the starting point
 
-Work with the human in their language. Accept a concrete comparison described in chat, a table from a paper, a series plan, or a saved campaign. If given only a research topic, ask which comparison they have in mind or suggest a separate research-design discussion. A table is optional. For an existing campaign, start by inspecting its saved state.
+Work with the human in their language. Accept a concrete comparison described in chat, a table from a paper, a series plan, or a saved campaign. If given only a research topic, ask which comparison they have in mind or offer [experiment-design](../experiment-design/SKILL.md) to help choose the comparisons. A table is optional. For an existing campaign, start by inspecting its saved state.
 
 Determine whether the human wants a plan, a pilot, the main series, or monitoring of an existing run. Keep plan-only work computationally dry. Follow the [project scope](../../../AGENTS.md) and reuse applicable permissions for this campaign. During bootstrap, if experiment execution needs a scope expansion, include it in the human's launch decision. Approval to create this skill, install packages for an earlier campaign, or run a pilot supplies no permission for a new research series.
 

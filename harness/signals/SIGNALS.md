@@ -190,3 +190,14 @@
 - Evidence: The series CLI supports planning, durable jobs, retries and verified archives. The human identified ambiguous DBSCAN settings and independent-job failures as concrete cases the operator should handle.
 - Status: resolved
 - Decision: [DEC-017](DECISIONS.md#dec-017)
+
+<a id="sig-016"></a>
+## SIG-016: Design experiment series from a research question
+
+- Date: 2026-11-26
+- Origin: Human follow-up to the experiment operator interview (SIG-015)
+- Owner: harness-maintainer
+- Request: Add a project skill that helps select comparisons from a research topic and hands an agreed scientific design to the existing operator.
+- Evidence: The operator accepts outlined comparisons. The human supplied a broad federated clustering study as the starting request and agreed on a Markdown handoff, feasibility and budget tradeoffs.
+- Status: resolved
+- Decision: [DEC-018](DECISIONS.md#dec-018)

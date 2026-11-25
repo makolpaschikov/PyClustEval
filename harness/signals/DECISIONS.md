@@ -219,3 +219,15 @@
 - Agreement: In the design interview the human approved pilot and main-run authority, budgets, retry limits, selectable updates, immediate failure notices and row-level delivery. The final replies confirmed the boundary excluding research design from scratch and the new task branch.
 - Result: Added .agents/skills/experiment-campaign/SKILL.md and the harness map entry. The skill uses the existing series CLI and saved campaign reader.
 - Check: Harness validation and YAML metadata passed. Three independent agents exercised planning, pilot authority, startup, cadence, partial delivery, selective retry and DP recovery in simulated conversations. Rechecked the read-only-plan/output mismatch after clarification, and verified CLI argument help. No live campaign was run as a skill test.
+
+<a id="dec-018"></a>
+## DEC-018: Add the experiment design skill
+
+- Date: 2026-11-26
+- Signal: [SIG-016](SIGNALS.md#sig-016)
+- Status: verified
+- Decision: Add a project skill that turns a research topic into justified comparisons and a standalone Markdown design for the campaign operator.
+- Why: The operator already prepares executable plans from outlined scenarios. Research questions, controls and the conclusions a campaign can support need to be settled upstream.
+- Agreement: In the design interview the human approved options for broad topics, targeted primary-source research, optional unsupported comparisons, budget prioritization and a Markdown handoff. Replies 9 and 10 authorized implementation on codex/experiment-design-skill from experiments-series-runner.
+- Result: Added experiment-design, linked it from experiment-campaign and listed it in the harness map. Named comparison rows preserve the scientific scope and identify information the operator still needs.
+- Check: Harness validation and skill metadata passed. Three independent agents exercised topic refinement, primary-source lookup, budget and unsupported measurements, and a saved design read by the operator. A second handoff preserved the dataset reference and flagged absent method mappings and settings. The checks used simulated requests without live experiment runs.
