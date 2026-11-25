@@ -201,3 +201,14 @@
 - Evidence: The operator accepts outlined comparisons. The human supplied a broad federated clustering study as the starting request and agreed on a Markdown handoff, feasibility and budget tradeoffs.
 - Status: resolved
 - Decision: [DEC-018](DECISIONS.md#dec-018)
+
+<a id="sig-017"></a>
+## SIG-017: Reconcile the harness role map and current documentation
+
+- Date: 2026-11-26
+- Origin: Human review of the harness map after DEC-017 and DEC-018
+- Owner: harness-maintainer
+- Request: Check the harness Markdown against the installed roles and tools, and correct confirmed discrepancies.
+- Evidence: The Roles table at d285fec lists nine of eleven project skills. The two experiment skills appear only in entry-point prose and the directory tree. The tree also omits the quality CLI.
+- Status: resolved
+- Decision: [DEC-019](DECISIONS.md#dec-019)

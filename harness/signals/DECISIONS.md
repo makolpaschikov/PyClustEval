@@ -231,3 +231,15 @@
 - Agreement: In the design interview the human approved options for broad topics, targeted primary-source research, optional unsupported comparisons, budget prioritization and a Markdown handoff. Replies 9 and 10 authorized implementation on codex/experiment-design-skill from experiments-series-runner.
 - Result: Added experiment-design, linked it from experiment-campaign and listed it in the harness map. Named comparison rows preserve the scientific scope and identify information the operator still needs.
 - Check: Harness validation and skill metadata passed. Three independent agents exercised topic refinement, primary-source lookup, budget and unsupported measurements, and a saved design read by the operator. A second handoff preserved the dataset reference and flagged absent method mappings and settings. The checks used simulated requests without live experiment runs.
+
+<a id="dec-019"></a>
+## DEC-019: Reconcile the role map with installed skills
+
+- Date: 2026-11-26
+- Signal: [SIG-017](SIGNALS.md#sig-017)
+- Status: verified
+- Decision: List all project skills in the Roles table, distinguish direct entry points from delegated workers and align the map with the current signal-review route and quality tools.
+- Why: The operator and designer appeared elsewhere in the map, but the role table omitted both. Valid links alone did not detect the inventory gap.
+- Agreement: The human requested a Markdown currency check and approved correcting the documentation and committing on experiments-series-runner.
+- Result: Updated harness/README.md with linked role rows, a direct table shortcut, the human-led signal-review route and the quality guide and tools in the repository layout.
+- Check: Compared each role row and layout entry against all 11 installed skills; each matched once (previously 9 table rows). Harness validation passed and the three helper CLIs exposed the documented commands. A code scout compared worker contracts, task formats, templates and quality commands with their local sources. This was a documentation check, without live role or experiment runs.

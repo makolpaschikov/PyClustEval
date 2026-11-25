@@ -1,14 +1,19 @@
 # PyClustEval agent harness
 
-This harness supports development and maintenance across PyClustEval. It defines how agents turn a human request into an implementable specification, deliver and review changes, and improve their own working instructions through recorded decisions.
+Use the [role table](#roles) to find the project skill for experiment design, campaign operation, application development or harness maintenance.
 
 ## Current state and entry point
 
-The harness is being bootstrapped. The [root project instructions](../AGENTS.md), this map, the [harness-maintainer](../.agents/skills/harness-maintainer/SKILL.md) and [analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) skills, [shared Git procedure](git-workflow.md), [signal](signals/SIGNALS.md) and [decision](signals/DECISIONS.md) journals and their [helper](signals/README.md), and the analyst's [task templates and helper](../.agents/skills/analyst-orchestrator/references/task-artifacts.md) are available. The [Python developer](../.agents/skills/python-developer/SKILL.md) and [Python reviewer](../.agents/skills/python-reviewer/SKILL.md) skills are available through analyst assignments after isolated verification. The four specialist skills below and their [model profiles](subagent-profiles.md) are available after independent isolated verification under [DEC-010](signals/DECISIONS.md#dec-010). The analyst assigns bounded work to ordinary subagents when the host permits it; these are explicit assignments, not registered host agent types or automatic routing.
+The harness uses project skills for human-facing workflows and delegated work.
+See the [Git procedure](git-workflow.md) for branch and commit permissions, the
+[journal guide](signals/README.md) for signals and decisions, and the analyst's
+[task guide](../.agents/skills/analyst-orchestrator/references/task-artifacts.md)
+for templates and task state. The analyst delegates bounded work to ordinary
+subagents using the [model profiles](subagent-profiles.md) where applicable.
 
 Follow the temporary bootstrap scope in [AGENTS.md](../AGENTS.md#purpose-and-current-scope). The target application-development workflow below does not lift that restriction.
 
-Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` with a request to develop or repair the harness. The maintainer interviews the human, proposes a concrete change, obtains agreement, implements it, and verifies the result. It can be used before the other roles exist.
+Open a Codex chat in the PyClustEval project and invoke `$harness-maintainer` with a request to develop or repair the harness. The maintainer interviews the human, proposes a concrete change, obtains agreement, implements it, and verifies the result.
 
 Invoke `$analyst-orchestrator` to analyze and coordinate a project task or resume a
 selected subtask. It proposes whole-task delivery or an epic with bounded,
@@ -69,17 +74,22 @@ Python developer/reviewer settings or their existing assistance-routing rules.
 
 ## Roles
 
+The first four skills are entry points for a project chat. The remaining seven
+receive bounded assignments through the delegation procedures above.
+
 | Role | Input and responsibility | Output and boundary |
 | --- | --- | --- |
-| Analyst-orchestrator | Understand the human's request, investigate the relevant context, and produce a self-contained specification. Delegate implementation tasks, request reviews, answer agents' questions from evidence, and coordinate corrections. | An implementation-ready specification, coordinated handoffs, and a delivery report with verification evidence and unresolved issues. Ask the human about decisions that cannot be resolved from the agreed task and available evidence. |
-| Python developer | Implement assigned specification requirements in the application's Python code and project environment. Run checks appropriate to the change and report deviations or blockers. | Code and environment changes, verification results, and a concise handoff to the analyst. Do not silently redefine requirements to fit an implementation. |
-| Python reviewer | Independently inspect code changes for defects, regressions, task compliance and maintainability; assess verification evidence. | Route mathematical questions to the specialist through the analyst; return supported findings, optional recommendations and verification gaps without implementing fixes. |
-| Mathematics reviewer | Independently assess mathematical formulations and implementations against scoped claims, assumptions and sources; perform authorized bounded checks. | Distinct stage reviewers; evidence-backed findings, reasoned correction proposals and incomplete assessments through the analyst. No reviewed-file edits; source research through internet-scout. |
-| Harness maintainer | Maintain root agent instructions, role definitions, harness skills, project agent settings, harness scripts, and signal/decision records. Interview the human or investigate a signal routed by the analyst. | An agreed harness change and its verification, or a researched proposal awaiting human agreement. Application features and the application's computational environment belong to the Python developer. |
-| Code scout | Trace code paths, callers, interfaces, configuration and tests; run checks only with explicit effect/resource authority. | Referenced facts and separately labeled causal hypotheses/judgments; no solution proposals, source edits or environment changes. |
-| Internet scout | Investigate bounded programming/scientific questions using primary sources and applicable versions/conditions. | Supported evidence, contradictions, limits or a partial answer; no solution recommendations, mathematical certification or unassigned scope expansion. |
-| Specification validator | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
-| Specification auditor | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
+| [Harness maintainer](../.agents/skills/harness-maintainer/SKILL.md) | Maintain root agent instructions, role definitions, harness skills, project agent settings, harness scripts, and signal/decision records. Review recorded signals at the human's request, directly or through the analyst. | An agreed harness change and its verification, or a researched proposal awaiting human agreement. Application features and the application's computational environment belong to the Python developer. |
+| [Analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) | Understand the human's request, investigate the relevant context, and produce a self-contained specification. Delegate implementation tasks, request reviews, answer agents' questions from evidence, and coordinate corrections. | An implementation-ready specification, coordinated handoffs, and a delivery report with verification evidence and unresolved issues. Ask the human about decisions that cannot be resolved from the agreed task and available evidence. |
+| [Experiment designer](../.agents/skills/experiment-design/SKILL.md) (`$experiment-design`) | Work with the researcher to turn a topic into questions and comparisons. Check controls, feasibility and budget. | An agreed Markdown design with one row per comparison, its rationale and open questions for the operator. |
+| [Experiment campaign operator](../.agents/skills/experiment-campaign/SKILL.md) (`$experiment-campaign`) | Refine outlined comparisons or a design into an executable plan. Run, monitor or resume a campaign within its approved scope. | A validated plan for planning requests. After execution, report archive verification, actual coverage and any failures by source scenario. |
+| [Python developer](../.agents/skills/python-developer/SKILL.md) | Implement assigned specification requirements in the application's Python code and project environment. Run checks appropriate to the change and report deviations or blockers. | Code and environment changes, verification results, and a concise handoff to the analyst. Do not silently redefine requirements to fit an implementation. |
+| [Python reviewer](../.agents/skills/python-reviewer/SKILL.md) | Independently inspect code changes for defects, regressions, task compliance and maintainability; assess verification evidence. | Route mathematical questions to the specialist through the analyst; return supported findings, optional recommendations and verification gaps without implementing fixes. |
+| [Mathematics reviewer](../.agents/skills/mathematics-reviewer/SKILL.md) | Independently assess mathematical formulations and implementations against scoped claims, assumptions and sources; perform authorized bounded checks. | Distinct stage reviewers; evidence-backed findings, reasoned correction proposals and incomplete assessments through the analyst. No reviewed-file edits; source research through internet-scout. |
+| [Code scout](../.agents/skills/code-scout/SKILL.md) | Trace code paths, callers, interfaces, configuration and tests; run checks only with explicit effect/resource authority. | Referenced facts and separately labeled causal hypotheses/judgments; no solution proposals, source edits or environment changes. |
+| [Internet scout](../.agents/skills/internet-scout/SKILL.md) | Investigate bounded programming/scientific questions using primary sources and applicable versions/conditions. | Supported evidence, contradictions, limits or a partial answer; no solution recommendations, mathematical certification or unassigned scope expansion. |
+| [Specification validator](../.agents/skills/specification-validator/SKILL.md) | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
+| [Specification auditor](../.agents/skills/specification-auditor/SKILL.md) | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
 
 All roles in the table are implemented as project skills. The mathematical role
 and task gates have isolated verification under DEC-011.
@@ -191,16 +201,16 @@ AGENTS.md                                  available: shared project instruction
 harness/
   README.md                                available: harness map and role overview
   git-workflow.md                          available: shared branch/commit permissions
+  quality-checks.md                        available: validation, Git checks, hook and diagnostics guide
   subagent-profiles.md                      available: specialist and harness implementation profiles
   scripts/
     journal.py                             available: create, update, check, migrate
+    quality.py                             available: validate, staged, handoff, hooks, precommit, doctor
+    quality_support/                       available: quality CLI implementations
     task/
       task.py                              available: artifacts, gates and explicit automation commands
       task_support/                        available: formats, artifacts, lint, gates
-  tests/
-    test_journal.py                         available: isolated helper checks
-    test_task.py                            available: isolated task lifecycle checks
-    test_mathematics.py                     available: mathematical gates and migration fixtures
+  tests/                                   available: journal, task, mathematics, automation and Git quality checks
   signals/
     README.md                              available: format and helper usage
     SIGNALS.md                             available: requests, evidence, and progress
