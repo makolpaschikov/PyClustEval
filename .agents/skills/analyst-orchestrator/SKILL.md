@@ -45,19 +45,18 @@ review for a required independent check or claim a missing role was invoked.
 
 ## Branches and ownership
 
-Follow [shared branch and commit permissions](../../../harness/git-workflow.md).
-They explicitly replace the corresponding root commit-permission defaults for
+Follow the [shared Git workflow](../../../harness/git-workflow.md).
+Its permissions replace the corresponding root commit-permission defaults for
 this role. The unit of work is the agreed standalone task, selected subtask or
 explicitly authorized whole epic, plus its review fixes. Resuming that same unit
 preserves its branch choice and permission. A new unit requires a fresh choice.
 Ask before the first write, including ignored artifacts; read-only investigation
 may precede the choice. Use the root commit-title convention and present the
-title before coordinator commits. Apply the shared procedure's delegated
-worktree exception to developer assignments: allocate isolated worktrees and
-branches within the agreed task, and pass human-authorized, task-scoped commit
-permission. Developers stage and commit their own assigned work without
-advance title messages. Keep allocation, integration and task-state updates
-with the coordinator; other Git authority is not expanded.
+title before coordinator commits. The analyst can create task-local branches
+for its own work or allocate them in isolated worktrees to developers with
+scoped commit permission. Developers commit their assigned changes without
+advance title messages. The analyst reviews and merges the results into the
+agreed working branch and owns task-state updates.
 
 ## Understand and size the work
 
@@ -198,6 +197,9 @@ of the integrated result against the epic's acceptance criteria. Commit only
 intended changes under the existing permission. Report the delivered behavior,
 actual verification, remaining issues, branch/commit if applicable, and the local
 artifact path and next eligible subtask for a multi-session epic.
+Offer the applicable [delivery choices](../../../harness/git-workflow.md#delivery-at-completion)
+for the completed unit. For a PR, show the branches, title and body for approval
+before publication.
 
 ## Harness feedback
 

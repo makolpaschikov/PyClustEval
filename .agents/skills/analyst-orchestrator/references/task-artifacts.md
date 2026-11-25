@@ -96,9 +96,9 @@ Keep original raw reports and their source/specification identity. Record
 branch/base/head and the tested working-tree content, not just a final commit ID.
 Uncommitted or ignored inputs and runtime differences must remain visible.
 
-Review the exact version being integrated. Perform integration only under the
-existing task authority; receiving commits is not permission to merge, push or
-rewrite history. Then snapshot the coordinator source and verify the integrated
+Review the exact version being integrated. Merge accepted task-local work into
+the selected working branch under the [shared Git procedure](../../../../harness/git-workflow.md#task-local-branches).
+Then snapshot the coordinator source and verify the integrated
 result. Reuse a check only after assessing that its actual inputs and source are
 applicable; on content changes follow the reassessment rule below and obtain
 independent review of that reasoning, or rerun affected checks. Do not relabel a

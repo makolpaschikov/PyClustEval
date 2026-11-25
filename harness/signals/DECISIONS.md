@@ -255,3 +255,16 @@
 - Agreement: The human approved the proposed threshold, reuse of an existing independent review, maintainer-owned corrections and implementation and commit on experiments-series-runner in replies 1 and 2.
 - Result: The maintainer skill defines the check before commit or handoff of uncommitted work. The harness map links to it and lists documentation among the maintainer's responsibilities.
 - Check: In an isolated replay of d285fec, a maintainer reused the behavioral reviewer, confirmed both missing Roles rows and rechecked an in-memory correction (11 of 11). A wording-only scenario used self-check. Independent review of the live diff found a missing ownership detail in the map and rechecked the correction. Harness and skill validators passed. Verification covered the documented workflow and simulated cases.
+
+<a id="dec-021"></a>
+## DEC-021: Integrate task branches locally and publish the selected Git result
+
+- Date: 2026-11-26
+- Signal: [SIG-019](SIGNALS.md#sig-019)
+- Status: verified
+- Decision: Allow the maintainer and analyst to create, use or delegate task-local branches and integrate reviewed work into the working branch. Offer named delivery routes at completion. Show the PR title, full description and branches for human review before publication.
+- Why: Routine integration stays within the agreed task. The human chooses which branch leaves that scope and can edit what reviewers will see.
+- Agreement: The human confirmed local C-to-B integration, selected-branch pushes and direct or post-merge PRs, chose preview before publication, and approved the full plan including concise diff-based writing rules with «Утверждаю» in this maintenance chat. The review confirmation includes the necessary source-branch push.
+- Result: Updated harness/git-workflow.md, the maintainer and analyst skills, the analyst integration reference and the role map. Both coordinators use the revised procedure; workers receive their scoped branch assignment from the coordinator.
+- Check: Five isolated Git scenarios exercised local integration, selected-branch pushes and distinct direct and post-merge PR comparisons. The maintainer checked the bare refs and both diffs. A separate reader exercised both roles in four scenarios covering pre-publication review, missing targets, edits and retry. One map omission was corrected and independently rechecked, including entry points, role table, layout and developer handoff. Harness validation and diff checks passed. No hosted PR was created. Fixture evidence: .agent-work/tasks/harness-git-workflow/fixture/report.md.
+- Details: Extends the coordinator permissions shared under DEC-005 and DEC-006 and complements the delegated developer procedure under DEC-008.

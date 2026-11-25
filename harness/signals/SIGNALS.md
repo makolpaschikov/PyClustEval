@@ -223,3 +223,15 @@
 - Evidence: Two installed experiment skills appeared in the map's prose and layout but were missing from the Roles table. The earlier static validation passed.
 - Status: resolved
 - Decision: [DEC-020](DECISIONS.md#dec-020)
+
+<a id="sig-019"></a>
+## SIG-019: Allow task-local branch integration and human-selected Git delivery
+
+- Date: 2026-11-26
+- Origin: Human request and annotated follow-up in the harness maintenance chat
+- Owner: harness-maintainer
+- Request: Let both coordinating roles use task-local branches and integrate them into the working branch without repeated approval. At completion offer applicable local merge, push to origin and pull request routes. Draft a concise PR title and description for the human to review, with concrete writing guidance that avoids generic or inflated prose.
+- Evidence: The shared Git procedure already permits analyst allocation of developer worktrees and does not itself authorize integration. The human confirmed C into B, direct publication or PR from B, and merging B into local A before publishing A for an A-to-main PR.
+- Status: resolved
+- Decision: [DEC-021](DECISIONS.md#dec-021)
+- Agreement: In this maintenance chat the human selected codex/harness-git-workflow from experiments-series-runner, chose preview of the PR text before publication and approved the plan and writing rules. DEC-021 records the agreed scope, including its use on this task.

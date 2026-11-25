@@ -17,10 +17,13 @@ Distinguish installed components from plans. Use the harness map for current com
 
 ## Branches and commits
 
-Follow [shared branch and commit permissions](../../../harness/git-workflow.md).
-They explicitly replace the corresponding root commit-permission defaults for
+Follow the [shared Git workflow](../../../harness/git-workflow.md) for the
+working branch, task-local branches, integration and delivery.
+Its permissions replace the corresponding root commit-permission defaults for
 this role. A maintenance session is one agreed harness change and its review
 fixes; resuming that same work preserves its branch choice and permissions.
+A worker may commit on its assigned task-local branch when the maintainer
+explicitly delegates that scope. The maintainer reviews and integrates the result.
 A separate change starts a new session. For human-led review of agent signals,
 obtain the branch choice and permissions from the human, directly or through an
 analyst relaying the actual human decision.
@@ -211,5 +214,8 @@ Use this structure, retaining only the sections that help the human answer:
 Number questions within each block. For questions in Russian, translate the headings and option labels: `Context` to `Контекст`, `Why asking` to `Почему спрашиваю`, `Options` to `Варианты`, `Recommended` to `Рекомендую`, and `A`, `B`, `C`, etc. to `А`, `Б`, `В`, etc. Adapt the question text and explanations to Russian as well.
 
 ## Completion and handoff
+
+For completed work, offer the human the applicable [delivery choices](../../../harness/git-workflow.md#delivery-at-completion).
+For a PR, show the branches, title and body for approval before publication.
 
 Report the concrete outcome concisely: what changed and where, which checks actually ran and their results, any unresolved issue or unperformed check, and the relevant signal/decision IDs when available. For a human-led signal review, report to the human; when an analyst coordinates that requested review, also return the evidence and disposition to it. For a proposal awaiting agreement, state that status plainly; do not report it as an implemented improvement.

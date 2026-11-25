@@ -5,7 +5,8 @@ Use the [role table](#roles) to find the project skill for experiment design, ca
 ## Current state and entry point
 
 The harness uses project skills for human-facing workflows and delegated work.
-See the [Git procedure](git-workflow.md) for branch and commit permissions, the
+See the [Git procedure](git-workflow.md) for task branches, local integration
+and human-selected push or PR delivery, the
 [journal guide](signals/README.md) for signals and decisions, and the analyst's
 [task guide](../.agents/skills/analyst-orchestrator/references/task-artifacts.md)
 for templates and task state. The analyst delegates bounded work to ordinary
@@ -91,6 +92,10 @@ receive bounded assignments through the delegation procedures above.
 | [Specification validator](../.agents/skills/specification-validator/SKILL.md) | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
 | [Specification auditor](../.agents/skills/specification-auditor/SKILL.md) | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
 
+Both the maintainer and the analyst integrate task-local branches into the agreed
+working branch. At completion they offer the [Git delivery choices](git-workflow.md#delivery-at-completion);
+the human reviews the proposed branches, title and body before either role publishes a PR.
+
 All roles in the table are implemented as project skills. The mathematical role
 and task gates have isolated verification under DEC-011.
 Their checks include isolated helper execution, a developer fixture fix with
@@ -116,7 +121,7 @@ remain analyst-owned under the [automation contract](../.agents/skills/analyst-o
 2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst records mathematical impact and obtains required independent formulation review before approval/start. It resolves findings and records consequential clarifications; implementation review remains independent.
 3. The analyst assigns bounded implementation tasks in dedicated developer worktrees, including the specification, permitted scope, base/branch, commit authority, dependencies and acceptance checks. Developers commit their assigned changes. Parallel assignments need clear ownership and analyst-led integration; local task evidence is transferred and revalidated before completion.
 4. The Python reviewer checks code changes; a different mathematical stage agent reviews applicable mathematical implementation. The analyst routes fixes and obtains independent review of corrections, preserving authorship and scientific authority.
-5. The analyst reports what was delivered, what was actually verified, and any remaining limitations. Unresolved requirements are not silently treated as completed work.
+5. The analyst reports the integrated result, checks and remaining limitations and offers the applicable Git delivery choices.
 
 The analyst owns communication between these roles. It answers questions from the agreed requirements and evidence; material gaps in user intent go back to the human. Repeated failures or unresolved disagreements require a revised approach or a clear blocker report, not an endless developer/reviewer loop.
 
@@ -200,7 +205,7 @@ AGENTS.md                                  available: shared project instruction
       SKILL.md                             available: request/project alignment audit
 harness/
   README.md                                available: harness map and role overview
-  git-workflow.md                          available: shared branch/commit permissions
+  git-workflow.md                          available: task branches, integration and Git delivery
   quality-checks.md                        available: validation, Git checks, hook and diagnostics guide
   subagent-profiles.md                      available: specialist and harness implementation profiles
   scripts/
