@@ -212,3 +212,14 @@
 - Evidence: The Roles table at d285fec lists nine of eleven project skills. The two experiment skills appear only in entry-point prose and the directory tree. The tree also omits the quality CLI.
 - Status: resolved
 - Decision: [DEC-019](DECISIONS.md#dec-019)
+
+<a id="sig-018"></a>
+## SIG-018: Verify affected documentation after harness changes
+
+- Date: 2026-11-26
+- Origin: Human follow-up to the role-map correction in SIG-017 / DEC-019
+- Owner: harness-maintainer
+- Request: Check documentation currency before committing a harness change, using independent review for the agreed classes of change and maintainer-owned corrections.
+- Evidence: Two installed experiment skills appeared in the map's prose and layout but were missing from the Roles table. The earlier static validation passed.
+- Status: resolved
+- Decision: [DEC-020](DECISIONS.md#dec-020)

@@ -163,6 +163,28 @@ Choose scenarios that exercise the changed decisions, such as an incomplete huma
 
 Small editorial changes need a proportionate self-check without mandatory delegation. Avoid tests that only reproduce the instructions' wording and repeated checks without a new reason.
 
+### Check affected documentation
+
+After each harness change, check its documentation before committing or handing off
+uncommitted work. Identify what changed for a human or an agent.
+Find the instructions, inventories and examples that describe it, including files
+outside the diff. Compare them with the source that defines the behavior. For a
+role change, reconcile the installed skills with the Roles table, entry points and
+repository layout in the [harness map](../../../harness/README.md#roles). For a
+changed command, check its documented usage and examples against the CLI.
+
+Use an independent subagent for changes to the role roster, responsibilities or
+coordination, and for changes to commands or formats documented in multiple places.
+Include this comparison in an existing independent review when one is underway.
+Give the reviewer the change diff and read access to the relevant sources. Ask
+them to locate affected documentation independently and report each discrepancy
+with references to both the source and the affected passage or inventory. A local
+wording edit that preserves meaning needs only the maintainer's self-check.
+
+The maintainer assesses the findings, edits the affected documentation for
+confirmed discrepancies and repeats the affected comparisons. In the handoff,
+state what was compared, the result and any verification gap.
+
 ## Asking questions
 
 Use the human's language in the conversation. Prefer questions directly in chat over a question-asking tool, subject to the host's applicable requirements.

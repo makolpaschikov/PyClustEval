@@ -79,7 +79,7 @@ receive bounded assignments through the delegation procedures above.
 
 | Role | Input and responsibility | Output and boundary |
 | --- | --- | --- |
-| [Harness maintainer](../.agents/skills/harness-maintainer/SKILL.md) | Maintain root agent instructions, role definitions, harness skills, project agent settings, harness scripts, and signal/decision records. Review recorded signals at the human's request, directly or through the analyst. | An agreed harness change and its verification, or a researched proposal awaiting human agreement. Application features and the application's computational environment belong to the Python developer. |
+| [Harness maintainer](../.agents/skills/harness-maintainer/SKILL.md) | Maintain root agent instructions, role definitions, harness skills, project agent settings, harness documentation and scripts, and signal/decision records. Review recorded signals at the human's request, directly or through the analyst. | An agreed harness change and its verification, or a researched proposal awaiting human agreement. Application features and the application's computational environment belong to the Python developer. |
 | [Analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) | Understand the human's request, investigate the relevant context, and produce a self-contained specification. Delegate implementation tasks, request reviews, answer agents' questions from evidence, and coordinate corrections. | An implementation-ready specification, coordinated handoffs, and a delivery report with verification evidence and unresolved issues. Ask the human about decisions that cannot be resolved from the agreed task and available evidence. |
 | [Experiment designer](../.agents/skills/experiment-design/SKILL.md) (`$experiment-design`) | Work with the researcher to turn a topic into questions and comparisons. Check controls, feasibility and budget. | An agreed Markdown design with one row per comparison, its rationale and open questions for the operator. |
 | [Experiment campaign operator](../.agents/skills/experiment-campaign/SKILL.md) (`$experiment-campaign`) | Refine outlined comparisons or a design into an executable plan. Run, monitor or resume a campaign within its approved scope. | A validated plan for planning requests. After execution, report archive verification, actual coverage and any failures by source scenario. |
@@ -244,6 +244,11 @@ or host agent registration. Native host configuration is not part of this packag
 The journals were initialized by [DEC-001](signals/DECISIONS.md#dec-001); their helper and compact format were introduced in [DEC-003](signals/DECISIONS.md#dec-003), with automatic history removed by [DEC-004](signals/DECISIONS.md#dec-004). The analyst skill, local task format and helper were introduced in [DEC-006](signals/DECISIONS.md#dec-006). The developer skill and its analyst invocation were introduced in [DEC-007](signals/DECISIONS.md#dec-007); [DEC-008](signals/DECISIONS.md#dec-008) retains that behavior while replacing Git ownership with delegated worktree commits. The reviewer skill, recommendation criteria and analyst invocation are defined by [DEC-009](signals/DECISIONS.md#dec-009). [DEC-016](signals/DECISIONS.md#dec-016) defines analyst-first signal registration with the worker fallback and human-led maintainer review. Journal entries do not launch work automatically.
 
 ## Verification of harness changes
+
+Before committing or handing off a harness change, the maintainer
+[checks the affected documentation](../.agents/skills/harness-maintainer/SKILL.md#check-affected-documentation)
+against the roles or behavior it describes. The skill defines when an independent
+subagent checks for discrepancies. The maintainer corrects and rechecks confirmed findings.
 
 The [quality-check CLI](quality-checks.md) provides maintained-file validation,
 assigned staged Git checks, per-commit analyst handoff checks, optional staged

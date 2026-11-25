@@ -243,3 +243,15 @@
 - Agreement: The human requested a Markdown currency check and approved correcting the documentation and committing on experiments-series-runner.
 - Result: Updated harness/README.md with linked role rows, a direct table shortcut, the human-led signal-review route and the quality guide and tools in the repository layout.
 - Check: Compared each role row and layout entry against all 11 installed skills; each matched once (previously 9 table rows). Harness validation passed and the three helper CLIs exposed the documented commands. A code scout compared worker contracts, task formats, templates and quality commands with their local sources. This was a documentation check, without live role or experiment runs.
+
+<a id="dec-020"></a>
+## DEC-020: Check affected documentation before harness commits
+
+- Date: 2026-11-26
+- Signal: [SIG-018](SIGNALS.md#sig-018)
+- Status: verified
+- Decision: For every harness change, the maintainer compares affected documentation with its owning sources before committing. An independent subagent checks role roster, responsibility or coordination changes and changes to commands or formats documented in several places. The maintainer applies confirmed documentation fixes and rechecks them.
+- Why: The role table missed two installed skills despite valid links and mentions elsewhere in the same map. Targeted comparisons can find omissions without requiring a full audit for a local editorial fix.
+- Agreement: The human approved the proposed threshold, reuse of an existing independent review, maintainer-owned corrections and implementation and commit on experiments-series-runner in replies 1 and 2.
+- Result: The maintainer skill defines the check before commit or handoff of uncommitted work. The harness map links to it and lists documentation among the maintainer's responsibilities.
+- Check: In an isolated replay of d285fec, a maintainer reused the behavioral reviewer, confirmed both missing Roles rows and rechecked an in-memory correction (11 of 11). A wording-only scenario used self-check. Independent review of the live diff found a missing ownership detail in the map and rechecked the correction. Harness and skill validators passed. Verification covered the documented workflow and simulated cases.
