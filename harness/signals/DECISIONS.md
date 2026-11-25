@@ -268,3 +268,16 @@
 - Result: Updated harness/git-workflow.md, the maintainer and analyst skills, the analyst integration reference and the role map. Both coordinators use the revised procedure; workers receive their scoped branch assignment from the coordinator.
 - Check: Five isolated Git scenarios exercised local integration, selected-branch pushes and distinct direct and post-merge PR comparisons. The maintainer checked the bare refs and both diffs. A separate reader exercised both roles in four scenarios covering pre-publication review, missing targets, edits and retry. One map omission was corrected and independently rechecked, including entry points, role table, layout and developer handoff. Harness validation and diff checks passed. No hosted PR was created. Fixture evidence: .agent-work/tasks/harness-git-workflow/fixture/report.md.
 - Details: Extends the coordinator permissions shared under DEC-005 and DEC-006 and complements the delegated developer procedure under DEC-008.
+
+<a id="dec-022"></a>
+## DEC-022: Remove merged task-owned branches and worktrees after verification
+
+- Date: 2026-11-26
+- Signal: [SIG-020](SIGNALS.md#sig-020)
+- Status: verified
+- Decision: Both coordinators clean up local branches and temporary worktrees created for their task after verified integration, release and preservation of required artifacts. Include the agent-created working branch after the human selects its merge.
+- Why: Release completed task workspaces automatically while retaining the chosen delivery branch, user work and evidence.
+- Agreement: The human accepted the cleanup proposal for both roles and confirmed commits for the follow-up on codex/harness-git-workflow. The live merge of that branch will be a separate delivery choice.
+- Result: Added the shared post-merge cleanup procedure, both coordinator completion instructions, the analyst evidence-transfer reference and the harness map. Coordinators remove eligible task-owned local refs/worktrees and identify retained items in the handoff.
+- Check: Real Git fixtures exercised cleanup in a linked and primary checkout, exact-target versus upstream ancestry, refusal on a lagging upstream, preservation of dirty or occupied worktrees, transfer of an ignored report with SHA-256 verification and switch/merge collisions with ignored files. Five independent role scenarios covered ownership, PR delivery, retries, unfinished tasks and evidence paths. Review fixes for ignored-file collisions, ongoing epic/gate use and map coverage were independently rechecked. Harness validation and diff checks passed. OS-level file locks and concurrent external writers were not tested. Evidence: .agent-work/tasks/harness-git-cleanup/fixture/report.md.
+- Details: Extends the local integration and delivery workflow under DEC-021.

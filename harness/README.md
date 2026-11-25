@@ -5,8 +5,8 @@ Use the [role table](#roles) to find the project skill for experiment design, ca
 ## Current state and entry point
 
 The harness uses project skills for human-facing workflows and delegated work.
-See the [Git procedure](git-workflow.md) for task branches, local integration
-and human-selected push or PR delivery, the
+See the [Git procedure](git-workflow.md) for task branches, local integration,
+push or PR delivery and cleanup, the
 [journal guide](signals/README.md) for signals and decisions, and the analyst's
 [task guide](../.agents/skills/analyst-orchestrator/references/task-artifacts.md)
 for templates and task state. The analyst delegates bounded work to ordinary
@@ -95,6 +95,8 @@ receive bounded assignments through the delegation procedures above.
 Both the maintainer and the analyst integrate task-local branches into the agreed
 working branch. At completion they offer the [Git delivery choices](git-workflow.md#delivery-at-completion);
 the human reviews the proposed branches, title and body before either role publishes a PR.
+Both roles [clean up merged task branches and temporary worktrees](git-workflow.md#local-cleanup-after-a-verified-merge)
+after checking the merge, worker handoff and preservation of required files.
 
 All roles in the table are implemented as project skills. The mathematical role
 and task gates have isolated verification under DEC-011.
@@ -121,7 +123,7 @@ remain analyst-owned under the [automation contract](../.agents/skills/analyst-o
 2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst records mathematical impact and obtains required independent formulation review before approval/start. It resolves findings and records consequential clarifications; implementation review remains independent.
 3. The analyst assigns bounded implementation tasks in dedicated developer worktrees, including the specification, permitted scope, base/branch, commit authority, dependencies and acceptance checks. Developers commit their assigned changes. Parallel assignments need clear ownership and analyst-led integration; local task evidence is transferred and revalidated before completion.
 4. The Python reviewer checks code changes; a different mathematical stage agent reviews applicable mathematical implementation. The analyst routes fixes and obtains independent review of corrections, preserving authorship and scientific authority.
-5. The analyst reports the integrated result, checks and remaining limitations and offers the applicable Git delivery choices.
+5. The analyst reports the integrated result, checks and remaining limitations, offers the applicable Git delivery choices and cleans up eligible local branches and worktrees.
 
 The analyst owns communication between these roles. It answers questions from the agreed requirements and evidence; material gaps in user intent go back to the human. Repeated failures or unresolved disagreements require a revised approach or a clear blocker report, not an endless developer/reviewer loop.
 
@@ -205,7 +207,7 @@ AGENTS.md                                  available: shared project instruction
       SKILL.md                             available: request/project alignment audit
 harness/
   README.md                                available: harness map and role overview
-  git-workflow.md                          available: task branches, integration and Git delivery
+  git-workflow.md                          available: task branches, integration, delivery and cleanup
   quality-checks.md                        available: validation, Git checks, hook and diagnostics guide
   subagent-profiles.md                      available: specialist and harness implementation profiles
   scripts/

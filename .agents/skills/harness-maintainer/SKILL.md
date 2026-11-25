@@ -217,5 +217,7 @@ Number questions within each block. For questions in Russian, translate the head
 
 For completed work, offer the human the applicable [delivery choices](../../../harness/git-workflow.md#delivery-at-completion).
 For a PR, show the branches, title and body for approval before publication.
+Apply the [local cleanup procedure](../../../harness/git-workflow.md#local-cleanup-after-a-verified-merge)
+to merged task branches and temporary worktrees and report what was removed or retained.
 
 Report the concrete outcome concisely: what changed and where, which checks actually ran and their results, any unresolved issue or unperformed check, and the relevant signal/decision IDs when available. For a human-led signal review, report to the human; when an analyst coordinates that requested review, also return the evidence and disposition to it. For a proposal awaiting agreement, state that status plainly; do not report it as an implemented improvement.

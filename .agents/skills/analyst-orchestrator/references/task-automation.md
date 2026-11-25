@@ -147,4 +147,5 @@ and the retained lock instead of assuming rollback or retrying blindly.
 Supply the current helper and this reference to analysts and workers using these
 operations. Existing skills' scientific, independence and authority boundaries
 remain in force. Keep original bundles and reports available until the analyst has
-verified transfer and integration; completion alone does not authorize deletion.
+verified transfer and integration. Use the [local cleanup procedure](../../../../harness/git-workflow.md#local-cleanup-after-a-verified-merge)
+before releasing a worker's branch or worktree.

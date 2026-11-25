@@ -235,3 +235,15 @@
 - Status: resolved
 - Decision: [DEC-021](DECISIONS.md#dec-021)
 - Agreement: In this maintenance chat the human selected codex/harness-git-workflow from experiments-series-runner, chose preview of the PR text before publication and approved the plan and writing rules. DEC-021 records the agreed scope, including its use on this task.
+
+<a id="sig-020"></a>
+## SIG-020: Clean up merged task branches and temporary worktrees
+
+- Date: 2026-11-26
+- Origin: Human request in the Git workflow maintenance chat
+- Owner: harness-maintainer
+- Request: Both coordinators should automatically remove their merged local branches and temporary worktrees at task completion, including their working branch after the human selects its merge.
+- Evidence: The existing procedure delegates lifecycle ownership and preserves evidence but does not instruct the coordinator to clean up. After verified local integration the preceding task branch still existed at the same commit as its base.
+- Status: resolved
+- Decision: [DEC-022](DECISIONS.md#dec-022)
+- Agreement: The human approved automatic cleanup under merge, ownership, inactivity, clean-worktree and artifact-preservation conditions, and approved work and commits on codex/harness-git-workflow. Its use as a live cleanup case is conditional on selecting its merge at delivery.

@@ -55,8 +55,12 @@ worktree to an implementation worker. Give the worker the branch, base, permitte
 changes and scoped commit authority from the agreed task. The coordinator owns
 integration. Apply the delegated developer checks below for Python development.
 Before integrating, inspect the delivered commits and any uncommitted work
-and complete the applicable review. After merging, check the combined result.
-Leave other people's work and task evidence intact. Merging the working branch into its
+and complete the applicable review. Before switching or merging, preserve any
+local files at paths the incoming tree could overwrite, including ignored
+files. Use `--no-overwrite-ignore` on switch and merge. After merging, check
+the combined result.
+Keep the task-created branch names, intended merge targets and temporary
+worktree paths with the assignment or handoff. Merging the working branch into its
 original base is a delivery choice for the human.
 
 ## Delivery at completion
@@ -70,9 +74,10 @@ Pushing `B` alone and opening a direct PR from `B` are separate choices.
 
 Carry out the selected operations in order. If the human has already selected a
 route and its branches, reuse that choice. Without a choice, leave the result on
-the working branch. Before publishing, inspect what the selected branch will
-send to the named remote branch. Surface unexpected commits or a material change
-in scope for a decision. Push only the selected source branch to `origin` with
+the working branch. Apply the same file-preservation and verification checks
+when merging into the selected base. Before publishing, inspect what the
+selected branch will send to the named remote branch. Surface unexpected
+commits or a material change in scope for a decision. Push only the selected source branch to `origin` with
 an ordinary push. If a step fails, report what succeeded and resume from there
 after resolving the cause. These choices do not authorize a force-push, history
 rewrite, publication of another branch, or merging the hosted PR.
@@ -100,6 +105,45 @@ authorizes the necessary source-branch push and creation of the PR with that
 text. If the branches, material diff or proposed text change, show the revised
 preview for approval. On success, return the PR link. On retry, check for an
 existing matching PR before creating one.
+
+## Local cleanup after a verified merge
+
+At completion, the maintainer or analyst automatically removes local branches
+and temporary linked worktrees created by the agent for this task once their
+merge has been verified. For a child branch the destination is the working
+branch. For an agent-created working branch it is the base into which the human
+chose to merge it. Retain the working branch when the human keeps it local,
+pushes it alone or opens a PR from it. For merge-then-push or merge-then-PR,
+the base survives as the delivery branch. Honor an explicit request to keep a branch.
+
+1. Match the branch, destination and absolute worktree path to the assignment
+   and the current `git worktree list --porcelain`. Confirm that workers have
+   finished and the checkout is free. Preserve the main checkout, pre-existing
+   user branches and worktrees, and anything still needed for a handoff, review,
+   open epic, task gate or delivery. A branch prefix or a clean status does not
+   establish ownership.
+2. Verify the **current local branch tip** is an ancestor of the **intended
+   local destination** with `git merge-base --is-ancestor` on their full local
+   refs. A push, matching file content or a merge into another branch is
+   insufficient. Keep the branch and worktree if the check fails.
+3. Before removing a temporary worktree, inspect staged, unstaged, untracked
+   and ignored files (for example, `git status --short --ignored --untracked-files=all`),
+   including the ignored task directory. Leave worktrees with unfinished
+   changes in place. Transfer required reports, bundles and handoff files outside
+   every worktree scheduled for removal and verify their contents and references at
+   that retained location. Keep the worktree if any remaining file's disposition
+   is unclear.
+4. From a retained checkout, recheck the branch tips and worktree registration.
+   Remove the exact temporary worktree with `git worktree remove`. If it fails,
+   retain the branch. Once released, delete the local branch with `git branch -d`
+   from the destination checkout. If the
+   branch to retire is in the main checkout, switch it safely to the destination and
+   delete only the branch. Use ordinary Git operations without force, broad
+   pruning or remote deletion. If `branch -d` refuses because the branch's
+   configured upstream lags behind the verified target, retain the local ref
+   and report why. On an interruption, inspect what remains. Skip completed
+   steps and leave a reused name or path alone.
+   Verify the resulting refs and worktree list and report any retained items.
 
 ## Delegated developer worktrees
 
@@ -147,9 +191,8 @@ The analyst retains worktree/branch allocation and lifecycle, integration and
 shared task state. The developer does not switch/create branches or worktrees,
 integrate other branches, push, amend, rebase, reset or otherwise rewrite history
 under this commit permission. The coordinator handles the delivery choice.
-Keep working copies and evidence available until the analyst has verified the
-handoff and their disposition. Neither task completion nor a commit authorizes
-discarding uncommitted work or deleting evidence.
+Keep working copies and evidence available through verified handoff and integration.
+The analyst then applies [local cleanup](#local-cleanup-after-a-verified-merge).
 
 Return the assigned branch/worktree, base and final commit IDs, created commits,
 check evidence and remaining changes in the developer handoff. The analyst

@@ -200,6 +200,9 @@ artifact path and next eligible subtask for a multi-session epic.
 Offer the applicable [delivery choices](../../../harness/git-workflow.md#delivery-at-completion)
 for the completed unit. For a PR, show the branches, title and body for approval
 before publication.
+Apply the [local cleanup procedure](../../../harness/git-workflow.md#local-cleanup-after-a-verified-merge)
+after verified integration and evidence transfer. Report which task branches
+and temporary worktrees were removed or retained.
 
 ## Harness feedback
 
