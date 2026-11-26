@@ -43,6 +43,23 @@ only intended changes. Preserve unrelated user work. Record the human decision's
 scope and source when handing work between sessions; a record does not itself
 establish authentic permission.
 
+### Creating a branch in its own worktree
+
+For every authorized new branch, including a primary working branch or a
+task-local branch, create its worktree and branch together:
+
+```text
+git worktree add -b <branch> <unused-path> <base>
+```
+
+Check existing branches and registered worktrees before allocation. Choose an
+unused directory and keep the originating checkout on its current branch.
+Use the new worktree as the working directory for edits, checks and commits,
+including when the coordinator does the work personally. Verify the worktree
+root and branch before the first write. If allocation fails, inspect the refs,
+worktrees and path before retrying; do not switch the originating checkout or
+force reuse of another task's branch or directory.
+
 ## Task-local branches
 
 Once the human agrees the task and its working branch, the harness maintainer,
@@ -53,9 +70,8 @@ This includes a merge commit when the branches have diverged. Honor any narrower
 human limits. Keep the working branch and, if newly created, its original base
 in the handoff so the next session can distinguish these two merge destinations.
 
-Use the project branch prefix and check existing branches and worktrees before
-allocation. The coordinator may do the work or assign a branch and dedicated
-worktree to an implementation worker. Give the worker the branch, base, permitted
+Use the project branch prefix. The coordinator may work in the new worktree
+or assign it and its branch to an implementation worker. Give the worker the branch, base, permitted
 changes and scoped commit authority from the agreed task. The coordinator owns
 integration. Apply the delegated developer checks below for Python development.
 Before integrating, inspect the delivered commits and any uncommitted work

@@ -53,8 +53,8 @@ explicitly authorized whole epic, plus its review fixes. Resuming that same unit
 preserves its branch choice and permission. A new unit requires a fresh choice.
 Ask before the first write, including ignored artifacts; read-only investigation
 may precede the choice. Use the root commit-title convention and present the
-title before coordinator commits. The analyst can create task-local branches
-for its own work or allocate them in isolated worktrees to developers with
+title before coordinator commits. The analyst creates each task-local branch in
+its own worktree and either works there or assigns it to a developer with
 scoped commit permission. Developers commit their assigned changes without
 advance title messages. The analyst reviews and merges the results into the
 agreed working branch and owns task-state updates.

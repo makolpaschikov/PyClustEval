@@ -305,3 +305,15 @@
 - Agreement: On 2026-11-27 the human asked to apply both audit findings on a separate branch from the current checkout.
 - Result: Updated AGENTS.md and harness/README.md to reflect the experiment skills and shared Git procedure.
 - Check: Harness validation passed. An independent reader checked planning, a pilot, an ordinary push and a pull request against the owning instructions. The checks were document-based.
+
+<a id="dec-025"></a>
+## DEC-025: Create every new branch in a dedicated worktree
+
+- Date: 2026-11-27
+- Signal: [SIG-023](SIGNALS.md#sig-023)
+- Status: verified
+- Decision: Create each authorized primary or task-local branch together with its own worktree; run the branch's edits, checks and commits there.
+- Why: Parallel tasks can start at the same base without switching the originating checkout.
+- Agreement: The human approved the proposed rule for primary and child branches and selected codex/branch-worktrees from codex/project-map-maintainer.
+- Result: AGENTS.md links the shared worktree procedure. The Git workflow, harness map and analyst skill cover primary, coordinator-owned and delegated branches.
+- Check: An isolated Git repository with two live child worktrees verified independent edits, indices and commits, preservation of staged and unstaged base edits, and rejection of a name collision. An independent read-only scenario and documentation review found no conflicts. Relative links and anchors, root instruction size and analyst skill metadata passed.

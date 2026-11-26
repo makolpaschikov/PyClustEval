@@ -98,8 +98,9 @@ maintainer also accepts analyst assignments. The remaining roles are delegated.
 | [Specification validator](../.agents/skills/specification-validator/SKILL.md) | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
 | [Specification auditor](../.agents/skills/specification-auditor/SKILL.md) | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
 
-The harness maintainer, analyst and standalone project map maintainer integrate
-any task-local branches into the agreed working branch. At completion they offer
+The harness maintainer, analyst and standalone project map maintainer create each
+new branch in its own worktree, including branches they work on themselves. They
+integrate any task-local branches into the agreed working branch. At completion they offer
 the [Git delivery choices](git-workflow.md#delivery-at-completion). For a
 push, the human selects the branch to publish. For a pull request, the human
 approves the source and target branches, title and body before publication. These roles

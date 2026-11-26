@@ -270,3 +270,15 @@
 - Evidence: AGENTS.md omits planning during bootstrap. The harness map describes review of a title and body before publication, while the Git procedure requires that preview for a pull request.
 - Status: resolved
 - Decision: [DEC-024](DECISIONS.md#dec-024)
+
+<a id="sig-023"></a>
+## SIG-023: Keep each newly created branch in its own worktree
+
+- Date: 2026-11-27
+- Origin: Human request in the harness Git maintenance chat
+- Owner: harness-maintainer
+- Request: Create every new primary or task-local branch together with a dedicated worktree and do its work there.
+- Evidence: The human runs parallel tasks from the same base. The shared procedure allows branch creation without specifying a dedicated worktree for coordinator-owned work.
+- Status: resolved
+- Decision: [DEC-025](DECISIONS.md#dec-025)
+- Agreement: The human approved the change and codex/branch-worktrees from codex/project-map-maintainer.

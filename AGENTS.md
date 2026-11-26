@@ -145,6 +145,9 @@ the decision. Summarize large outputs instead of loading them wholesale.
 
 ## Commits
 
+Whenever an agent creates a branch, create it in a dedicated worktree and use
+that worktree for the branch's work. Follow the [worktree procedure](harness/git-workflow.md#creating-a-branch-in-its-own-worktree).
+
 By default, create commits only with explicit human permission and propose
 the commit title before committing. Reuse permission already given within
 its scope.
