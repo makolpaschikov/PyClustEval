@@ -100,8 +100,9 @@ maintainer also accepts analyst assignments. The remaining roles are delegated.
 
 The harness maintainer, analyst and standalone project map maintainer integrate
 any task-local branches into the agreed working branch. At completion they offer
-the [Git delivery choices](git-workflow.md#delivery-at-completion); the human
-reviews the proposed branches, title and body before publication. These roles
+the [Git delivery choices](git-workflow.md#delivery-at-completion). For a
+push, the human selects the branch to publish. For a pull request, the human
+approves the source and target branches, title and body before publication. These roles
 [clean up merged task branches and temporary worktrees](git-workflow.md#local-cleanup-after-a-verified-merge)
 after checking the merge, worker handoff and preservation of required files.
 

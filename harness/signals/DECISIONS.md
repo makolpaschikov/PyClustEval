@@ -293,3 +293,15 @@
 - Agreement: The human approved the four-part implementation and independent verification plan in the maintenance chat on 2026-11-27, after selecting standalone maintainer Git procedure and confirming initial map work belongs to later sessions.
 - Result: Added the project-map-maintainer skill, direct and delegated Git ownership, project navigation instructions, and the analyst's post-integration map handoff per delivered unit. Updated the shared Git guide and harness role inventory.
 - Check: Harness validation passed. Independent fixture trials exercised read-only audit, unchanged-map handoff, a new package, a moved file and a user-visible CLI change (four documents, five working links). A fresh standalone trial clarified a literal Russian keyword, committed only the English index entry and retained its selected branch. Independent documentation review reconciled 12 installed roles, Git ownership and final-tree checks. No live application delivery or initial project-wide map build was run.
+
+<a id="dec-024"></a>
+## DEC-024: Clarify bootstrap planning and pull request approval
+
+- Date: 2026-11-27
+- Signal: [SIG-022](SIGNALS.md#sig-022)
+- Status: verified
+- Decision: List experiment design and campaign planning in the bootstrap scope and distinguish a branch push from pull request approval in the harness map.
+- Why: Agents need to know which research work can proceed before launch approval and which delivery choice requires a preview.
+- Agreement: On 2026-11-27 the human asked to apply both audit findings on a separate branch from the current checkout.
+- Result: Updated AGENTS.md and harness/README.md to reflect the experiment skills and shared Git procedure.
+- Check: Harness validation passed. An independent reader checked planning, a pilot, an ordinary push and a pull request against the owning instructions. The checks were document-based.
