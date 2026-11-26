@@ -97,28 +97,9 @@ UI больше не содержит orchestration. Он создаёт `RunReq
 
 Подробное описание и редактируемая Draw.io-схема находятся в `docs/`.
 
-## Структура
+## Project map
 
-```text
-PyClustEval/
-├── pyclusteval_ui.py
-├── clustering_eval/
-│   ├── application/
-│   │   ├── dto.py
-│   │   └── comparison_service.py
-│   ├── algorithms/
-│   ├── datasets/
-│   ├── experiments/
-│   ├── flower_adapter/
-│   ├── metrics/
-│   └── results/
-│       ├── history_store.py
-│       └── store.py
-├── configs/
-├── docs/
-├── history/
-└── tests/
-```
+Use the [project index](INDEX.md) to find a capability by name and follow it to the implementation, configuration or tests.
 
 ## Тесты
 
