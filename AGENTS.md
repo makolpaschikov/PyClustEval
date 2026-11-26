@@ -12,13 +12,15 @@ analysis, specifications and coordination. Its implementation does not expand
 the bootstrap scope below. Local task artifacts belong under the Git-ignored
 `.agent-work/tasks/`; use the skill's templates and helper for their format.
 
-During harness bootstrap, work is limited to developing and verifying the
-harness. Defer application implementation, computational-environment changes,
-and experiment execution; explain this boundary when such work is requested.
-Relevant project code and configuration may be read to investigate harness
-requirements. An application-work request alone does not lift this restriction;
-obtain explicit human agreement to end or expand the bootstrap scope.
-Reuse such agreement once given. During bootstrap, the
+During bootstrap, agents may develop and verify the harness and read relevant
+project code and configuration to investigate harness requirements.
+[Experiment design](.agents/skills/experiment-design/SKILL.md) and
+[campaign planning](.agents/skills/experiment-campaign/SKILL.md) are also in
+scope. Application implementation, computational-environment changes and
+experiment execution, including pilots, require explicit human agreement to
+end or expand the bootstrap scope. A request for application work alone does
+not grant that agreement. Explain the boundary when such work is requested and
+reuse existing agreement within its scope. The
 [project map maintainer](.agents/skills/project-map-maintainer/SKILL.md) may read
 project sources and maintain English map documents within its assigned scope.
 

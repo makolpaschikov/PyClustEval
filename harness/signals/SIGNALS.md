@@ -259,3 +259,14 @@
 - Status: resolved
 - Decision: [DEC-023](DECISIONS.md#dec-023)
 - Details: Include first-party packages, tests, tools and configs; use a single third_party overview preserving nested docs. Search by purpose through the index; direct paths can skip it. Standalone audits report, update requests edit, and standalone writes use maintainer Git workflow. Analyst delegates final integrated diff per separately delivered unit and owns its commit. First map population is a later standalone request.
+
+<a id="sig-022"></a>
+## SIG-022: Clarify experiment planning and Git publication guidance
+
+- Date: 2026-11-27
+- Origin: Human request after a harness documentation audit
+- Owner: harness-maintainer
+- Request: Clarify the bootstrap scope for experiment design and campaign planning, and when a pull request preview is required.
+- Evidence: AGENTS.md omits planning during bootstrap. The harness map describes review of a title and body before publication, while the Git procedure requires that preview for a pull request.
+- Status: resolved
+- Decision: [DEC-024](DECISIONS.md#dec-024)
