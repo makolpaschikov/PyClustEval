@@ -1,10 +1,13 @@
 # Git workflow for maintainers and analysts
 
-The maintainer and analyst skills explicitly adopt these permission rules in place
+The harness maintainer, analyst and standalone project map maintainer skills
+explicitly adopt these permission rules in place
 of the corresponding root commit-permission defaults. Each role defines its unit
 of work and commit-message convention. The developer skill adopts the delegated
 worktree section below, which also governs analyst allocation of that work.
 All other root Git rules remain in force.
+
+The analyst owns Git operations for its delegated project map assignments.
 
 ## Task branch and maintainer commits
 
@@ -40,18 +43,35 @@ only intended changes. Preserve unrelated user work. Record the human decision's
 scope and source when handing work between sessions; a record does not itself
 establish authentic permission.
 
+### Creating a branch in its own worktree
+
+For every authorized new branch, including a primary working branch or a
+task-local branch, create its worktree and branch together:
+
+```text
+git worktree add -b <branch> <unused-path> <base>
+```
+
+Check existing branches and registered worktrees before allocation. Choose an
+unused directory and keep the originating checkout on its current branch.
+Use the new worktree as the working directory for edits, checks and commits,
+including when the coordinator does the work personally. Verify the worktree
+root and branch before the first write. If allocation fails, inspect the refs,
+worktrees and path before retrying; do not switch the originating checkout or
+force reuse of another task's branch or directory.
+
 ## Task-local branches
 
-Once the human agrees the task and its working branch, the maintainer or analyst
+Once the human agrees the task and its working branch, the harness maintainer,
+analyst or standalone project map maintainer
 may create local branches from it, commit the agreed work and review fixes there,
 and merge them back into the working branch without another confirmation.
 This includes a merge commit when the branches have diverged. Honor any narrower
 human limits. Keep the working branch and, if newly created, its original base
 in the handoff so the next session can distinguish these two merge destinations.
 
-Use the project branch prefix and check existing branches and worktrees before
-allocation. The coordinator may do the work or assign a branch and dedicated
-worktree to an implementation worker. Give the worker the branch, base, permitted
+Use the project branch prefix. The coordinator may work in the new worktree
+or assign it and its branch to an implementation worker. Give the worker the branch, base, permitted
 changes and scoped commit authority from the agreed task. The coordinator owns
 integration. Apply the delegated developer checks below for Python development.
 Before integrating, inspect the delivered commits and any uncommitted work
@@ -108,7 +128,7 @@ existing matching PR before creating one.
 
 ## Local cleanup after a verified merge
 
-At completion, the maintainer or analyst automatically removes local branches
+At completion, the role coordinating delivery automatically removes local branches
 and temporary linked worktrees created by the agent for this task once their
 merge has been verified. For a child branch the destination is the working
 branch. For an agent-created working branch it is the base into which the human

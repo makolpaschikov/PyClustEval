@@ -32,8 +32,9 @@ the implemented role skills: [code scout](../code-scout/SKILL.md),
 [specification validator](../specification-validator/SKILL.md),
 [specification auditor](../specification-auditor/SKILL.md),
 [Python developer](../python-developer/SKILL.md),
-[Python reviewer](../python-reviewer/SKILL.md), and
-[mathematics reviewer](../mathematics-reviewer/SKILL.md). These use ordinary subagents;
+[Python reviewer](../python-reviewer/SKILL.md),
+[mathematics reviewer](../mathematics-reviewer/SKILL.md), and
+[project map maintainer](../project-map-maintainer/SKILL.md). These use ordinary subagents;
 explicitly pass the relevant skill and a bounded assignment under the
 [delegation contracts](references/delegation.md). Select scout/specification/mathematics-role
 models and reasoning explicitly using the
@@ -52,8 +53,8 @@ explicitly authorized whole epic, plus its review fixes. Resuming that same unit
 preserves its branch choice and permission. A new unit requires a fresh choice.
 Ask before the first write, including ignored artifacts; read-only investigation
 may precede the choice. Use the root commit-title convention and present the
-title before coordinator commits. The analyst can create task-local branches
-for its own work or allocate them in isolated worktrees to developers with
+title before coordinator commits. The analyst creates each task-local branch in
+its own worktree and either works there or assigns it to a developer with
 scoped commit permission. Developers commit their assigned changes without
 advance title messages. The analyst reviews and merges the results into the
 agreed working branch and owns task-state updates.
@@ -182,6 +183,17 @@ On resumption, read the task and relevant parent contracts, inspect the real
 branch/diff and active processes or agents if any, then run the resumption gate.
 Investigate drift before refreshing a checkpoint. Do not automatically relaunch
 work that could still be running or overwrite unrelated changes.
+
+After integration and before closing each separately delivered unit, delegate
+its full integrated diff to the [project map maintainer](references/delegation.md#project-map-maintainer-invocation).
+For a task or epic delivered together, send the combined diff once. Inspect the
+returned edits or no-change rationale, verify links and scope, and include accepted
+map edits in the analyst's commit. Account for the final tree in all source-bound
+checks and independent reviews under the [task evidence rules](references/task-artifacts.md).
+If further fixes affect the map, return the affected delta to the cartographer.
+If the map check is unavailable or incomplete, keep the unit open and report
+what remains. Resume after the cartographer completes the check or the human
+agrees to a changed workflow.
 
 Run the completion gate after integration and independent review. Check actual
 acceptance outcomes, not just populated fields. Every required check must have a

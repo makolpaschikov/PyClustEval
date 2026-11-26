@@ -247,3 +247,38 @@
 - Status: resolved
 - Decision: [DEC-022](DECISIONS.md#dec-022)
 - Agreement: The human approved automatic cleanup under merge, ownership, inactivity, clean-worktree and artifact-preservation conditions, and approved work and commits on codex/harness-git-workflow. Its use as a live cleanup case is conditional on selecting its merge at delivery.
+
+<a id="sig-021"></a>
+## SIG-021: Add a project map maintainer role
+
+- Date: 2026-11-27
+- Origin: Human request in the harness maintenance chat
+- Owner: harness-maintainer
+- Request: Add a standalone and analyst-delegated role to maintain the English root README, project index and package READMEs. Define how agents use the map for navigation.
+- Evidence: The human confirmed that role creation and analyst integration are in scope. Initial map authoring and translation are reserved for a separate session. An in-depth interview was requested.
+- Status: resolved
+- Decision: [DEC-023](DECISIONS.md#dec-023)
+- Details: Include first-party packages, tests, tools and configs; use a single third_party overview preserving nested docs. Search by purpose through the index; direct paths can skip it. Standalone audits report, update requests edit, and standalone writes use maintainer Git workflow. Analyst delegates final integrated diff per separately delivered unit and owns its commit. First map population is a later standalone request.
+
+<a id="sig-022"></a>
+## SIG-022: Clarify experiment planning and Git publication guidance
+
+- Date: 2026-11-27
+- Origin: Human request after a harness documentation audit
+- Owner: harness-maintainer
+- Request: Clarify the bootstrap scope for experiment design and campaign planning, and when a pull request preview is required.
+- Evidence: AGENTS.md omits planning during bootstrap. The harness map describes review of a title and body before publication, while the Git procedure requires that preview for a pull request.
+- Status: resolved
+- Decision: [DEC-024](DECISIONS.md#dec-024)
+
+<a id="sig-023"></a>
+## SIG-023: Keep each newly created branch in its own worktree
+
+- Date: 2026-11-27
+- Origin: Human request in the harness Git maintenance chat
+- Owner: harness-maintainer
+- Request: Create every new primary or task-local branch together with a dedicated worktree and do its work there.
+- Evidence: The human runs parallel tasks from the same base. The shared procedure allows branch creation without specifying a dedicated worktree for coordinator-owned work.
+- Status: resolved
+- Decision: [DEC-025](DECISIONS.md#dec-025)
+- Agreement: The human approved the change and codex/branch-worktrees from codex/project-map-maintainer.

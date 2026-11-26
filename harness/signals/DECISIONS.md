@@ -281,3 +281,39 @@
 - Result: Added the shared post-merge cleanup procedure, both coordinator completion instructions, the analyst evidence-transfer reference and the harness map. Coordinators remove eligible task-owned local refs/worktrees and identify retained items in the handoff.
 - Check: Real Git fixtures exercised cleanup in a linked and primary checkout, exact-target versus upstream ancestry, refusal on a lagging upstream, preservation of dirty or occupied worktrees, transfer of an ignored report with SHA-256 verification and switch/merge collisions with ignored files. Five independent role scenarios covered ownership, PR delivery, retries, unfinished tasks and evidence paths. Review fixes for ignored-file collisions, ongoing epic/gate use and map coverage were independently rechecked. Harness validation and diff checks passed. OS-level file locks and concurrent external writers were not tested. Evidence: .agent-work/tasks/harness-git-cleanup/fixture/report.md.
 - Details: Extends the local integration and delivery workflow under DEC-021.
+
+<a id="dec-023"></a>
+## DEC-023: Maintain the English project map through a dual-entry role
+
+- Date: 2026-11-27
+- Signal: [SIG-021](SIGNALS.md#sig-021)
+- Status: verified
+- Decision: Add the project-map-maintainer skill for direct requests and integrated analyst handoffs before completion. Define English index and README formats, directory coverage, task-scoped edits, navigation and Git ownership.
+- Why: Agents need searchable routes into the repository and current package context as the project changes.
+- Agreement: The human approved the four-part implementation and independent verification plan in the maintenance chat on 2026-11-27, after selecting standalone maintainer Git procedure and confirming initial map work belongs to later sessions.
+- Result: Added the project-map-maintainer skill, direct and delegated Git ownership, project navigation instructions, and the analyst's post-integration map handoff per delivered unit. Updated the shared Git guide and harness role inventory.
+- Check: Harness validation passed. Independent fixture trials exercised read-only audit, unchanged-map handoff, a new package, a moved file and a user-visible CLI change (four documents, five working links). A fresh standalone trial clarified a literal Russian keyword, committed only the English index entry and retained its selected branch. Independent documentation review reconciled 12 installed roles, Git ownership and final-tree checks. No live application delivery or initial project-wide map build was run.
+
+<a id="dec-024"></a>
+## DEC-024: Clarify bootstrap planning and pull request approval
+
+- Date: 2026-11-27
+- Signal: [SIG-022](SIGNALS.md#sig-022)
+- Status: verified
+- Decision: List experiment design and campaign planning in the bootstrap scope and distinguish a branch push from pull request approval in the harness map.
+- Why: Agents need to know which research work can proceed before launch approval and which delivery choice requires a preview.
+- Agreement: On 2026-11-27 the human asked to apply both audit findings on a separate branch from the current checkout.
+- Result: Updated AGENTS.md and harness/README.md to reflect the experiment skills and shared Git procedure.
+- Check: Harness validation passed. An independent reader checked planning, a pilot, an ordinary push and a pull request against the owning instructions. The checks were document-based.
+
+<a id="dec-025"></a>
+## DEC-025: Create every new branch in a dedicated worktree
+
+- Date: 2026-11-27
+- Signal: [SIG-023](SIGNALS.md#sig-023)
+- Status: verified
+- Decision: Create each authorized primary or task-local branch together with its own worktree; run the branch's edits, checks and commits there.
+- Why: Parallel tasks can start at the same base without switching the originating checkout.
+- Agreement: The human approved the proposed rule for primary and child branches and selected codex/branch-worktrees from codex/project-map-maintainer.
+- Result: AGENTS.md links the shared worktree procedure. The Git workflow, harness map and analyst skill cover primary, coordinator-owned and delegated branches.
+- Check: An isolated Git repository with two live child worktrees verified independent edits, indices and commits, preservation of staged and unstaged base edits, and rejection of a name collision. An independent read-only scenario and documentation review found no conflicts. Relative links and anchors, root instruction size and analyst skill metadata passed.
