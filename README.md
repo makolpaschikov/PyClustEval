@@ -16,29 +16,17 @@ PyClustEval — desktop-приложение и Python framework для срав
 - typed DTO для запросов и отчётов;
 - автоматическая история экспериментов в JSON, CSV и log.
 
-## Требования
+## Установка и запуск
 
-Рекомендуется Python 3.12.
+Для Windows x64 проверенный профиль локальных и NumPy-федеративных методов использует CPython 3.12.10, проектную `.venv` и зафиксированные версии зависимостей. [Инструкции для нового и существующего окружения](STARTER.md).
 
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[flower,dev]"
-```
-
-Для запуска только локальных и NumPy-федеративных алгоритмов:
+После установки запусти графическое приложение из корня проекта.
 
 ```powershell
-python -m pip install -e ".[dev]"
+& '.\.venv\Scripts\python.exe' '.\pyclusteval_ui.py'
 ```
 
-## Запуск UI
-
-```powershell
-python pyclusteval_ui.py
-```
-
+Для симуляций Flower используется отдельное окружение с проверенными для выбранного backend версиями. Команды запуска, переноса архива, проверки результатов и измерения памяти приведены в [руководстве по пилотам кампаний](docs/CAMPAIGN_PROFILE.md).
 
 ## Fair benchmark profile and compatibility tests
 

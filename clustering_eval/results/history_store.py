@@ -7,11 +7,12 @@ import os
 import re
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from ..application.dto import ComparisonReport
+if TYPE_CHECKING:
+    from ..application.dto import ComparisonReport
 
 
 CSV_COLUMNS = (

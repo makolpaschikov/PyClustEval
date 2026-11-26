@@ -1,0 +1,22 @@
+format: pyclusteval.plan.v1
+campaign:
+  name: iris-flower-cold
+  output_dir: ../../../results/iris-flower-cold
+datasets:
+  iris: {provider: registry, name: iris}
+scenarios:
+  iid:
+    mode: federated
+    stopping_profile: historical_paper
+    algorithms: [fed_kmeans_flower, fed_fuzzy_cmeans_flower, fed_gmm_diag_flower]
+    partition_mode: iid
+    num_clients: 3
+    rounds: 3
+series:
+  - {name: iris-17, dataset: iris, seed: 17, scenarios: [iid]}
+execution:
+  profile: cold
+  processes: 1
+  blas_threads: 1
+  timeout_sec: 120
+  max_retries: 0

@@ -10,7 +10,10 @@ from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate
 from sklearn.metrics import pairwise_distances_argmin
 
 from ..algorithms.base import AlgorithmResult, ClusteringAlgorithm
-from ..federated.environment import participation_entry_for_round
+from .simulation import backend_config, received_fit, validate_transport
+from ..federated.environment import (
+    early_stopping_allowed, historical_stopping, participation_entry_for_round, stopping_report,
+)
 from ..federated.initialization import federated_priority_sample_centers
 
 
@@ -47,7 +50,6 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
             from flwr.client import ClientApp
             from flwr.common import (
                 FitIns,
-                Parameters,
                 ndarrays_to_parameters,
                 parameters_to_ndarrays,
             )
@@ -69,16 +71,19 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
 
         X = np.asarray(X, dtype=np.float64)
         num_clients = len(partition)
-        k = int(params.get("k", 3))
+        default_k = params.get("n_clusters", 3) if params.get("_historical_compute") else 3
+        k = int(params.get("k", default_k))
         rounds = int(params.get("rounds", 20))
         tol = float(params.get("tol", 1e-4))
-        client_cpus = float(params.get("client_cpus", 1.0))
-        client_gpus = float(params.get("client_gpus", 0.0))
 
         if k <= 0 or k > len(X):
             raise ValueError(f"k must be in [1, {len(X)}], got {k}")
         if rounds <= 0:
             raise ValueError("rounds must be greater than zero")
+        historical = historical_stopping(params)
+        campaign = bool(params.get("_campaign_cold_flower"))
+        archive = bool(params.get("_historical_compute"))
+        can_stop = early_stopping_allowed(params, rounds, num_clients, current=False)
 
         init_participation = participation_entry_for_round(params, 0, num_clients)
         dp = params.get('dp_aggregate')
@@ -125,7 +130,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 inertia = float(
                     np.square(self.local_X - centers[labels]).sum()
                 )
-                return [sums, counts], len(self.local_X), {"inertia": (None if dp is not None else inertia), "active": 1}
+                metrics = {"active": 1}
+                if dp is None or not archive:
+                    metrics["inertia"] = inertia if dp is None else None
+                return [sums, counts], len(self.local_X), metrics
 
             def evaluate(self, parameters, config):
                 return 0.0, len(self.local_X), {}
@@ -136,11 +144,18 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 self.history: list[dict[str, Any]] = []
                 self.communication_bytes = int(init_report["communication_bytes"])
                 self.converged = False
+                self.transport = []
 
             def initialize_parameters(self, client_manager: ClientManager):
                 return ndarrays_to_parameters([self.centers])
 
             def configure_fit(self, server_round, parameters, client_manager):
+                if campaign:
+                    self.transport.append({"round": server_round, "dispatched_clients": 0})
+                # Flower may tick through the remaining budget, but no more
+                # client updates or benchmark traffic occur after convergence.
+                if historical and self.converged:
+                    return []
                 # Flower proxies do not expose the dataset partition-id to the
                 # strategy layer.  We therefore keep all simulator clients alive
                 # and enforce the shared benchmark schedule inside each client,
@@ -159,9 +174,13 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 self.communication_bytes += (
                     self.centers.nbytes * len(participation["selected_clients"])
                 )
+                if campaign:
+                    self.transport[-1]["dispatched_clients"] = len(clients)
                 return [(client, instruction) for client in clients]
 
             def aggregate_fit(self, server_round, results, failures):
+                if campaign:
+                    self.transport[-1].update(received_fit(server_round, results))
                 if failures:
                     raise RuntimeError(
                         f"Flower round {server_round} failed on {len(failures)} clients"
@@ -203,7 +222,7 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 shift = float(np.linalg.norm(new_centers - self.centers))
                 self.centers = (project_centers(new_centers, dp['clip_norm'])
                                 if dp is not None else new_centers)
-                self.converged = shift < tol
+                self.converged = (can_stop or not historical) and shift < tol
                 participation = participation_entry_for_round(
                     params, max(int(server_round) - 1, 0), num_clients
                 )
@@ -217,10 +236,10 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                         "dropped_clients": participation["dropped_clients"],
                     }
                 )
-                return ndarrays_to_parameters([self.centers]), {
-                    "shift": shift,
-                    "inertia": (None if dp is not None else inertia),
-                }
+                metrics = {"shift": shift}
+                if dp is None or not archive:
+                    metrics["inertia"] = inertia if dp is None else None
+                return ndarrays_to_parameters([self.centers]), metrics
 
             def configure_evaluate(self, server_round, parameters, client_manager):
                 return []
@@ -252,15 +271,13 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
             server_app=server_app,
             client_app=client_app,
             num_supernodes=num_clients,
-            backend_config={
-                "client_resources": {
-                    "num_cpus": client_cpus,
-                    "num_gpus": client_gpus,
-                }
-            },
+            backend_config=backend_config(params),
         )
 
         runtime = time.perf_counter() - start
+        if campaign:
+            validate_transport(strategy.transport, strategy.history, budget=rounds, clients=num_clients,
+                               stopped=can_stop and strategy.converged)
         labels = pairwise_distances_argmin(X, strategy.centers)
         return AlgorithmResult(
             labels=labels,
@@ -268,7 +285,9 @@ class FedKMeansFlowerAdapter(ClusteringAlgorithm):
                 "centers": strategy.centers.tolist(),
                 "rounds": len(strategy.history),
                 "converged": strategy.converged,
+                **stopping_report(params, can_stop, historical and strategy.converged, "center_displacement"),
                 "backend": "flower-simulation",
+                **({"flower_transport": strategy.transport} if campaign else {}),
                 "num_clients": num_clients,
                 "participation_schedule": params.get("participation_schedule", []),
                 "participation_backend": "logical-noop-client-simulation",

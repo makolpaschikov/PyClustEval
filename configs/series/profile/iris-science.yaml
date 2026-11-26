@@ -1,0 +1,51 @@
+format: pyclusteval.plan.v1
+campaign:
+  name: iris-science
+  output_dir: ../../../results/iris-science
+datasets:
+  iris: {provider: registry, name: iris}
+scenarios:
+  original:
+    mode: federated
+    stopping_profile: current_gui
+    num_clients: 3
+    partition_mode: iid
+    rounds: 2
+    algorithms: [Adapted FKDC, Adapted FKM, Adapted HF_DBSCAN, Adapted NN-FC, Adapted p-FClus]
+  shared_input:
+    mode: federated
+    stopping_profile: current_gui
+    num_clients: 3
+    partition_mode: iid
+    rounds: 2
+    privacy_mode: gaussian_dp
+    algorithms: [fed_kmeans_numpy, fed_fuzzy_cmeans_numpy]
+  aggregate:
+    mode: federated
+    stopping_profile: current_gui
+    num_clients: 3
+    partition_mode: iid
+    rounds: 2
+    privacy_mode: gaussian_dp_aggregate
+    dp_epsilon: 5.0
+    dp_delta: 0.00001
+    dp_clip_norm: 4.0
+    algorithms: [fed_kmeans_numpy, Adapted HF_DBSCAN]
+  clipped:
+    mode: federated
+    stopping_profile: current_gui
+    num_clients: 3
+    partition_mode: iid
+    rounds: 2
+    privacy_mode: public_clipped_control
+    dp_clip_norm: 4.0
+    algorithms: [fed_kmeans_numpy, Adapted HF_DBSCAN]
+series:
+  - {name: iris-17, dataset: iris, seed: 17, scenarios: [original, shared_input, aggregate, clipped]}
+execution:
+  processes: 1
+  blas_threads: 1
+  profile: cold
+  max_retries: 0
+  timeout_sec: 90
+  failure_policy: continue

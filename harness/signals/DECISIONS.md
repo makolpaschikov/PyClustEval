@@ -1,0 +1,283 @@
+# Harness decisions
+
+<!-- journal-format: 2 -->
+
+<a id="dec-001"></a>
+## DEC-001: Root instructions and journal initialization
+
+- Date: 2026-11-10
+- Signal: [SIG-001](SIGNALS.md#sig-001)
+- Status: verified
+- Decision: Adopt compact English AGENTS.md (at most 32,000 UTF-8 bytes), harness-only bootstrap, shared communication and verification rules, and explicit commit permission with role-skill overrides. Initialize the signal and decision journals.
+- Why: Avoid duplicate role procedures; preserve human control and scientific conditions. Allow relevant project reads instead of the stricter skill-only access boundary.
+- Agreement: Human approved the four-file package after removing the persona passage and revising the questions subsection (this chat, 2026-11-10: Вноси весь пакет из четырёх файлов).
+- Result: Created AGENTS.md and both journals; updated harness/README.md. No application, environment, or other role implementation changes.
+- Check: Independent scenario reviews and static checks passed; no live application or instruction-loading checks. Agreement and prior-review history came from this chat, without independent corroboration.
+- Details: A later explicit request authorized commit eb6f665. Recovery from the paused reword rebase restored experiments-series-runner without rewriting earlier history. Existing active agents must receive revised instructions explicitly.
+
+<a id="dec-002"></a>
+## DEC-002: Focused reading
+
+- Date: 2026-11-10
+- Signal: [SIG-002](SIGNALS.md#sig-002)
+- Status: verified
+- Decision: Prefer targeted, context-aware reading; allow justified whole-file reads and require complete applicable instructions unless already current in context. Recheck changed or incomplete sources.
+- Why: Reduce irrelevant context without losing dependencies or constraints; avoid fixed line caps.
+- Agreement: Human accepted the exact proposed rule in this chat on 2026-11-10: Правило ок.
+- Result: Added [Reading files](../../AGENTS.md#reading-files) and related journal records; no script or skill change in this decision.
+- Check: Seven independent textual scenarios and static checks passed; root file was 8,156 bytes. Runtime improvements and context savings were not measured.
+
+<a id="dec-003"></a>
+## DEC-003: Journal helper and compact decisions
+
+- Date: 2026-11-10
+- Signal: [SIG-003](SIGNALS.md#sig-003)
+- Status: superseded
+- Decision: Use a standard-library Python helper for agent creation, updating, validation, and reviewed migration of Markdown journals. Keep compact decisions and short inline history; supersede agreed substantive decisions instead of rewriting them.
+- Why: Control format drift and record changes without repeating instructions, review transcripts, or complete old/new field texts.
+- Agreement: Human chose create/update/check, mandatory agent use and inline history, then approved the compact schema/history and rewriting existing DEC-001 through DEC-003 in this chat on 2026-11-10: Да, согласен.
+- Result: Added journal.py, isolated tests, the format guide, and mandatory-helper instructions; migrated all six existing records to the compact Markdown format with stable IDs.
+- Check: 18 isolated unittest checks, independent code/migration/instruction reviews, live journal migration/check, and static link/format checks passed. Power-loss recovery and evidence authenticity are not established by these checks.
+
+<a id="dec-004"></a>
+## DEC-004: Current-state records without automatic history
+
+- Date: 2026-11-10
+- Signal: [SIG-003](SIGNALS.md#sig-003)
+- Status: verified
+- Decision: Remove automatic update history from the helper, instructions, and existing journals. Preserve current status, approval, result, checks, and substantive decision links; record exceptional facts only when material.
+- Why: Routine status transitions duplicate current fields and add little value; substantive revisions remain traceable through superseding decisions.
+- Agreement: Human explicitly authorized this change in the current chat on 2026-11-10: Обнови скрипт, инструкции и существующие записи.
+- Result: Removed automatic history and actor/reason arguments; updated helper, instructions, tests, and all seven records to format v2. Current fields and substantive decision links are preserved.
+- Check: 22 fixture tests, independent code/instruction review, static checks, and live migration/check passed. Exact comparison preserved all current fields in seven records. Power-loss recovery was not tested.
+- Supersedes: [DEC-003](DECISIONS.md#dec-003)
+
+<a id="dec-005"></a>
+## DEC-005: Maintainer branch and commit workflow
+
+- Date: 2026-11-10
+- Signal: [SIG-004](SIGNALS.md#sig-004)
+- Status: verified
+- Decision: Ask for branch choice before the first write of each agreed harness change. Confirm base/name and announce automatic commits before creating a new branch; existing branches require explicit commit permission, reusable across the agreed change and review fixes. Require a Harness-prefixed title and a body of one to three lines.
+- Why: Make branch ownership and commit authorization explicit without repeated confirmations within the same work.
+- Agreement: Human supplied these rules, chose experiments-series-runner, and defined session scope as one agreed change plus review fixes (current chat, 2026-11-10).
+- Result: Added Branches and commits to the harness-maintainer skill; root Git defaults remain effective except for the explicit role overrides.
+- Check: Twelve independent textual scenarios and static metadata/link/format checks passed. No live branch creation or commit workflow was executed.
+
+<a id="dec-006"></a>
+## DEC-006: Analyst-orchestrator and persistent task workflow
+
+- Date: 2026-11-11
+- Signal: [SIG-005](SIGNALS.md#sig-005)
+- Status: verified
+- Decision: Add a project analyst-orchestrator skill with task-artifact/delegation references and versioned epic, subtask and specification templates. Support approved end-to-end delivery or bounded subtask sessions, progressive specifications, evidence-based review and resumption. Add a task.py helper with format linting and specification/start/completion/resumption gates backed by a small task.json manifest. Store generated task artifacts under Git-ignored .agent-work/tasks/. Share branch and commit-permission procedures with the maintainer, retain role-specific messages, update entry points and preserve harness-only bootstrap.
+- Why: Support complex future project changes without losing requirements across sessions, expanding scope silently, relying on formalistic tests or declaring completion prematurely.
+- Agreement: The human accepted the interviewed role behavior, analyst gates, versioned templates and linting, and accepted the modular implementation with the task script group under harness/scripts/task/ (current chat: В целом норм, только я бы группы скриптов в отдельные каталоги все же выделял бы — harness/scripts/task, в котором уже предложенная тобой структура). Work remains on the agreed codex/analyst-orchestrator branch, with scoped automatic commits announced before creation.
+- Result: Added the analyst skill, artifact/delegation references and three versioned templates; modular init/lint/snapshot/gates under harness/scripts/task/ with isolated tests; Git-ignored local task state; shared Git permission procedure with retained maintainer messages; updated AGENTS.md and harness availability/routing. Bootstrap is unchanged and other-role gates remain deferred. No application code, environment or experiments changed.
+- Check: 51 harness unittest checks passed (29 task, 22 journal). Independent script and instruction reviews reproduced and rechecked corrections for blockers, Markdown comments/code spans, upfront parent verification and deletion fingerprints across staging; no open findings. Five independent analyst scenarios exercised decomposition with 11 briefs, source drift, inadequate py_compile evidence, stalled fixes and scope/scientific creep. Static metadata, local links, Git ignore and diff checks passed; AGENTS.md is 8471 bytes. The stock skill validator could not run without PyYAML; stdlib and independent metadata checks were used without installing dependencies. Live application delivery, actual developer/reviewer delegation, authenticity of approval/evidence records, power-loss recovery and cross-worktree handoff were not established.
+- Details: The analyst and maintainer must load the revised skills/shared Git procedure; root entry-point instructions were independently reread after editing. Local review evidence is under .agent-work/tasks/script-review-fixtures/, instruction-review/ and analyst-behavior/ and is intentionally not committed.
+
+<a id="dec-007"></a>
+## DEC-007: Python developer skill and analyst integration
+
+- Date: 2026-11-12
+- Signal: [SIG-006](SIGNALS.md#sig-006)
+- Status: superseded
+- Decision: Add an English python-developer project skill for bounded implementation assignments from the analyst. Include the interviewed code-quality, documentation, testing, dependency-escalation and delegation rules, entry checks, review-fix handling and an evidence-bearing handoff. The analyst starts an ordinary subagent with the skill and a self-contained authorized assignment; update analyst instructions, delegation guidance and the harness map to describe this invocation accurately. Keep task-state, Git coordination and completion decisions with the analyst and retain harness-only bootstrap.
+- Why: Provide consistent implementation behavior under the existing analyst workflow, with minimal maintainable code and checks tied to actual task behavior.
+- Agreement: The human approved the complete DEC-007 package in this chat on 2026-11-12 with Да after the final proposal covering the developer skill, analyst integration, interviewed requirements, evidence handoff and independent isolated verification. Earlier answers chose a new codex/python-developer branch from experiments-series-runner with scoped automatic commits announced before creation. Approval covers the agreed harness change and review fixes, not application execution.
+- Result: Added .agents/skills/python-developer/SKILL.md with the agreed implementation, documentation, typing/error-handling, testing, autonomy and handoff rules. Updated analyst skill, delegation invocation contract and harness map. Developer work uses an ordinary analyst-assigned subagent explicitly reading the skill; Git, task state and completion remain with the analyst. Existing helpers and manifest formats are unchanged; no application or environment change was made.
+- Check: Independent instruction review found no actionable issues. An independent developer completed a stdlib fixture fix, reproduced two zero-score failures before implementation, and passed all five summary tests; the six-test full fixture suite retained one intentionally unrelated legacy failure reproduced on the original and left unchanged. Five independent textual scenarios exercised direct invocation, dependency scope, missing bootstrap authority, disputed/supported review findings and failed acceptance alongside an unrelated failure. Maintainer inspected actual fixture changes and raw records, verified source hashes, metadata and 31 local links/fragments, and validated journals/diff. These checks do not establish live application delivery, long-term reliability, host enforcement or authenticity of recorded evidence.
+- Details: Local verification evidence is under .agent-work/tasks/python-developer/instruction-review/, behavior-code/, behavior-boundaries/ and verification/ and is Git-ignored. The analyst must load its revised skill and delegation guidance; new developer assignments explicitly load the developer skill. Test agents read current instructions; no automatic adoption by already active agents is assumed.
+
+<a id="dec-008"></a>
+## DEC-008: Developer commits in analyst-allocated worktrees
+
+- Date: 2026-11-12
+- Signal: [SIG-006](SIGNALS.md#sig-006)
+- Status: verified
+- Decision: Retain DEC-007 developer behavior except Git ownership. Within an already agreed task, let the analyst choose and record subordinate branch names, base commits and dedicated worktree paths and pass scoped commit authority to the assigned developer. Permit developer staging and logically focused commits only in that assigned worktree/branch, including review fixes, without per-commit approval or advance title notification. Use concise English imperative titles and optional explanatory bodies; return base/head, commit hashes, check evidence and remaining changes in the handoff. Analyst retains workspace allocation, integration and shared state. Preserve existing authority limits for push, history rewriting and integration.
+- Why: The separate Git interview established that developers should own commits in isolated working copies while the analyst coordinates branches and integration. Advance title notification adds no decision when task-scoped commits are already authorized.
+- Agreement: The human explicitly approved the final DEC-008 Git workflow in this chat on 2026-11-12 with да, including removal of advance commit-title messages, analyst-allocated subordinate branches/worktrees, task-scoped developer commits and review fixes, optional commit bodies, analyst integration and verification on isolated Git fixtures. This is a review correction to the same developer-role work on codex/python-developer, retaining its scoped automatic maintainer-commit permission.
+- Result: Updated developer and analyst skills, shared Git procedure, delegation and artifact references, harness map and journals. Developers now stage and commit assigned work in analyst-allocated isolated worktrees under task-scoped human authority, without per-commit approval or advance title messages. Review fixes use new commits; analyst allocation, integration and shared state remain intact. Documented canonical evidence transfer and manifest-free worker fingerprints using the existing helper module; helper code and schema are unchanged.
+- Check: Independent instruction review found no actionable defects. An independent developer held a commit for an unrelated staged file, then created two real fixture commits for implementation and a simulated analyst-approved review correction without rewriting history or touching the unrelated note. Four affected tests passed at both revisions. Maintainer verified the append-only graph and preserved evidence, copied 11 reports with matching hashes, fast-forwarded only the isolated coordinator fixture and executed four passing integrated tests. Independent contract fixtures verified one canonical manifest, worker-branch and corrupt/stale-evidence rejection, and an intentionally failing combined result remaining blocked; four textual authority/review scenarios matched the agreed rules. Finding C-01 about manifest-free fingerprints was resolved by documentation and independent execution of the exact snippet. Metadata, 41 local links/fragments and journal/diff checks passed. No live application delivery, full epic lifecycle, concurrent-writer safety, host enforcement or authenticity of synthetic gate approvals/reviews is claimed.
+- Supersedes: [DEC-007](DECISIONS.md#dec-007)
+- Details: Evidence is Git-ignored under .agent-work/tasks/python-developer/git-revision/: instruction-review/, execution/, contract-check/, integration-result.json and assessment.md. Existing analysts/developers need the revised role, Git and artifact instructions; test agents reread them. One independent fixture setup failed on newline handling before gate checks; the checker corrected only its owned fixture and retained both traces. DEC-008 preserves DEC-007 outside the revised Git boundary.
+
+<a id="dec-009"></a>
+## DEC-009: Python reviewer skill and analyst integration
+
+- Date: 2026-11-13
+- Signal: [SIG-007](SIGNALS.md#sig-007)
+- Status: verified
+- Decision: Add a python-reviewer project skill invoked by analyst-assigned independent subagents; update analyst instructions, delegation guidance and harness availability. Review actual source/specification versions, correctness, affected mathematics/algorithms, maintainability and verification evidence; allow assigned isolated reproductions without changing reviewed source. Report concrete blocking findings, narrowly filtered optional recommendations and incomplete verification distinctly. Optional recommendations must identify current in-scope evidence and practical benefit from reduced duplication/change points, simpler unnecessary mechanisms, clearer ambiguous interfaces/contracts, better error diagnostics, meaningful test coverage, or demonstrated wasted computation/resources, with proportionate cost and without treating defects or mandatory requirements as optional. Analyst retains shared state, coordination and acceptance. No new helper, schema, host model configuration or mathematics specialist is included.
+- Why: Replace the brief reviewer fallback contract with interviewed review behavior and evidence-bearing handoffs while controlling speculative recommendations, false acceptance and unapproved fixes.
+- Agreement: The human explicitly accepted the complete proposed package and six concrete optional-recommendation criteria with Да, согласен in this chat on 2026-11-13. Earlier interview answers and the chosen codex/python-reviewer branch from experiments-series-runner remain in force, with scoped automatic maintainer commits announced before creation. Approval covers reviewer instructions, analyst integration, map/journal updates and independent isolated verification, not application execution or the deferred mathematics specialist.
+- Result: Created .agents/skills/python-reviewer/SKILL.md with the agreed review scope, six optional-recommendation criteria, isolated reproductions, version-bound evidence, distinct accepted/changes_requested/incomplete reports and correction handoffs. Updated analyst skill, delegation invocation and harness map. Existing helpers, manifest schema, developer instructions, model configuration and application/environment are unchanged.
+- Check: Independent instruction and final-map reviews found no defects. Six independent textual scenarios exercised recommendation filtering, missing/stale evidence, scientific uncertainty, withdrawal of an unsupported finding and reviewer independence. On a real stdlib fixture, the reviewer found a normalization defect despite four passing developer tests: three of six independent checks failed before correction, then all six passed after a separate fixture fix and R1 was resolved. Source snapshots stayed unchanged during reviews and 18 original evidence artifacts were preserved. Maintainer inspected raw code/results and preservation records. Stdlib metadata, 65 local links/fragments, journal and diff checks passed. The stock skill validator could not start without PyYAML; no packages were installed. Live application delivery, full epic lifecycle, host loader/enforcement and general mathematical reliability are not established.
+- Details: Git-ignored evidence is under .agent-work/tasks/python-reviewer/: assessment.md, instruction-review/, behavior/, execution/ and verification/. The fixture builder initially hashed LF text before Windows wrote CRLF; reviewer detected the mismatch, the normalization explanation was independently checked and saved separately, and original logs were retained. Analysts must load the revised analyst/delegation instructions; new reviewers explicitly load their skill. Test agents loaded them; automatic adoption by existing agents is not assumed.
+
+<a id="dec-010"></a>
+## DEC-010: Four specialist skills and selectable model profiles
+
+- Date: 2026-11-13
+- Signal: [SIG-008](SIGNALS.md#sig-008)
+- Status: verified
+- Decision: Add code-scout, internet-scout, specification-validator and specification-auditor skills, one shared model-profile reference, explicit caller integration and isolated independent verification. Scouts collect evidence without proposing solutions; causal code diagnoses remain labeled judgments/hypotheses. Validator checks readiness and technical constraints; auditor checks request/fact alignment and disproportionate scope/complexity. Both may suggest local wording but return semantic/architectural changes to the analyst. Preserve existing task-state ownership, review independence and bootstrap boundaries.
+- Why: Complete the four remaining planned evidence-gathering and specification-review roles with interviewed responsibilities and explicit selectable model/effort sets.
+- Agreement: On 2026-11-13 the human approved the complete linked proposal and exact model identifiers in this maintenance chat with: Да, согласен. Реализуй весь пакет. Approval includes four specialist skills, shared selectable model profiles, caller/map integration and independent isolated verification. Earlier interview answers define each role and allow all listed model/effort combinations, chosen by the caller for scouts and the analyst for specification roles. The agreed codex/harness-subagents branch from experiments-series-runner retains announced scoped automatic commits for this package and review fixes. Harness-only bootstrap remains in force.
+- Result: Added four English specialist skills and harness/subagent-profiles.md with the approved exact model/effort sets. Updated analyst entry and delegation contracts, maintainer scout invocation and harness availability. Scouts provide evidence without solution proposals; specification roles preserve independent readiness/alignment review and existing manifest ownership. The code-scout causal-label issue found in verification was corrected and rechecked by a fresh worker. No application code, dependency, helper schema/script or native host configuration changed.
+- Check: Independent role assignments exercised code tracing/probe and read-only follow-up, live versioned Python documentation and fictional scientific-source limits, two readiness cases and three alignment cases. Successful launches requested Terra/high, Sol/medium, Sol/high and Astra/high; effective runtime metadata and every allowed combination were not verified. A fresh Terra/high worker passed the affected code-scout recheck. Independent package review and six textual coordination scenarios found no remaining issues. Stdlib metadata checks covered six skills and 85 local links across nine files; journal and whitespace checks passed. Stock quick_validate.py could not run because PyYAML is unavailable; no dependency was installed. Evidence is in .agent-work/tasks/harness-subagents/verification.md and reports/. No live application delivery or real experiment was tested.
+- Details: Proposed identifiers are gpt-6.1-terra, gpt-6.1-sol and gpt-6-astra. Caller selects and records a permitted pair with a brief complexity rationale; no fixed pairing, silent inheritance or unapproved model substitution. Use self-contained assignments, ordinary subagents and existing manifest formats; no native host configuration or new scripts are planned. Prepare four skills, harness/subagent-profiles.md, analyst/delegation and maintainer invocation updates, map and journals. Model performance comparisons and the mathematics specialist are outside this package.
+
+<a id="dec-011"></a>
+## DEC-011: Mathematics reviewer and mandatory review gates
+
+- Date: 2026-11-13
+- Signal: [SIG-009](SIGNALS.md#sig-009)
+- Status: verified
+- Decision: Add an analyst-assigned mathematics-reviewer skill using gpt-6-astra/high or xhigh and transfer independent mathematical correctness from Python reviewer. Require distinct specification and implementation reviewers for substantive mathematical changes; allow bounded isolated probes and correction proposals, with missing-source research routed through analyst/internet-scout. Extend task.py with manifest v2 mathematical-impact assessment, independent current review evidence and start/completion/resumption checks; retain Markdown v1 and add explicit preservation-first migration of selected legacy tasks.
+- Why: Provide the requested mathematical specialist and enforce its mandatory review stages in the existing task workflow, while preserving source evidence, scientific decisions and reviewer independence.
+- Agreement: The human explicitly approved the complete DEC-011 package with да in this chat after the linked proposal and six-point summary, including the new role, distinct stage reviewers, Astra high/xhigh, bounded probes, source routing, mathematical ownership, manifest v2 gates, explicit migration and independent isolated verification. Interview decisions and the selected codex/mathematics-reviewer branch with announced scoped automatic commits remain in force.
+- Result: Added mathematics-reviewer with fixed Astra and caller-selected high/xhigh, separate independent formulation/implementation stages, bounded probes, source routing and correction authorship. Updated analyst, Python reviewer, validator, maintainer, profiles, map and artifact guidance. Task JSON v2 keeps Markdown v1, adds mandatory mathematical records/gates and explicit preservation-first v1 migration. Mathematical scope hashes prevent stale dependency/child evidence reuse; no application, environment or real task migration occurred.
+- Check: Final full harness suite: 101 tests passed (50 focused mathematical/migration cases). Independent package review reproduced PR-001 (stale enclosing mathematical reports); the correction passed seven independent scenarios with no remaining findings. Three distinct Astra agents exercised formulation defects/validity, missing/conflicting definitions, faulty implementation despite passing developer tests, own-correction independence refusal and acceptance of a corrected fixture with real v2 bindings. Raw reports/hashes were inspected and preserved. Stdlib metadata/links passed; stock validator could not import PyYAML, no package installed. Live application delivery, general mathematical reliability, actor/approval authenticity and all model capabilities are not established. Evidence: .agent-work/tasks/harness-mathematics-reviewer/verification.md.
+- Details: Proposal covers the new skill, analyst/delegation/artifact integration, Python reviewer and validator responsibility routing, profiles/map, task helper/schema/migration and isolated verification. It changes the mathematical ownership defined in DEC-009 going forward while retaining other reviewer duties and the historical record; it extends DEC-010 profiles. No application/environment changes or experiments; do not mass-migrate unrelated task artifacts.
+
+<a id="dec-012"></a>
+## DEC-012: Close three mechanical task-check gaps
+
+- Date: 2026-11-15
+- Signal: [SIG-010](SIGNALS.md#sig-010)
+- Status: verified
+- Decision: Apply ancestor blocking findings independently of mathematical classification; exclude included child contributors from independent epic Python review; reject malformed item kinds with normal format diagnostics. Use three separate Terra/Sol high workers, focused regressions and independent integrated review, preserving existing schema, approval and mathematical contracts.
+- Why: The existing gates can permit child work despite a shared-contract blocker or accept review of an author's integrated contribution; malformed kinds produce an avoidable traceback.
+- Agreement: The human authorized concrete fix choices and separate workers, then confirmed the workflow and codex/harness-gate-fixes from experiments-series-runner on 2026-11-15, with no further commit-title approval. The local plan is .agent-work/tasks/harness-gate-fixes/plan.md; no application, environment or general automation changes are authorized.
+- Result: Fixed ancestor-blocker enforcement independently of mathematical classification, included child contributors in epic Python-review exclusions, and diagnosed malformed item kinds before dictionary lookup. Added three focused regression files and clarified the analyst artifact contract. Three separate workers used requested Terra/high, Terra/high and Sol/high profiles; the maintainer integrated their isolated changes on codex/harness-gate-fixes. No schema, application, environment or general automation changes.
+- Check: Baseline: 101 tests passed. Each defect reproduced against base code; final integrated suite passed 114 tests, including 13 new methods. A separate independent reviewer accepted the combined change after 58 original CLI probes, with no fixture mutations or remaining findings. Six integrated input hashes and 13 evidence transfers were verified; simple metadata/local-file checks passed for 9 skills and 148 links. Evidence: .agent-work/tasks/harness-gate-fixes/verification.md. Checks use isolated harness fixtures, not live application delivery or actor/approval authentication.
+- Details: Analysts need the updated task helper and artifact reference; maintainers need the corrected gate contract. Finished workers' detached worktrees and original logs are retained as evidence. Existing v1 migration policy and unrelated deferred harness proposals remain unchanged.
+
+<a id="dec-013"></a>
+## DEC-013: Automate task evidence and lifecycle mechanics
+
+- Date: 2026-11-15
+- Signal: [SIG-011](SIGNALS.md#sig-011)
+- Status: verified
+- Decision: Add four task-helper mechanisms for snapshots/context, explicit check execution, immutable evidence packaging/import, and guarded state transitions. Preserve task JSON v2, Markdown v1, analyst-only canonical state, original evidence bindings, existing gates and human/scientific authority. Use separate Sol/high and Terra/high workers, independent verification and isolated fixtures.
+- Why: Reduce repeated manual hashing, metadata transcription, evidence transfer and state edits without converting stale or incomplete evidence into acceptance.
+- Agreement: The human approved the complete four-part proposal and new codex/harness-task-automation from experiments-series-runner on 2026-11-15. The implementation contract is .agent-work/tasks/harness-task-automation/plan.md; routine implementation choices remain within that approved behavior.
+- Result: Added read-only snapshot/context/math-scope CLI, bounded explicit check execution, validated ZIP evidence packaging/inspection/import/adoption, and guarded checkpoint/completion with preserved state history. Updated analyst/delegation/artifact documentation and harness availability. Separate Sol/high and Terra/high workers implemented the four mechanisms; task JSON v2 and Markdown v1 remain unchanged. No application, environment or global agent configuration changes.
+- Check: Final integrated suite passed 160 tests on Python 3.14 (exit 0); two end-to-end lifecycle tests and independent CLI/failure probes covered cross-checkout transfer, stale/corrupt/failed evidence, missing reviews, partial outcomes and state integrity. Independent review accepted after four supported P2 fixes and correction checks; four instruction-use scenarios passed. Metadata/local links passed for 9 skills and 156 targets. The initial full run's Windows fixture rename failure was corrected and retained separately. Evidence: .agent-work/tasks/harness-task-automation/verification.md. Runtime 3.10, arbitrary external writers/power loss and live application delivery are not established.
+- Details: Analysts adopt current helper and automation/artifact references; workers receive context/check/report operations through current delegation instructions. Output/process limits and actual partial-result reporting are documented. Original worker evidence and independent reproductions remain preserved; no approval or stale report was silently rebound.
+
+<a id="dec-014"></a>
+## DEC-014: Add harness validation and assigned Git quality checks
+
+- Date: 2026-11-15
+- Signal: [SIG-012](SIGNALS.md#sig-012)
+- Status: verified
+- Decision: Implement the five approved checks with shared assignment/path rules, index-aware hook execution, separate Terra/Sol high workers and independent review. Keep task JSON v2 and Markdown v1, analyst authority and harness-only scope.
+- Why: Make repeated static checks reproducible and detect wrong checkout, staged scope violations, intermediate commit violations and unavailable checking infrastructure without replacing substantive review.
+- Agreement: The human approved the complete five-part plan in this chat, selected the current codex/harness-task-automation branch and authorized naming/creating scoped commits without confirmation. Actual hook activation in the working checkout remains a separate decision. Detailed plan: .agent-work/tasks/harness-quality-checks/plan.md.
+- Result: Added quality.py with common harness validation, pinned analyst-owned Git assignments and staged checks, per-commit handoff inspection, explicit optional staged hooks and readiness diagnostics. Five separate Terra/Sol high workers implemented components; maintainer integrated shared CLI and analyst/developer/Git documentation. Task JSON v2 and Markdown v1 remain unchanged; no application/environment changes or working-checkout hook activation.
+- Check: Python 3.14.0/Git 2.45.1.windows.1: baseline 160 tests passed; integrated 204 passed before final hook corrections; final affected suite 45 passed with -E -S -B. Final 18-command actual Git fixture exercised assigned hook install, staged checks, commits, handoff, doctor and uninstall. Independent Sol/high review accepted after nine reproduced findings were corrected and rechecked, plus four role scenarios. Validator and primary doctor passed; hook remains not_configured. Raw logs, source hashes, verified evidence transfers and limits: .agent-work/tasks/harness-quality-checks/verification.md. Python 3.10 and other platforms were not executed; checks do not authenticate authority, replace semantic review or freeze external writers.
+- Details: Existing analysts and developers need revised skills, delegation/artifact references and Git quality procedures; maintainers need the quality command reference. Original worker checkouts and review failures are preserved. Hook activation remains a separate human decision. Actual final fixture commit timings were 4.744 s for documentation and 5.834 s for the journal helper plus selected tests, not universal latency bounds.
+
+<a id="dec-015"></a>
+## DEC-015: Define maintainer overview and implementation workflow
+
+- Date: 2026-11-16
+- Signal: [SIG-013](SIGNALS.md#sig-013)
+- Status: verified
+- Decision: Clarify request-scoped overviews, confirmation triggers and algorithm-only human plans; delegate substantive harness-script work to separate Terra/Sol workers with caller-selected medium/high/xhigh by task complexity. Keep instruction writing and orchestration with the maintainer, permit minor mechanical/integration edits, and make scoped technical fixes autonomous after plan approval. Preserve existing review and Git rules.
+- Why: Make the repeatedly requested workflow explicit without generalizing historical commit permissions, urgency or individual implementation choices into permanent rules.
+- Agreement: In chat 01a1e0fe-4d6d-7cc0-94e1-116e730f62fc the human approved all four discussed groups, the effort-selection criteria and the final five-file package with да on 2026-11-16, including codex/harness-maintainer-workflow from experiments-series-runner at d39609f. Detailed scope and source mapping: .agent-work/tasks/harness-maintainer-workflow/plan.md.
+- Result: Updated the maintainer skill with scoped overviews, confirmation triggers, algorithm-only human plans, substantive script delegation and autonomous fixes within an approved plan. Added a separate Terra/Sol medium/high/xhigh implementation-worker profile with complexity criteria and aligned the harness map. Existing specialist rows, Git rules, scripts and application/environment remain unchanged.
+- Check: Common harness validation passed, including metadata, local links/anchors, templates and journals; repeated successfully after the review correction. Independent textual trial exercised nine scenarios; one nonblocking ambiguity about ordinary requests versus supplementary instructions was clarified and two fresh scenarios passed. Raw responses were inspected. Stock quick_validate could not import PyYAML; no dependency installed. No live implementation workflow or model benchmark was exercised. Evidence: .agent-work/tasks/harness-maintainer-workflow/verification.md.
+- Details: Maintainers need the revised skill and implementation profile; new workers receive the profile and scoped assignments. File edits do not prove adoption by active agents. Historical Git/urgency instructions remain excluded. The explicit additional-instruction confirmation trigger is intentional; existing instruction precedence and reuse of prior confirmation remain.
+
+<a id="dec-016"></a>
+## DEC-016: Use analyst-first feedback with exceptional worker registration
+
+- Date: 2026-11-16
+- Signal: [SIG-014](SIGNALS.md#sig-014)
+- Status: verified
+- Decision: Keep agent feedback in the existing journal: analyst-first triage, registration and authorized local response; immediate pause/escalation for blockers and a session-end signal summary. Permit workers to register after refusal or an unprocessed report in the assigned common journal. Leave later review to the human and maintainer; preserve approval, Git and execution boundaries.
+- Why: Preserve feedback even when the analyst does not register it, without introducing scheduled delivery, a service, a new journal format or automatic maintainer invocation.
+- Agreement: In this chat the human proposed the journal-only analyst workflow, accepted the narrow fallback with 'Да, как исключение', and selected option 'А' after the implementation package/branch choices: codex/harness-signal-routing from experiments-series-runner with announced scoped automatic commits. Source mapping: .agent-work/tasks/harness-signal-routing/plan.md.
+- Result: Aligned nine role skills, delegation, feedback documentation, harness map and Git rules for analyst-first reporting, exceptional worker registration in the assigned shared journal, blocker escalation and session-end summaries, followed by human-led maintainer review. Existing journal format and scripts are unchanged.
+- Check: Common harness validation passed on final instructions. Independent nine-scenario behavioral trial and separate requirements/consistency review accepted the change after correcting shared Git mediation and rechecking handoff clarifications. A five-command isolated CLI probe verified explicit shared-directory creation, unchanged worker/real journals and locked-write refusal. Stock quick_validate lacked PyYAML; no dependency installed. No live application workflow, real cross-worktree/sandbox enforcement or notification guarantee is claimed.
+- Details: Evidence and raw independent reports: .agent-work/tasks/harness-signal-routing/verification.md. Analysts and all assigned worker roles need the updated feedback contract and shared journal destination; maintainers need human-led review/Git rules. Existing active agents must receive these instructions explicitly.
+
+<a id="dec-017"></a>
+## DEC-017: Add the experiment campaign operator skill
+
+- Date: 2026-11-24
+- Signal: [SIG-015](SIGNALS.md#sig-015)
+- Status: verified
+- Decision: Add a project skill to refine outlined scenarios, plan and operate authorized series, choose progress milestones with the human, recover within budget and report verified coverage by source scenario.
+- Why: The CLI already implements execution and recovery. The operator needs to preserve scientific intent, make effective settings visible and keep independent jobs running when a single job fails.
+- Agreement: In the design interview the human approved pilot and main-run authority, budgets, retry limits, selectable updates, immediate failure notices and row-level delivery. The final replies confirmed the boundary excluding research design from scratch and the new task branch.
+- Result: Added .agents/skills/experiment-campaign/SKILL.md and the harness map entry. The skill uses the existing series CLI and saved campaign reader.
+- Check: Harness validation and YAML metadata passed. Three independent agents exercised planning, pilot authority, startup, cadence, partial delivery, selective retry and DP recovery in simulated conversations. Rechecked the read-only-plan/output mismatch after clarification, and verified CLI argument help. No live campaign was run as a skill test.
+
+<a id="dec-018"></a>
+## DEC-018: Add the experiment design skill
+
+- Date: 2026-11-26
+- Signal: [SIG-016](SIGNALS.md#sig-016)
+- Status: verified
+- Decision: Add a project skill that turns a research topic into justified comparisons and a standalone Markdown design for the campaign operator.
+- Why: The operator already prepares executable plans from outlined scenarios. Research questions, controls and the conclusions a campaign can support need to be settled upstream.
+- Agreement: In the design interview the human approved options for broad topics, targeted primary-source research, optional unsupported comparisons, budget prioritization and a Markdown handoff. Replies 9 and 10 authorized implementation on codex/experiment-design-skill from experiments-series-runner.
+- Result: Added experiment-design, linked it from experiment-campaign and listed it in the harness map. Named comparison rows preserve the scientific scope and identify information the operator still needs.
+- Check: Harness validation and skill metadata passed. Three independent agents exercised topic refinement, primary-source lookup, budget and unsupported measurements, and a saved design read by the operator. A second handoff preserved the dataset reference and flagged absent method mappings and settings. The checks used simulated requests without live experiment runs.
+
+<a id="dec-019"></a>
+## DEC-019: Reconcile the role map with installed skills
+
+- Date: 2026-11-26
+- Signal: [SIG-017](SIGNALS.md#sig-017)
+- Status: verified
+- Decision: List all project skills in the Roles table, distinguish direct entry points from delegated workers and align the map with the current signal-review route and quality tools.
+- Why: The operator and designer appeared elsewhere in the map, but the role table omitted both. Valid links alone did not detect the inventory gap.
+- Agreement: The human requested a Markdown currency check and approved correcting the documentation and committing on experiments-series-runner.
+- Result: Updated harness/README.md with linked role rows, a direct table shortcut, the human-led signal-review route and the quality guide and tools in the repository layout.
+- Check: Compared each role row and layout entry against all 11 installed skills; each matched once (previously 9 table rows). Harness validation passed and the three helper CLIs exposed the documented commands. A code scout compared worker contracts, task formats, templates and quality commands with their local sources. This was a documentation check, without live role or experiment runs.
+
+<a id="dec-020"></a>
+## DEC-020: Check affected documentation before harness commits
+
+- Date: 2026-11-26
+- Signal: [SIG-018](SIGNALS.md#sig-018)
+- Status: verified
+- Decision: For every harness change, the maintainer compares affected documentation with its owning sources before committing. An independent subagent checks role roster, responsibility or coordination changes and changes to commands or formats documented in several places. The maintainer applies confirmed documentation fixes and rechecks them.
+- Why: The role table missed two installed skills despite valid links and mentions elsewhere in the same map. Targeted comparisons can find omissions without requiring a full audit for a local editorial fix.
+- Agreement: The human approved the proposed threshold, reuse of an existing independent review, maintainer-owned corrections and implementation and commit on experiments-series-runner in replies 1 and 2.
+- Result: The maintainer skill defines the check before commit or handoff of uncommitted work. The harness map links to it and lists documentation among the maintainer's responsibilities.
+- Check: In an isolated replay of d285fec, a maintainer reused the behavioral reviewer, confirmed both missing Roles rows and rechecked an in-memory correction (11 of 11). A wording-only scenario used self-check. Independent review of the live diff found a missing ownership detail in the map and rechecked the correction. Harness and skill validators passed. Verification covered the documented workflow and simulated cases.
+
+<a id="dec-021"></a>
+## DEC-021: Integrate task branches locally and publish the selected Git result
+
+- Date: 2026-11-26
+- Signal: [SIG-019](SIGNALS.md#sig-019)
+- Status: verified
+- Decision: Allow the maintainer and analyst to create, use or delegate task-local branches and integrate reviewed work into the working branch. Offer named delivery routes at completion. Show the PR title, full description and branches for human review before publication.
+- Why: Routine integration stays within the agreed task. The human chooses which branch leaves that scope and can edit what reviewers will see.
+- Agreement: The human confirmed local C-to-B integration, selected-branch pushes and direct or post-merge PRs, chose preview before publication, and approved the full plan including concise diff-based writing rules with «Утверждаю» in this maintenance chat. The review confirmation includes the necessary source-branch push.
+- Result: Updated harness/git-workflow.md, the maintainer and analyst skills, the analyst integration reference and the role map. Both coordinators use the revised procedure; workers receive their scoped branch assignment from the coordinator.
+- Check: Five isolated Git scenarios exercised local integration, selected-branch pushes and distinct direct and post-merge PR comparisons. The maintainer checked the bare refs and both diffs. A separate reader exercised both roles in four scenarios covering pre-publication review, missing targets, edits and retry. One map omission was corrected and independently rechecked, including entry points, role table, layout and developer handoff. Harness validation and diff checks passed. No hosted PR was created. Fixture evidence: .agent-work/tasks/harness-git-workflow/fixture/report.md.
+- Details: Extends the coordinator permissions shared under DEC-005 and DEC-006 and complements the delegated developer procedure under DEC-008.
+
+<a id="dec-022"></a>
+## DEC-022: Remove merged task-owned branches and worktrees after verification
+
+- Date: 2026-11-26
+- Signal: [SIG-020](SIGNALS.md#sig-020)
+- Status: verified
+- Decision: Both coordinators clean up local branches and temporary worktrees created for their task after verified integration, release and preservation of required artifacts. Include the agent-created working branch after the human selects its merge.
+- Why: Release completed task workspaces automatically while retaining the chosen delivery branch, user work and evidence.
+- Agreement: The human accepted the cleanup proposal for both roles and confirmed commits for the follow-up on codex/harness-git-workflow. The live merge of that branch will be a separate delivery choice.
+- Result: Added the shared post-merge cleanup procedure, both coordinator completion instructions, the analyst evidence-transfer reference and the harness map. Coordinators remove eligible task-owned local refs/worktrees and identify retained items in the handoff.
+- Check: Real Git fixtures exercised cleanup in a linked and primary checkout, exact-target versus upstream ancestry, refusal on a lagging upstream, preservation of dirty or occupied worktrees, transfer of an ignored report with SHA-256 verification and switch/merge collisions with ignored files. Five independent role scenarios covered ownership, PR delivery, retries, unfinished tasks and evidence paths. Review fixes for ignored-file collisions, ongoing epic/gate use and map coverage were independently rechecked. Harness validation and diff checks passed. OS-level file locks and concurrent external writers were not tested. Evidence: .agent-work/tasks/harness-git-cleanup/fixture/report.md.
+- Details: Extends the local integration and delivery workflow under DEC-021.

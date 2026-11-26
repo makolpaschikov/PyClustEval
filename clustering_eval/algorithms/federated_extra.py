@@ -7,7 +7,10 @@ import numpy as np
 from ..privacy.aggregate_dp import public_initial_centers, noisy_joint_aggregate, project_centers, stable_noisy_count_threshold
 
 from .base import AlgorithmResult, ClusteringAlgorithm
-from ..federated.environment import participation_entry_for_round
+from ..federated.environment import (
+    downlink_recipients, early_stopping_allowed, historical_stopping,
+    participation_entry_for_round, stopping_report,
+)
 from ..federated.initialization import federated_priority_sample_centers, federated_global_variance
 
 
@@ -43,6 +46,8 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
         m = float(params.get("fuzziness", 2.0))
         if m <= 1:
             raise ValueError("fuzziness must be greater than 1")
+        can_stop = early_stopping_allowed(params, rounds, len(partition))
+        converged = False
 
         init_participation = participation_entry_for_round(params, 0, len(partition))
         dp = params.get('dp_aggregate')
@@ -66,6 +71,7 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
             participation = participation_entry_for_round(
                 params, rnd, len(partition)
             )
+            communication += centers.nbytes * downlink_recipients(params, participation, partition)
             for client_id in participation["successful_clients"]:
                 indices = partition[client_id]
                 Xc = X[indices]
@@ -78,7 +84,7 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
                 weighted_sums += um.T @ Xc
                 weights += um.sum(axis=0)
                 objective += float((um * dist2).sum())
-                communication += centers.nbytes + weighted_sums.nbytes + weights.nbytes
+                communication += weighted_sums.nbytes + weights.nbytes
 
             if dp is not None:
                 weighted_sums, weights = noisy_joint_aggregate(dp, weighted_sums, weights)
@@ -96,7 +102,8 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
                 "successful_clients": participation["successful_clients"],
                 "dropped_clients": participation["dropped_clients"],
             })
-            if shift < tol:
+            converged = can_stop and shift < tol
+            if converged:
                 break
 
         labels = np.argmin(_squared_distances(X, centers), axis=1)
@@ -105,6 +112,7 @@ class FedFuzzyCMeansNumpy(ClusteringAlgorithm):
             model_state={
                 "centers": centers.tolist(),
                 "rounds": len(history),
+                **stopping_report(params, can_stop, converged, "center_displacement"),
                 "fuzziness": m,
                 "backend": "numpy-federated",
                 "initialization": init_report,
@@ -137,6 +145,10 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
         rounds = int(params.get("rounds", 20))
         tol = float(params.get("tol", 1e-4))
         reg = float(params.get("reg_covar", 1e-6))
+        historical = historical_stopping(params)
+        gmm_measure = "max_means_variances_weights_displacement" if historical else "means_displacement"
+        can_stop = early_stopping_allowed(params, rounds, len(partition))
+        converged = False
 
         init_participation = participation_entry_for_round(params, 0, len(partition))
         dp = params.get('dp_aggregate')
@@ -170,6 +182,8 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
             participation = participation_entry_for_round(
                 params, rnd, len(partition)
             )
+            payload = means.nbytes + variances.nbytes + weights.nbytes
+            communication += payload * downlink_recipients(params, participation, partition)
             for client_id in participation["successful_clients"]:
                 indices = partition[client_id]
                 Xc = X[indices]
@@ -192,8 +206,7 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
                 sum_x += resp.T @ Xc
                 sum_x2 += resp.T @ (Xc * Xc)
                 communication += (
-                    means.nbytes + variances.nbytes + weights.nbytes
-                    + nk.nbytes + sum_x.nbytes + sum_x2.nbytes
+                    nk.nbytes + sum_x.nbytes + sum_x2.nbytes
                 )
 
             if dp is not None:
@@ -206,6 +219,10 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
                 reg,
             )
             shift = float(np.linalg.norm(new_means - means))
+            if historical:
+                # The archive measures all three proposed changes before DP projection.
+                shift = max(shift, float(np.linalg.norm(new_variances - variances)),
+                            float(np.linalg.norm(new_weights - weights)))
             if dp is not None:
                 new_means = project_centers(new_means, dp['clip_norm'])
                 new_variances = np.clip(new_variances, reg, dp['clip_norm']**2)
@@ -220,7 +237,8 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
                     "dropped_clients": participation["dropped_clients"],
                 }
             )
-            if shift < tol:
+            converged = can_stop and shift < tol
+            if converged:
                 break
 
         scores = []
@@ -238,6 +256,7 @@ class FedDiagonalGMMNumpy(ClusteringAlgorithm):
                 "variances": variances.tolist(),
                 "weights": weights.tolist(),
                 "rounds": len(history),
+                **stopping_report(params, can_stop, converged, gmm_measure),
                 "backend": "numpy-federated",
                 "initialization": {
                     "means": means_init_report,

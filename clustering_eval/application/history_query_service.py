@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -44,7 +44,8 @@ class HistoryQueryService:
                 # One damaged experiment must not hide the rest of history.
                 continue
 
-        summaries.sort(key=lambda item: item.started_at, reverse=True)
+        # Older native reports use local wall time. Normalize only the ordering key.
+        summaries.sort(key=lambda item: item.started_at.astimezone(timezone.utc), reverse=True)
         return summaries if limit is None else summaries[: max(limit, 0)]
 
     def get_experiment(self, history_key: str) -> HistoryExperimentDetails:
@@ -151,7 +152,7 @@ class HistoryQueryService:
             algorithm=str(item.get("algorithm", "unknown")),
             backend=str(item.get("backend", "unknown")),
             runtime_sec=float(item.get("runtime_sec", 0.0)),
-            communication_bytes=int(item.get("communication_bytes", 0)),
+            communication_bytes=(None if item.get("communication_bytes") is None else int(item["communication_bytes"])),
             rounds=item.get("rounds", "—"),
             ari=_optional_float(item.get("ari")),
             nmi=_optional_float(item.get("nmi")),
@@ -187,6 +188,7 @@ class HistoryQueryService:
             ),
             participation_rate=float(value.get("participation_rate", 1.0)),
             dropout_rate=float(value.get("dropout_rate", 0.0)),
+            heterogeneity=dict(value.get("heterogeneity") or {}),
             round_schedule=[
                 dict(item)
                 for item in value.get("round_schedule", [])

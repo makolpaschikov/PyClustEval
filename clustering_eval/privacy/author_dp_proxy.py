@@ -144,8 +144,14 @@ def run_dp_author_proxy(name: str, X: np.ndarray, partition: list[np.ndarray],
     C = float(dp['clip_norm'])
     enabled = bool(dp['enabled'])
     rounds = int(dp['budgeted_rounds'])
+    if not enabled and dp['sigma_per_coordinate'] != 0:
+        raise ValueError("Clipped author control requires zero aggregate noise")
+    if enabled and (not np.isfinite(dp['sigma_per_coordinate']) or dp['sigma_per_coordinate'] <= 0):
+        raise ValueError("Gaussian author proxy requires positive aggregate noise")
     is_fkm = name == 'Adapted FKM'
     is_density = name == 'Adapted HF_DBSCAN'
+    if not is_fkm and rounds != 1:
+        raise ValueError("One-shot author proxy requires a one-round budget")
     # A SINGLE round of DP release for four one-shot server adapters.
     # FKM retains scheduled, sequentially composed 20 rounds.
     q = (k if is_fkm else max(24, 4*k))
@@ -249,30 +255,39 @@ def run_dp_author_proxy(name: str, X: np.ndarray, partition: list[np.ndarray],
                         sensitivity=2.0) if enabled else 0.0),
                     'dp_density_projection': 'public-seeded random orthonormal 2D projection',
                     'dp_density_projection_seed': int(seed),
-                    'known_limitation': ('Author density server uses privatized '
-                        'DP-candidate histogram in a public 2D projection, not the '
-                        'original full-dimensional sparse occupied-cell map')})
+                    'known_limitation': ('Author density server uses a candidate-cell histogram '
+                        'in a public 2D projection instead of its original full-dimensional grid')})
         history.append({'round':1, 'selected_clients': participation['selected_clients'],
                         'successful_clients':active, 'dropped_clients':participation['dropped_clients'],
                         'num_dp_representatives':len(candidates)})
-        if is_density:
+        if is_density and enabled:
             state_extra['privacy_budget_split'] = ('epsilon/2,delta/2 for local prototypes; '
                                                    'epsilon/2,delta/2 for histogram')
+    protected_release = None
+    if enabled:
+        protected_release = 'DP local aggregate representatives'
+        if is_density:
+            protected_release += ' and candidate-cell histogram'
     state = {
         'backend': 'author-server DP proxy',
         'author_algorithm': name,
-        'dp_variant': _DP_VARIANTS[name],
-        'dp_mechanism': 'record_level_Gaussian_local_aggregate_representatives',
+        'dp_variant': _DP_VARIANTS[name] if enabled else None,
+        'clipped_control': not enabled,
+        'dp_mechanism': 'record_level_Gaussian_local_aggregate_representatives' if enabled else None,
         'algorithm_fidelity': ('MODIFIED: author SERVER retained, original LOCAL '
-                               'client stage replaced with bounded DP aggregates'),
+                               'client stage replaced with bounded aggregate representatives'),
         'not_equivalent_to_author_original': True,
-        'protected_release': 'DP local aggregate representatives (and DP cells for HF_DBSCAN)',
+        'protected_release': protected_release,
         'private_raw_x_used_for_evaluation_only': True,
-        'dp_accounting': dp['accounting'],
+        'dp_accounting': dp['accounting'] if enabled else None,
         'dp_budgeted_rounds': rounds,
         'rounds': len(history),
         'global_centers': np.asarray(centers).tolist(),
-        'dp_noise_rng': 'OS CSPRNG; benchmark seed does not reproduce DP noise',
+        'dp_noise_rng': 'OS CSPRNG; benchmark seed does not reproduce DP noise' if enabled else None,
+        # Counts refer to completed mechanism invocations, including draws whose
+        # postprocessing produced no surviving prototypes or selected cells.
+        'noised_client_prototype_queries': sum(len(r['successful_clients']) for r in history) if enabled else 0,
+        'noised_histogram_queries': int(enabled and is_density),
         **state_extra,
     }
     return AlgorithmResult(labels=np.asarray(labels, dtype=int), model_state=state,

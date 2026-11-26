@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from math import isfinite
 from pathlib import Path
 from typing import Any, Literal
 
@@ -75,8 +76,25 @@ class RunRequest:
             raise ValueError("Unsupported tuning mode")
         if self.target_clusters is not None and self.target_clusters < 2:
             raise ValueError("target_clusters must be at least 2 when provided")
-        if self.rounds < 1:
-            raise ValueError("rounds must be at least 1")
+        if type(self.rounds) is not int or self.rounds < 1:
+            raise ValueError("rounds must be a positive integer")
+        for field_name in ("tol", "dp_epsilon", "dp_delta", "dp_clip_norm"):
+            value = getattr(self, field_name)
+            if type(value) not in (int, float) or not isfinite(value):
+                raise ValueError(f"{field_name} must be finite")
+        if self.target_clusters is not None and type(self.target_clusters) is not int:
+            raise ValueError("target_clusters must be an integer")
+        for layer in (self.algorithm_params, *self.algorithm_params_by_name.values()):
+            if not isinstance(layer, dict):
+                raise ValueError("Expected a mapping of algorithm overrides")
+            for key in ("rounds", "k", "n_clusters"):
+                if key in layer and (type(layer[key]) is not int or layer[key] < 1):
+                    raise ValueError(f"Override {key} must be a positive integer")
+            if "k" in layer and "n_clusters" in layer and layer["k"] != layer["n_clusters"]:
+                raise ValueError("Conflicting k and n_clusters overrides in the same layer")
+            if "tol" in layer and (type(layer["tol"]) not in (int, float)
+                                   or not isfinite(layer["tol"]) or layer["tol"] <= 0):
+                raise ValueError("Override tol must be finite and positive")
         if self.tol <= 0:
             raise ValueError("tol must be greater than zero")
         if self.max_iter < 1:
@@ -124,7 +142,7 @@ class AlgorithmRunReport:
     algorithm: str
     backend: str
     runtime_sec: float
-    communication_bytes: int
+    communication_bytes: int | None
     rounds: int | str
     ari: float | None
     nmi: float | None
@@ -162,11 +180,31 @@ class PartitionReport:
 
 
 @dataclass(slots=True)
+class CampaignReportRequest:
+    """Native-history view of the recorded controls of a resolved campaign comparison."""
+    mode: RunMode
+    dataset_name: str
+    algorithms: tuple[str, ...]
+    seed: int
+    protocol: dict[str, Any]
+
+    def __getattr__(self, name: str) -> Any:
+        # Native exporters also read GUI controls absent from some campaign profiles.
+        if name in RunRequest.__dataclass_fields__:
+            return self.protocol.get(name)
+        raise AttributeError(name)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**self.protocol, "mode": self.mode, "dataset_name": self.dataset_name,
+                "algorithms": self.algorithms, "seed": self.seed}
+
+
+@dataclass(slots=True)
 class ComparisonReport:
     experiment_id: str
     started_at: datetime
     finished_at: datetime
-    request: RunRequest
+    request: RunRequest | CampaignReportRequest
     dataset_display_name: str
     n_samples: int
     n_features: int
@@ -182,6 +220,8 @@ class ComparisonReport:
 
     def to_dict(self) -> dict[str, Any]:
         value = asdict(self)
+        if isinstance(self.request, CampaignReportRequest):
+            value["request"] = self.request.to_dict()
         value["started_at"] = self.started_at.isoformat()
         value["finished_at"] = self.finished_at.isoformat()
         value["duration_sec"] = self.duration_sec
@@ -219,4 +259,3 @@ class HistoryExperimentDetails:
     duration_sec: float
     partition: PartitionReport | None = None
     log_text: str = ""
-
