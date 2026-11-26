@@ -281,3 +281,15 @@
 - Result: Added the shared post-merge cleanup procedure, both coordinator completion instructions, the analyst evidence-transfer reference and the harness map. Coordinators remove eligible task-owned local refs/worktrees and identify retained items in the handoff.
 - Check: Real Git fixtures exercised cleanup in a linked and primary checkout, exact-target versus upstream ancestry, refusal on a lagging upstream, preservation of dirty or occupied worktrees, transfer of an ignored report with SHA-256 verification and switch/merge collisions with ignored files. Five independent role scenarios covered ownership, PR delivery, retries, unfinished tasks and evidence paths. Review fixes for ignored-file collisions, ongoing epic/gate use and map coverage were independently rechecked. Harness validation and diff checks passed. OS-level file locks and concurrent external writers were not tested. Evidence: .agent-work/tasks/harness-git-cleanup/fixture/report.md.
 - Details: Extends the local integration and delivery workflow under DEC-021.
+
+<a id="dec-023"></a>
+## DEC-023: Maintain the English project map through a dual-entry role
+
+- Date: 2026-11-27
+- Signal: [SIG-021](SIGNALS.md#sig-021)
+- Status: verified
+- Decision: Add the project-map-maintainer skill for direct requests and integrated analyst handoffs before completion. Define English index and README formats, directory coverage, task-scoped edits, navigation and Git ownership.
+- Why: Agents need searchable routes into the repository and current package context as the project changes.
+- Agreement: The human approved the four-part implementation and independent verification plan in the maintenance chat on 2026-11-27, after selecting standalone maintainer Git procedure and confirming initial map work belongs to later sessions.
+- Result: Added the project-map-maintainer skill, direct and delegated Git ownership, project navigation instructions, and the analyst's post-integration map handoff per delivered unit. Updated the shared Git guide and harness role inventory.
+- Check: Harness validation passed. Independent fixture trials exercised read-only audit, unchanged-map handoff, a new package, a moved file and a user-visible CLI change (four documents, five working links). A fresh standalone trial clarified a literal Russian keyword, committed only the English index entry and retained its selected branch. Independent documentation review reconciled 12 installed roles, Git ownership and final-tree checks. No live application delivery or initial project-wide map build was run.

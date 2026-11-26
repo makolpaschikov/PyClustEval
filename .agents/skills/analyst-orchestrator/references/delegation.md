@@ -1,7 +1,7 @@
 # Delegation and independent review
 
-Read when assigning implementation, evidence gathering or review. All seven worker
-roles below use linked project skills with ordinary subagents. Use the host's
+Read when assigning implementation, evidence gathering, review or project map work.
+The worker roles below use linked project skills with ordinary subagents. Use the host's
 available collaboration API and respect its concurrency limits. For the two
 scouts, two specification roles and mathematics reviewer, select model and reasoning under
 the [shared profile policy](../../../../harness/subagent-profiles.md). Other roles
@@ -57,6 +57,23 @@ human explicitly asks for them.
 | Python developer | Give the approved spec, shared contracts, writable scope and acceptance plan. Request implementation and actual checks with a handoff. | No changes to agreed requirements/scientific conditions or unassigned environment; route questions through analyst. |
 | Python reviewer | Give the request/spec, actual changes and execution evidence. Ask for code defects, regressions, scope violations and verification gaps. | Independent from authors and analyst; mathematical validity goes to the specialist through the analyst. |
 | Mathematics reviewer | Give the stage, mathematical claims, assumptions, sources, scope/authorship and actual implementation/evidence as applicable. | Separate independent agents for formulation and implementation; bounded probes and reasoned proposals only, no reviewed-file edits. |
+| Project map maintainer | Give the delivered unit's integrated diff and checkout. Inspect map corrections or the reason the existing documents still apply. | Writes affected map documents; the analyst owns Git and completion. |
+
+## Project map maintainer invocation
+
+Start an ordinary subagent with the absolute path to the
+[project map maintainer skill](../../project-map-maintainer/SKILL.md). Require it
+to read the skill. Supply the working checkout and branch, the unit's actual
+pre-task base and integrated result (including relevant uncommitted changes),
+and the permitted map documents. Distinguish unrelated work in a shared checkout.
+Include enough context to identify moves, deletions, new packages and public
+changes; a diff of the last commit alone can omit earlier work. Assign the
+worker after integration and before closing the delivered unit. Ask it to check
+the root README and affected destinations, make needed edits and return checked
+links, supporting source paths and remaining questions, or a no-change rationale.
+The analyst inspects its diff, stages and commits accepted edits and owns the
+final evidence bindings. The worker uses the assigned checkout without switching
+branches or initiating standalone Git delivery.
 
 ## Scout invocation
 

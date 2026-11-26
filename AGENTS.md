@@ -18,7 +18,9 @@ and experiment execution; explain this boundary when such work is requested.
 Relevant project code and configuration may be read to investigate harness
 requirements. An application-work request alone does not lift this restriction;
 obtain explicit human agreement to end or expand the bootstrap scope.
-Reuse such agreement once given.
+Reuse such agreement once given. During bootstrap, the
+[project map maintainer](.agents/skills/project-map-maintainer/SKILL.md) may read
+project sources and maintain English map documents within its assigned scope.
 
 Use [harness-maintainer](.agents/skills/harness-maintainer/SKILL.md) for harness
 changes. Distinguish implemented components from planned ones. Do not pretend
@@ -119,6 +121,11 @@ and option labels `А`, `Б`, `В`, etc.
   scope without repeated approval and report them.
 
 ### Reading files
+
+When locating code or documentation by purpose, start with the root `INDEX.md`
+when available and follow its coordinates to the directory README or file.
+Otherwise use the project README and targeted search. Open a known path directly.
+Verify claims about behavior in the owning source.
 
 Read only the material needed for the current task. Locate relevant files,
 sections, and symbols with targeted searches before opening large files.

@@ -1,10 +1,13 @@
 # Git workflow for maintainers and analysts
 
-The maintainer and analyst skills explicitly adopt these permission rules in place
+The harness maintainer, analyst and standalone project map maintainer skills
+explicitly adopt these permission rules in place
 of the corresponding root commit-permission defaults. Each role defines its unit
 of work and commit-message convention. The developer skill adopts the delegated
 worktree section below, which also governs analyst allocation of that work.
 All other root Git rules remain in force.
+
+The analyst owns Git operations for its delegated project map assignments.
 
 ## Task branch and maintainer commits
 
@@ -42,7 +45,8 @@ establish authentic permission.
 
 ## Task-local branches
 
-Once the human agrees the task and its working branch, the maintainer or analyst
+Once the human agrees the task and its working branch, the harness maintainer,
+analyst or standalone project map maintainer
 may create local branches from it, commit the agreed work and review fixes there,
 and merge them back into the working branch without another confirmation.
 This includes a merge commit when the branches have diverged. Honor any narrower
@@ -108,7 +112,7 @@ existing matching PR before creating one.
 
 ## Local cleanup after a verified merge
 
-At completion, the maintainer or analyst automatically removes local branches
+At completion, the role coordinating delivery automatically removes local branches
 and temporary linked worktrees created by the agent for this task once their
 merge has been verified. For a child branch the destination is the working
 branch. For an agent-created working branch it is the base into which the human

@@ -1,6 +1,6 @@
 # PyClustEval agent harness
 
-Use the [role table](#roles) to find the project skill for experiment design, campaign operation, application development or harness maintenance.
+Use the [role table](#roles) to find the project skill for experiment design, campaign operation, application development, project navigation or harness maintenance.
 
 ## Current state and entry point
 
@@ -73,10 +73,15 @@ and explicitly selected [model/effort profiles](subagent-profiles.md), with fres
 self-contained context when the host requires it. These profiles do not change
 Python developer/reviewer settings or their existing assistance-routing rules.
 
+Invoke [$project-map-maintainer](../.agents/skills/project-map-maintainer/SKILL.md)
+to audit or maintain the English root README, project index and directory
+READMEs. The analyst also assigns this skill to an ordinary subagent to update
+the map for an integrated delivery.
+
 ## Roles
 
-The first four skills are entry points for a project chat. The remaining seven
-receive bounded assignments through the delegation procedures above.
+The first five skills are entry points for a project chat. The project map
+maintainer also accepts analyst assignments. The remaining roles are delegated.
 
 | Role | Input and responsibility | Output and boundary |
 | --- | --- | --- |
@@ -84,6 +89,7 @@ receive bounded assignments through the delegation procedures above.
 | [Analyst-orchestrator](../.agents/skills/analyst-orchestrator/SKILL.md) | Understand the human's request, investigate the relevant context, and produce a self-contained specification. Delegate implementation tasks, request reviews, answer agents' questions from evidence, and coordinate corrections. | An implementation-ready specification, coordinated handoffs, and a delivery report with verification evidence and unresolved issues. Ask the human about decisions that cannot be resolved from the agreed task and available evidence. |
 | [Experiment designer](../.agents/skills/experiment-design/SKILL.md) (`$experiment-design`) | Work with the researcher to turn a topic into questions and comparisons. Check controls, feasibility and budget. | An agreed Markdown design with one row per comparison, its rationale and open questions for the operator. |
 | [Experiment campaign operator](../.agents/skills/experiment-campaign/SKILL.md) (`$experiment-campaign`) | Refine outlined comparisons or a design into an executable plan. Run, monitor or resume a campaign within its approved scope. | A validated plan for planning requests. After execution, report archive verification, actual coverage and any failures by source scenario. |
+| [Project map maintainer](../.agents/skills/project-map-maintainer/SKILL.md) | Audit or update the English project map on request. Inspect the integrated diff of each unit delivered by the analyst. | Referenced findings, verified map edits or a reason the map is current. Uses the shared Git workflow for standalone edits. The analyst commits delegated edits. |
 | [Python developer](../.agents/skills/python-developer/SKILL.md) | Implement assigned specification requirements in the application's Python code and project environment. Run checks appropriate to the change and report deviations or blockers. | Code and environment changes, verification results, and a concise handoff to the analyst. Do not silently redefine requirements to fit an implementation. |
 | [Python reviewer](../.agents/skills/python-reviewer/SKILL.md) | Independently inspect code changes for defects, regressions, task compliance and maintainability; assess verification evidence. | Route mathematical questions to the specialist through the analyst; return supported findings, optional recommendations and verification gaps without implementing fixes. |
 | [Mathematics reviewer](../.agents/skills/mathematics-reviewer/SKILL.md) | Independently assess mathematical formulations and implementations against scoped claims, assumptions and sources; perform authorized bounded checks. | Distinct stage reviewers; evidence-backed findings, reasoned correction proposals and incomplete assessments through the analyst. No reviewed-file edits; source research through internet-scout. |
@@ -92,10 +98,11 @@ receive bounded assignments through the delegation procedures above.
 | [Specification validator](../.agents/skills/specification-validator/SKILL.md) | Check completeness, ambiguity, consistency, observable acceptance and material technical constraints against code/interfaces. | Independent readiness findings and verdict; local wording suggestions are allowed, while semantic/architecture decisions return to the analyst. |
 | [Specification auditor](../.agents/skills/specification-auditor/SKILL.md) | Compare original requests/corrections and project facts with the spec; inspect omissions, unsupported assumptions and disproportionate scope/complexity. | Independent alignment findings and verdict with concrete evidence; no invented user intent, preference-based objections or spec edits. |
 
-Both the maintainer and the analyst integrate task-local branches into the agreed
-working branch. At completion they offer the [Git delivery choices](git-workflow.md#delivery-at-completion);
-the human reviews the proposed branches, title and body before either role publishes a PR.
-Both roles [clean up merged task branches and temporary worktrees](git-workflow.md#local-cleanup-after-a-verified-merge)
+The harness maintainer, analyst and standalone project map maintainer integrate
+any task-local branches into the agreed working branch. At completion they offer
+the [Git delivery choices](git-workflow.md#delivery-at-completion); the human
+reviews the proposed branches, title and body before publication. These roles
+[clean up merged task branches and temporary worktrees](git-workflow.md#local-cleanup-after-a-verified-merge)
 after checking the merge, worker handoff and preservation of required files.
 
 All roles in the table are implemented as project skills. The mathematical role
@@ -123,7 +130,8 @@ remain analyst-owned under the [automation contract](../.agents/skills/analyst-o
 2. For large/risky work, distinct validators and auditors check readiness and alignment with the original request/project facts. A small task may combine these two assessments in one independent agent with a recorded rationale. The analyst records mathematical impact and obtains required independent formulation review before approval/start. It resolves findings and records consequential clarifications; implementation review remains independent.
 3. The analyst assigns bounded implementation tasks in dedicated developer worktrees, including the specification, permitted scope, base/branch, commit authority, dependencies and acceptance checks. Developers commit their assigned changes. Parallel assignments need clear ownership and analyst-led integration; local task evidence is transferred and revalidated before completion.
 4. The Python reviewer checks code changes; a different mathematical stage agent reviews applicable mathematical implementation. The analyst routes fixes and obtains independent review of corrections, preserving authorship and scientific authority.
-5. The analyst reports the integrated result, checks and remaining limitations, offers the applicable Git delivery choices and cleans up eligible local branches and worktrees.
+5. After integration and before closing each separately delivered unit, the analyst gives its complete diff to the project map maintainer, inspects its edits or no-change rationale, and checks final evidence against the resulting tree.
+6. The analyst reports the integrated result, checks and remaining limitations, offers the applicable Git delivery choices and cleans up eligible local branches and worktrees.
 
 The analyst owns communication between these roles. It answers questions from the agreed requirements and evidence; material gaps in user intent go back to the human. Repeated failures or unresolved disagreements require a revised approach or a clear blocker report, not an endless developer/reviewer loop.
 
@@ -183,6 +191,8 @@ AGENTS.md                                  available: shared project instruction
   skills/
     harness-maintainer/
       SKILL.md                             available: maintainer workflow
+    project-map-maintainer/
+      SKILL.md                             available: standalone and delegated project map maintenance
     experiment-design/
       SKILL.md                             available: design comparisons from a research topic
     experiment-campaign/
@@ -240,7 +250,7 @@ including content bindings for relevant dependency/child mathematical contracts.
 Use the [explicit migration procedure](../.agents/skills/analyst-orchestrator/references/task-artifacts.md#explicit-legacy-migration)
 for a selected v1 task; it preserves original evidence and requires reassessment.
 
-All seven worker definitions are project skills explicitly read by ordinary
+All delegated role definitions are project skills explicitly read by ordinary
 subagents. Model selection is an explicit caller action, not automatic skill loading
 or host agent registration. Native host configuration is not part of this package.
 

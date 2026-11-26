@@ -247,3 +247,15 @@
 - Status: resolved
 - Decision: [DEC-022](DECISIONS.md#dec-022)
 - Agreement: The human approved automatic cleanup under merge, ownership, inactivity, clean-worktree and artifact-preservation conditions, and approved work and commits on codex/harness-git-workflow. Its use as a live cleanup case is conditional on selecting its merge at delivery.
+
+<a id="sig-021"></a>
+## SIG-021: Add a project map maintainer role
+
+- Date: 2026-11-27
+- Origin: Human request in the harness maintenance chat
+- Owner: harness-maintainer
+- Request: Add a standalone and analyst-delegated role to maintain the English root README, project index and package READMEs. Define how agents use the map for navigation.
+- Evidence: The human confirmed that role creation and analyst integration are in scope. Initial map authoring and translation are reserved for a separate session. An in-depth interview was requested.
+- Status: resolved
+- Decision: [DEC-023](DECISIONS.md#dec-023)
+- Details: Include first-party packages, tests, tools and configs; use a single third_party overview preserving nested docs. Search by purpose through the index; direct paths can skip it. Standalone audits report, update requests edit, and standalone writes use maintainer Git workflow. Analyst delegates final integrated diff per separately delivered unit and owns its commit. First map population is a later standalone request.
